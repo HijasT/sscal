@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.10.0]
+
+### Changed
+- Replaced Sales Kitty's emoji sprite with a proper animated inline-SVG cat (orange, with stripes, ears, tail, and four legs) — walking now animates a real leg-swing gait and a continuously wagging tail instead of swapping static glyphs; jumping, sitting, purring (squinting eyes), and licking (tongue flick) are now genuine part-level animations on the same character rather than different emoji.
+- Auto-comments now fire on a strict minimum 20-second cooldown (previously they could appear as often as every ~17s during a settle phase) — the cat visibly stops, sits, and does a little "looking at you" head-nod while it talks, then resumes wandering. Poking it also resets the cooldown so it doesn't immediately chime in again afterward.
+- Added a personalized line — "{first name}, is that you?" — used for a fraction of auto-comments when a staff name is available. Read-only: reads whatever names are already sitting in the last Bulk & Analytics Excel upload (`localStorage['sic_bulk_upload']`), reusing the existing `stripEmployeeCode()` helper to get a clean first name. No new coupling to calculator state, no data leaves the browser.
+- Still fully local: no image assets, no new dependencies, `prefers-reduced-motion` now also disables the SVG's own CSS `animation`s (tail wag, leg step, look-nod, lick, jump, flinch), not just `transition`s.
+
 ## [8.9.1]
 
 ### Fixed

@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import { stripEmployeeCode } from '@/lib/excelUtils'
 
 // Idle commentary while wandering — sarcastic jabs about sales performance.
 const WANDER_COMMENTS = [
@@ -24,29 +25,23 @@ const POKE_COMMENTS = [
   "Petting me won't hit target either.",
 ]
 
-const KITTY_SIZE = 34
+// Chance an eligible auto-comment uses the personalized line instead of a wander comment.
+const PERSONAL_COMMENT_CHANCE = 0.35
+
+const KITTY_SIZE = 40
 const MARGIN = 16
 
 // Must match .sales-kitty-wrap's transform transition duration in globals.css —
 // this is how long a walk between two points visually takes.
 const WALK_MS = 2500
-const SETTLE_MIN_MS = 4000
-const SETTLE_MAX_MS = 9000
+const SETTLE_MIN_MS = 3000
+const SETTLE_MAX_MS = 6000
 const JUMP_MS = 650
-const COMMENT_DELAY_MS = 900
+// Comments only fire this often (or less) — anything shorter feels like nagging.
+const COMMENT_INTERVAL_MS = 20000
 const BUBBLE_MS = 4000
 
 type Behavior = 'walking' | 'sitting' | 'purring' | 'licking' | 'jumping'
-
-// Native cat-face emoji already double as poses — no image assets needed.
-const BEHAVIOR_EMOJI: Record<Behavior, string> = {
-  walking: '🐈',
-  sitting: '🐈',
-  purring: '😻',
-  licking: '😽',
-  jumping: '🙀',
-}
-const POKED_EMOJI = '😾'
 
 const SETTLE_BEHAVIORS: Behavior[] = ['sitting', 'purring', 'licking', 'jumping']
 
@@ -65,14 +60,43 @@ function pickRandom<T>(list: T[], exclude?: T): T {
   return options[Math.floor(Math.random() * options.length)] ?? list[0]
 }
 
+// Reads whatever staff names are already sitting in the last Excel upload
+// (Bulk & Analytics persists it to localStorage) so the cat can call someone
+// out by name. Read-only, no props/state coupling to the calculator.
+function getRandomStaffFirstName(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const stored = localStorage.getItem('sic_bulk_upload')
+    if (!stored) return null
+    const parsed = JSON.parse(stored)
+    const sheets = parsed?.excelData
+    if (!Array.isArray(sheets)) return null
+
+    const names = new Set<string>()
+    for (const sheet of sheets) {
+      for (const person of sheet?.staff ?? []) {
+        if (person?.name) names.add(person.name)
+      }
+    }
+    if (names.size === 0) return null
+
+    const cleaned = stripEmployeeCode(pickRandom([...names]))
+    return cleaned.split(' ')[0] || null
+  } catch {
+    return null
+  }
+}
+
 export function Kitty() {
   const [pos, setPos] = useState({ x: MARGIN, y: MARGIN })
   const [facingLeft, setFacingLeft] = useState(false)
   const [behavior, setBehavior] = useState<Behavior>('sitting')
+  const [looking, setLooking] = useState(false)
   const [bubble, setBubble] = useState<string | null>(null)
   const [poked, setPoked] = useState(false)
   const [pokeComment, setPokeComment] = useState<string | null>(null)
-  const lastCommentRef = useRef<string | undefined>(undefined)
+  const lastCommentTextRef = useRef<string | undefined>(undefined)
+  const lastCommentAtRef = useRef<number>(0)
   const bubbleTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
   const pokeTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
 
@@ -86,40 +110,55 @@ export function Kitty() {
       return
     }
 
+    lastCommentAtRef.current = Date.now() // grace period before the first comment
+
     const timeouts: ReturnType<typeof setTimeout>[] = []
     const schedule = (fn: () => void, ms: number) => {
       timeouts.push(setTimeout(fn, ms))
     }
 
-    const settle = () => {
-      const next = pickRandom(SETTLE_BEHAVIORS)
-      setBehavior(next)
+    const pickComment = () => {
+      const name = getRandomStaffFirstName()
+      if (name && Math.random() < PERSONAL_COMMENT_CHANCE) return `${name}, is that you?`
+      const comment = pickRandom(WANDER_COMMENTS, lastCommentTextRef.current)
+      lastCommentTextRef.current = comment
+      return comment
+    }
 
-      // The jump pose is a brief bounce, not a resting pose — drop back to sitting after it plays.
-      if (next === 'jumping') {
-        schedule(() => setBehavior('sitting'), JUMP_MS)
+    const afterWalk = () => {
+      const dueForComment = Date.now() - lastCommentAtRef.current >= COMMENT_INTERVAL_MS
+
+      if (dueForComment) {
+        // Stop and look at the user while it says its piece.
+        setBehavior('sitting')
+        setLooking(true)
+        lastCommentAtRef.current = Date.now()
+        setBubble(pickComment())
+        clearTimeout(bubbleTimeoutRef.current)
+        bubbleTimeoutRef.current = setTimeout(() => {
+          setBubble(null)
+          setLooking(false)
+          schedule(walk, 400)
+        }, BUBBLE_MS)
+        return
       }
 
-      schedule(() => {
-        const comment = pickRandom(WANDER_COMMENTS, lastCommentRef.current)
-        lastCommentRef.current = comment
-        setBubble(comment)
-        clearTimeout(bubbleTimeoutRef.current)
-        bubbleTimeoutRef.current = setTimeout(() => setBubble(null), BUBBLE_MS)
-      }, COMMENT_DELAY_MS)
-
+      const pose = pickRandom(SETTLE_BEHAVIORS)
+      setBehavior(pose)
+      if (pose === 'jumping') {
+        schedule(() => setBehavior('sitting'), JUMP_MS)
+      }
       schedule(walk, SETTLE_MIN_MS + Math.random() * (SETTLE_MAX_MS - SETTLE_MIN_MS))
     }
 
     const walk = () => {
-      setBubble(null)
       setBehavior('walking')
       setPos((prev) => {
         const next = randomPoint()
         setFacingLeft(next.x < prev.x)
         return next
       })
-      schedule(settle, WALK_MS)
+      schedule(afterWalk, WALK_MS)
     }
 
     walk()
@@ -132,15 +171,18 @@ export function Kitty() {
   }, [])
 
   const handleClick = () => {
+    lastCommentAtRef.current = Date.now() // don't also fire an auto-comment right after this
     setPoked(true)
     setPokeComment(pickRandom(POKE_COMMENTS))
     clearTimeout(pokeTimeoutRef.current)
     pokeTimeoutRef.current = setTimeout(() => setPoked(false), BUBBLE_MS)
   }
 
-  const displayEmoji = poked ? POKED_EMOJI : BEHAVIOR_EMOJI[behavior]
   const displayBubble = poked ? pokeComment : bubble
-  const behaviorClass = poked ? 'poked' : behavior === 'jumping' ? 'jumping' : ''
+  const isWalking = behavior === 'walking' && !poked
+  const isJumping = behavior === 'jumping' && !poked
+  const eyeState = poked ? 'wide' : behavior === 'purring' ? 'happy' : 'normal'
+  const showTongue = behavior === 'licking' && !poked
 
   return (
     <div className="sales-kitty-wrap" style={{ transform: `translate(${pos.x}px, ${pos.y}px)` }}>
@@ -149,16 +191,42 @@ export function Kitty() {
       )}
       <button
         type="button"
-        className={`sales-kitty ${behaviorClass}`}
+        className={`sales-kitty ${poked ? 'poked' : ''} ${isJumping ? 'jumping' : ''}`}
         onClick={handleClick}
         aria-label="A cat, mostly here to judge your sales numbers. Click it if you dare."
       >
-        <span
-          className="sales-kitty-face"
-          style={{ transform: facingLeft ? 'scaleX(-1)' : undefined }}
-        >
-          {displayEmoji}
-        </span>
+        <svg viewBox="0 0 64 40" className="kitty-svg" aria-hidden="true">
+          <g style={{ transform: facingLeft ? 'scaleX(-1)' : undefined, transformOrigin: '32px 20px' }}>
+            <path className="kitty-tail" d="M15,23 C6,25 2,16 8,7" />
+            <g className={`kitty-legs kitty-legs-back ${isWalking ? 'stepping' : ''}`}>
+              <rect x="15" y="27" width="4" height="10" rx="2" />
+              <rect x="23" y="27" width="4" height="10" rx="2" />
+            </g>
+            <ellipse className="kitty-body" cx="32" cy="23" rx="17" ry="10" />
+            <rect className="kitty-stripe" x="22" y="15" width="4" height="16" rx="2" />
+            <rect className="kitty-stripe" x="31" y="15" width="4" height="16" rx="2" />
+            <g
+              className={`kitty-legs kitty-legs-front ${isWalking ? 'stepping' : ''}`}
+              style={{ animationDelay: isWalking ? '-0.3s' : undefined }}
+            >
+              <rect x="40" y="27" width="4" height="10" rx="2" />
+              <rect x="48" y="27" width="4" height="10" rx="2" />
+            </g>
+            <g className={`kitty-head ${looking ? 'looking' : ''}`}>
+              <polygon className="kitty-ear" points="41,7 44,1 47,8" />
+              <polygon className="kitty-ear" points="53,7 56,1 58,8" />
+              <circle className="kitty-face" cx="49" cy="15" r="10" />
+              <ellipse className={`kitty-eye ${eyeState}`} cx="46" cy="13" rx="1.6" ry="2.2" />
+              <ellipse className={`kitty-eye ${eyeState}`} cx="52" cy="13" rx="1.6" ry="2.2" />
+              <polygon className="kitty-nose" points="48,18 51,18 49.5,20" />
+              <ellipse className={`kitty-tongue ${showTongue ? 'licking' : ''}`} cx="49.5" cy="21.5" rx="1.4" ry="2" />
+              <line className="kitty-whisker" x1="39" y1="16" x2="30" y2="14" />
+              <line className="kitty-whisker" x1="39" y1="18" x2="30" y2="18" />
+              <line className="kitty-whisker" x1="59" y1="16" x2="68" y2="14" />
+              <line className="kitty-whisker" x1="59" y1="18" x2="68" y2="18" />
+            </g>
+          </g>
+        </svg>
       </button>
     </div>
   )

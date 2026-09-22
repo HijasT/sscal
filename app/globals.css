@@ -741,23 +741,19 @@ input[type="range"]::-moz-range-thumb {
 
 .sales-kitty {
   pointer-events: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
+  display: block;
+  width: 52px;
   height: 34px;
   padding: 0;
   border: none;
   background: transparent;
-  font-size: 26px;
-  line-height: 1;
   cursor: pointer;
   filter: drop-shadow(var(--shadow-md));
   transition: transform 0.2s ease;
 }
 
 .sales-kitty:hover {
-  transform: scale(1.15);
+  transform: scale(1.1);
 }
 
 .sales-kitty.poked {
@@ -766,11 +762,6 @@ input[type="range"]::-moz-range-thumb {
 
 .sales-kitty.jumping {
   animation: sales-kitty-jump 0.65s ease;
-}
-
-.sales-kitty-face {
-  display: inline-block;
-  transition: transform 0.2s ease;
 }
 
 @keyframes sales-kitty-flinch {
@@ -782,6 +773,108 @@ input[type="range"]::-moz-range-thumb {
 @keyframes sales-kitty-jump {
   0%, 100% { transform: translateY(0); }
   40%, 60% { transform: translateY(-14px); }
+}
+
+.kitty-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Orange cat palette */
+.kitty-body,
+.kitty-face,
+.kitty-ear {
+  fill: #f2994a;
+}
+
+.kitty-stripe {
+  fill: #d9822b;
+}
+
+.kitty-legs rect {
+  fill: #e07f36;
+}
+
+.kitty-tail {
+  fill: none;
+  stroke: #f2994a;
+  stroke-width: 5;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: 100% 60%;
+  animation: kitty-tail-wag 1.1s ease-in-out infinite;
+}
+
+.kitty-eye {
+  fill: #2b2f35;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  transition: transform 0.2s ease;
+}
+
+.kitty-eye.happy { transform: scaleY(0.2); }
+.kitty-eye.wide { transform: scaleY(1.4); }
+
+.kitty-nose {
+  fill: #b23a3a;
+}
+
+.kitty-whisker {
+  stroke: #7a4a20;
+  stroke-width: 0.75;
+  stroke-linecap: round;
+}
+
+.kitty-tongue {
+  fill: #e08a9a;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+  transition: opacity 0.15s ease;
+}
+
+.kitty-tongue.licking {
+  opacity: 1;
+  animation: kitty-lick 0.5s ease-in-out infinite;
+}
+
+.kitty-head {
+  transform-box: fill-box;
+  transform-origin: 50% 70%;
+}
+
+.kitty-head.looking {
+  animation: kitty-look-nod 1s ease-in-out infinite;
+}
+
+.kitty-legs {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+}
+
+.kitty-legs.stepping {
+  animation: kitty-leg-step 0.6s ease-in-out infinite;
+}
+
+@keyframes kitty-tail-wag {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(10deg); }
+}
+
+@keyframes kitty-leg-step {
+  0%, 100% { transform: rotate(16deg); }
+  50% { transform: rotate(-16deg); }
+}
+
+@keyframes kitty-look-nod {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-6deg); }
+}
+
+@keyframes kitty-lick {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.6); }
 }
 
 .sales-kitty-bubble {
@@ -814,6 +907,10 @@ input[type="range"]::-moz-range-thumb {
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
+  .kitty-tail, .kitty-legs.stepping, .kitty-head.looking, .kitty-tongue.licking,
+  .sales-kitty.jumping, .sales-kitty.poked {
+    animation: none !important;
+  }
 }
 
 @media (max-width: 768px) {
