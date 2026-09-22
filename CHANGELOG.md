@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.9.1]
+
+### Fixed
+- Bulk & Analytics tab could crash entirely with "Cannot read properties of undefined (reading 'min')" whenever the tier list was empty or a stale/mismatched tier reference existed — a regression from the 8.7.0 tier restructuring, where `calculateIncentive()`'s "below lowest tier" projection (`lib/utils.ts`) indexed `sortedTiers[0]` without a guard, unlike the equivalent code already fixed in `BulkResultsView.tsx`. Also hardened `loadTiers()` to fall back to `DEFAULT_TIERS` when the saved tier list is empty or malformed (previously only an empty/missing localStorage value triggered the fallback), and added a matching guard to `BulkResultsView.tsx`'s own tier-projection logic for the case where a cached calculation's tier no longer matches any currently configured tier.
+
 ## [8.9.0]
 
 ### Changed

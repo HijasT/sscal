@@ -10,9 +10,10 @@ export function loadTiers(): Tier[] {
   try {
     const stored = localStorage.getItem('sic_tiers')
     if (!stored) return DEFAULT_TIERS
-    
+
     const parsed = JSON.parse(stored)
-    
+    if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_TIERS
+
     // FIX: JSON.stringify converts Infinity to null, restore it
     return parsed.map((tier: Tier) => ({
       ...tier,
@@ -184,7 +185,10 @@ export function calculateIncentive(
   const sortedTiers = [...tiers].sort((a, b) => a.min - b.min)
   const currentTierIndex = sortedTiers.findIndex(t => t.id === tier.id)
 
-  if (tier.rate === 0) {
+  if (sortedTiers.length === 0) {
+    // No tiers configured at all — nothing to project toward.
+    nextTierInfo = null
+  } else if (tier.rate === 0) {
     const lowestTier = sortedTiers[0]
     const requiredSales = (lowestTier.min / 100) * teamTarget
     const deficit = requiredSales - teamSales
@@ -209,8 +213,9 @@ export function calculateIncentive(
       deficit: deficit,
       isMaxTier: false
     }
-  } else if (currentTierIndex === sortedTiers.length - 1) {
-    const highestTier = sortedTiers[currentTierIndex]
+  } else {
+    // Current tier, or a top/unmatched tier — treat as the highest tier reached.
+    const highestTier = sortedTiers[currentTierIndex] ?? sortedTiers[sortedTiers.length - 1]
     const thresholdSales = (highestTier.min / 100) * teamTarget
     const thresholdPool = (highestTier.rate / 100) * thresholdSales
     const actualPool = (highestTier.rate / 100) * teamSales
