@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.9.0]
+
+### Changed
+- Upgraded Sales Kitty (`components/Kitty.tsx`) from a single static pose to a proper walk/settle behavior loop: it now strolls to a random point, then randomly sits, purrs, licks (grooms), or jumps for a few seconds before showing its sarcastic comment and moving on — cycling indefinitely. Poses are native cat-face emoji swaps (🐈/😻/😽/🙀), no image assets. Considered wiring in a third-party "walking cat" widget (techtools.cz) instead but kept this local: an external `<script src>` would add an unpinned, unaudited third-party dependency executing on every page load, contradicting the app's "100% local calculation · No data shared" guarantee. Same click-to-poke interaction as before (now shows 😾), same comment pools, still zero dependencies/localStorage/network calls.
+
 ## [8.8.0]
 
 ### Added

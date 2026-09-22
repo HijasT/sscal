@@ -764,10 +764,24 @@ input[type="range"]::-moz-range-thumb {
   animation: sales-kitty-flinch 0.4s ease;
 }
 
+.sales-kitty.jumping {
+  animation: sales-kitty-jump 0.65s ease;
+}
+
+.sales-kitty-face {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
 @keyframes sales-kitty-flinch {
   0%, 100% { transform: rotate(0deg); }
   25% { transform: rotate(-18deg); }
   75% { transform: rotate(18deg); }
+}
+
+@keyframes sales-kitty-jump {
+  0%, 100% { transform: translateY(0); }
+  40%, 60% { transform: translateY(-14px); }
 }
 
 .sales-kitty-bubble {

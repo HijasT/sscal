@@ -24,13 +24,31 @@ const POKE_COMMENTS = [
   "Petting me won't hit target either.",
 ]
 
-const BUBBLE_MS = 4000
-const MIN_WALK_MS = 7000
-const MAX_WALK_MS = 14000
-const MIN_COMMENT_MS = 16000
-const MAX_COMMENT_MS = 26000
 const KITTY_SIZE = 34
 const MARGIN = 16
+
+// Must match .sales-kitty-wrap's transform transition duration in globals.css —
+// this is how long a walk between two points visually takes.
+const WALK_MS = 2500
+const SETTLE_MIN_MS = 4000
+const SETTLE_MAX_MS = 9000
+const JUMP_MS = 650
+const COMMENT_DELAY_MS = 900
+const BUBBLE_MS = 4000
+
+type Behavior = 'walking' | 'sitting' | 'purring' | 'licking' | 'jumping'
+
+// Native cat-face emoji already double as poses — no image assets needed.
+const BEHAVIOR_EMOJI: Record<Behavior, string> = {
+  walking: '🐈',
+  sitting: '🐈',
+  purring: '😻',
+  licking: '😽',
+  jumping: '🙀',
+}
+const POKED_EMOJI = '😾'
+
+const SETTLE_BEHAVIORS: Behavior[] = ['sitting', 'purring', 'licking', 'jumping']
 
 function randomPoint() {
   if (typeof window === 'undefined') return { x: MARGIN, y: MARGIN }
@@ -42,79 +60,105 @@ function randomPoint() {
   }
 }
 
-function pickRandom(list: string[], exclude?: string) {
-  const options = exclude ? list.filter((c) => c !== exclude) : list
+function pickRandom<T>(list: T[], exclude?: T): T {
+  const options = exclude !== undefined ? list.filter((item) => item !== exclude) : list
   return options[Math.floor(Math.random() * options.length)] ?? list[0]
 }
 
 export function Kitty() {
   const [pos, setPos] = useState({ x: MARGIN, y: MARGIN })
   const [facingLeft, setFacingLeft] = useState(false)
+  const [behavior, setBehavior] = useState<Behavior>('sitting')
   const [bubble, setBubble] = useState<string | null>(null)
   const [poked, setPoked] = useState(false)
+  const [pokeComment, setPokeComment] = useState<string | null>(null)
   const lastCommentRef = useRef<string | undefined>(undefined)
   const bubbleTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
+  const pokeTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
 
   useEffect(() => {
-    setPos(randomPoint())
-
-    // Respect reduced-motion: keep the cat clickable, just stop it wandering.
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    let walkTimeout: ReturnType<typeof setTimeout>
-    let commentTimeout: ReturnType<typeof setTimeout> | undefined
 
-    if (!reduceMotion) {
-      const scheduleWalk = () => {
-        walkTimeout = setTimeout(() => {
-          setPos((prev) => {
-            const next = randomPoint()
-            setFacingLeft(next.x < prev.x)
-            return next
-          })
-          scheduleWalk()
-        }, MIN_WALK_MS + Math.random() * (MAX_WALK_MS - MIN_WALK_MS))
-      }
-      scheduleWalk()
-
-      const scheduleComment = () => {
-        commentTimeout = setTimeout(() => {
-          setPoked(false)
-          const comment = pickRandom(WANDER_COMMENTS, lastCommentRef.current)
-          lastCommentRef.current = comment
-          setBubble(comment)
-          clearTimeout(bubbleTimeoutRef.current)
-          bubbleTimeoutRef.current = setTimeout(() => setBubble(null), BUBBLE_MS)
-          scheduleComment()
-        }, MIN_COMMENT_MS + Math.random() * (MAX_COMMENT_MS - MIN_COMMENT_MS))
-      }
-      scheduleComment()
+    if (reduceMotion) {
+      // Keep the cat clickable, just stop it wandering/animating.
+      setPos(randomPoint())
+      setBehavior('sitting')
+      return
     }
 
+    const timeouts: ReturnType<typeof setTimeout>[] = []
+    const schedule = (fn: () => void, ms: number) => {
+      timeouts.push(setTimeout(fn, ms))
+    }
+
+    const settle = () => {
+      const next = pickRandom(SETTLE_BEHAVIORS)
+      setBehavior(next)
+
+      // The jump pose is a brief bounce, not a resting pose — drop back to sitting after it plays.
+      if (next === 'jumping') {
+        schedule(() => setBehavior('sitting'), JUMP_MS)
+      }
+
+      schedule(() => {
+        const comment = pickRandom(WANDER_COMMENTS, lastCommentRef.current)
+        lastCommentRef.current = comment
+        setBubble(comment)
+        clearTimeout(bubbleTimeoutRef.current)
+        bubbleTimeoutRef.current = setTimeout(() => setBubble(null), BUBBLE_MS)
+      }, COMMENT_DELAY_MS)
+
+      schedule(walk, SETTLE_MIN_MS + Math.random() * (SETTLE_MAX_MS - SETTLE_MIN_MS))
+    }
+
+    const walk = () => {
+      setBubble(null)
+      setBehavior('walking')
+      setPos((prev) => {
+        const next = randomPoint()
+        setFacingLeft(next.x < prev.x)
+        return next
+      })
+      schedule(settle, WALK_MS)
+    }
+
+    walk()
+
     return () => {
-      clearTimeout(walkTimeout)
-      clearTimeout(commentTimeout)
+      timeouts.forEach(clearTimeout)
       clearTimeout(bubbleTimeoutRef.current)
+      clearTimeout(pokeTimeoutRef.current)
     }
   }, [])
 
   const handleClick = () => {
     setPoked(true)
-    setBubble(pickRandom(POKE_COMMENTS))
-    clearTimeout(bubbleTimeoutRef.current)
-    bubbleTimeoutRef.current = setTimeout(() => setBubble(null), BUBBLE_MS)
+    setPokeComment(pickRandom(POKE_COMMENTS))
+    clearTimeout(pokeTimeoutRef.current)
+    pokeTimeoutRef.current = setTimeout(() => setPoked(false), BUBBLE_MS)
   }
+
+  const displayEmoji = poked ? POKED_EMOJI : BEHAVIOR_EMOJI[behavior]
+  const displayBubble = poked ? pokeComment : bubble
+  const behaviorClass = poked ? 'poked' : behavior === 'jumping' ? 'jumping' : ''
 
   return (
     <div className="sales-kitty-wrap" style={{ transform: `translate(${pos.x}px, ${pos.y}px)` }}>
-      {bubble && <div className={`sales-kitty-bubble ${poked ? 'poked' : ''}`}>{bubble}</div>}
+      {displayBubble && (
+        <div className={`sales-kitty-bubble ${poked ? 'poked' : ''}`}>{displayBubble}</div>
+      )}
       <button
         type="button"
-        className={`sales-kitty ${poked ? 'poked' : ''}`}
-        style={{ transform: facingLeft ? 'scaleX(-1)' : undefined }}
+        className={`sales-kitty ${behaviorClass}`}
         onClick={handleClick}
         aria-label="A cat, mostly here to judge your sales numbers. Click it if you dare."
       >
-        🐱
+        <span
+          className="sales-kitty-face"
+          style={{ transform: facingLeft ? 'scaleX(-1)' : undefined }}
+        >
+          {displayEmoji}
+        </span>
       </button>
     </div>
   )
