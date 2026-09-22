@@ -54,7 +54,12 @@ function toMapping(entries: StaffCenterEntry[]): Record<string, string> {
   return mapping
 }
 
-export function SettingsTab() {
+interface SettingsTabProps {
+  kittyEnabled: boolean
+  onToggleKitty: (enabled: boolean) => void
+}
+
+export function SettingsTab({ kittyEnabled, onToggleKitty }: SettingsTabProps) {
   const [tiers, setTiers] = useState<Tier[]>(DEFAULT_TIERS)
   const [showDefaults, setShowDefaults] = useState(true)
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
@@ -580,6 +585,32 @@ export function SettingsTab() {
           <li>Staff with no code, or a code not listed here, show as "Unassigned" in Center-wise Stats</li>
           <li>Changes apply immediately to Bulk Results' Center-wise Stats section</li>
         </ul>
+      </div>
+    </section>
+
+    <section className="card" style={{marginTop: '24px'}}>
+      <div className="card-header">
+        <h2 className="card-title">🐈 Preferences</h2>
+        <div className="card-description">
+          Small extras that don't affect any calculation
+        </div>
+      </div>
+
+      <div className="settings-toggle-row">
+        <div>
+          <div className="settings-toggle-label">Sales Kitty</div>
+          <div className="settings-toggle-desc">The cat that wanders the app and comments on your numbers</div>
+        </div>
+        <button
+          type="button"
+          className={`switch ${kittyEnabled ? 'on' : ''}`}
+          role="switch"
+          aria-checked={kittyEnabled}
+          aria-label="Toggle Sales Kitty"
+          onClick={() => onToggleKitty(!kittyEnabled)}
+        >
+          <span className="switch-thumb" />
+        </button>
       </div>
     </section>
     </>

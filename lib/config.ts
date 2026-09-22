@@ -7,13 +7,14 @@
  *   - Default staff:  change DEFAULT_STAFF_COUNT
  *   - Default theme:  change DEFAULT_THEME ('light' | 'dark')
  *   - Default tiers:  change DEFAULT_TIERS (lower bound inclusive, upper bound exclusive)
+ *   - Kitty on/off:   change DEFAULT_KITTY_ENABLED
  *
  * Every component that needs these values imports from here — no more
  * hunting through multiple files to change a default.
  */
 
 /** Displayed in the header, About tab, and page title. */
-export const APP_VERSION = '8.10.1'
+export const APP_VERSION = '8.11.0'
 
 export interface Tier {
   id: string
@@ -46,6 +47,9 @@ export const DEFAULT_STAFF_COUNT = 29
  * 'light' | 'dark'
  */
 export const DEFAULT_THEME: 'light' | 'dark' = 'light'
+
+/** Whether the Sales Kitty easter egg wanders the app by default. */
+export const DEFAULT_KITTY_ENABLED = true
 
 /**
  * Center names shown in the Bulk Results "Center-wise Stats" section.

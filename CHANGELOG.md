@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.11.0]
+
+### Added
+- Sales Kitty on/off toggle in Settings → Preferences, persisted to `localStorage['sic_kitty_enabled']`. Defaults to on (`DEFAULT_KITTY_ENABLED` in `lib/config.ts`). The toggle state lives in `app/page.tsx` (same pattern as the theme toggle) and is passed down to `SettingsTab`, which now takes `kittyEnabled`/`onToggleKitty` props.
+
 ## [8.10.1]
 
 ### Fixed

@@ -7,11 +7,12 @@ import { SettingsTab } from '@/components/tabs/SettingsTab'
 import { AboutTab } from '@/components/tabs/AboutTab'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Kitty } from '@/components/Kitty'
-import { APP_VERSION, DEFAULT_THEME } from '@/lib/config'
+import { APP_VERSION, DEFAULT_THEME, DEFAULT_KITTY_ENABLED } from '@/lib/config'
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('bulk-analytics')
   const [theme, setTheme] = useState<'light' | 'dark'>(DEFAULT_THEME)
+  const [kittyEnabled, setKittyEnabled] = useState(DEFAULT_KITTY_ENABLED)
 
   useEffect(() => {
     const saved = localStorage.getItem('sic_theme') as 'light' | 'dark' | null
@@ -25,6 +26,9 @@ export default function Home() {
     } else {
       document.body.classList.remove('light-mode')
     }
+
+    const savedKitty = localStorage.getItem('sic_kitty_enabled')
+    if (savedKitty !== null) setKittyEnabled(savedKitty === 'true')
   }, [])
 
   const toggleTheme = () => {
@@ -34,9 +38,14 @@ export default function Home() {
     localStorage.setItem('sic_theme', next)
   }
 
+  const toggleKitty = (enabled: boolean) => {
+    setKittyEnabled(enabled)
+    localStorage.setItem('sic_kitty_enabled', String(enabled))
+  }
+
   return (
     <div className="container">
-      <Kitty />
+      {kittyEnabled && <Kitty />}
       <header className="header">
         <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
           {theme === 'dark' ? <MoonIcon large /> : <SunIcon large />}
@@ -78,7 +87,9 @@ export default function Home() {
           <BulkAnalyticsTab />
         </ErrorBoundary>
       )}
-      {activeTab === 'settings'       && <SettingsTab />}
+      {activeTab === 'settings'       && (
+        <SettingsTab kittyEnabled={kittyEnabled} onToggleKitty={toggleKitty} />
+      )}
       {activeTab === 'about'          && <AboutTab />}
     </div>
   )
