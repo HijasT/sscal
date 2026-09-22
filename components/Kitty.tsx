@@ -31,9 +31,12 @@ const PERSONAL_COMMENT_CHANCE = 0.35
 const KITTY_SIZE = 40
 const MARGIN = 16
 
-// Must match .sales-kitty-wrap's transform transition duration in globals.css —
-// this is how long a walk between two points visually takes.
-const WALK_MS = 2500
+// Constant walking pace (px/sec) — duration is derived from distance so the
+// cat moves at a steady speed instead of gliding to its target on a fixed
+// timer (which looked like it was being dragged there, not walking).
+const WALK_SPEED_PX_PER_S = 90
+const MIN_WALK_MS = 900
+const MAX_WALK_MS = 5000
 const SETTLE_MIN_MS = 3000
 const SETTLE_MAX_MS = 6000
 const JUMP_MS = 650
@@ -89,6 +92,8 @@ function getRandomStaffFirstName(): string | null {
 
 export function Kitty() {
   const [pos, setPos] = useState({ x: MARGIN, y: MARGIN })
+  const posRef = useRef(pos)
+  const [walkDurationMs, setWalkDurationMs] = useState(MIN_WALK_MS)
   const [facingLeft, setFacingLeft] = useState(false)
   const [behavior, setBehavior] = useState<Behavior>('sitting')
   const [looking, setLooking] = useState(false)
@@ -105,7 +110,9 @@ export function Kitty() {
 
     if (reduceMotion) {
       // Keep the cat clickable, just stop it wandering/animating.
-      setPos(randomPoint())
+      const restPoint = randomPoint()
+      posRef.current = restPoint
+      setPos(restPoint)
       setBehavior('sitting')
       return
     }
@@ -152,13 +159,17 @@ export function Kitty() {
     }
 
     const walk = () => {
+      const prev = posRef.current
+      const next = randomPoint()
+      const distance = Math.hypot(next.x - prev.x, next.y - prev.y)
+      const duration = Math.min(MAX_WALK_MS, Math.max(MIN_WALK_MS, (distance / WALK_SPEED_PX_PER_S) * 1000))
+
+      setFacingLeft(next.x < prev.x)
+      setWalkDurationMs(duration)
       setBehavior('walking')
-      setPos((prev) => {
-        const next = randomPoint()
-        setFacingLeft(next.x < prev.x)
-        return next
-      })
-      schedule(afterWalk, WALK_MS)
+      posRef.current = next
+      setPos(next)
+      schedule(afterWalk, duration)
     }
 
     walk()
@@ -185,7 +196,13 @@ export function Kitty() {
   const showTongue = behavior === 'licking' && !poked
 
   return (
-    <div className="sales-kitty-wrap" style={{ transform: `translate(${pos.x}px, ${pos.y}px)` }}>
+    <div
+      className="sales-kitty-wrap"
+      style={{
+        transform: `translate(${pos.x}px, ${pos.y}px)`,
+        transition: `transform ${walkDurationMs}ms linear`,
+      }}
+    >
       {displayBubble && (
         <div className={`sales-kitty-bubble ${poked ? 'poked' : ''}`}>{displayBubble}</div>
       )}

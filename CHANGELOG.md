@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.10.1]
+
+### Fixed
+- Sales Kitty's walk looked like it was being dragged to its next spot rather than walking there — the wrapper used a fixed 2.5s `ease-in-out` transition regardless of distance, so short hops crawled and long hops sped by, with an eased deceleration that read as something being "placed" rather than a creature stepping. Movement is now a constant ~90px/sec at a `linear` pace, with transition duration derived from the actual distance per move, so pace matches the leg-step animation naturally.
+
 ## [8.10.0]
 
 ### Changed

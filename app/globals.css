@@ -736,7 +736,9 @@ input[type="range"]::-moz-range-thumb {
   flex-direction: column;
   align-items: center;
   pointer-events: none;
-  transition: transform 2.5s ease-in-out;
+  /* transition-duration is set inline per move (components/Kitty.tsx) so
+     speed stays constant regardless of distance, instead of a fixed-time
+     glide that looked dragged rather than walked. */
 }
 
 .sales-kitty {
