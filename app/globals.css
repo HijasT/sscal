@@ -790,13 +790,13 @@ input[type="range"]::-moz-range-thumb {
   top: 0;
   left: 0;
   z-index: 900;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   pointer-events: none;
   /* transition-duration is set inline per move (components/Kitty.tsx) so
      speed stays constant regardless of distance, instead of a fixed-time
-     glide that looked dragged rather than walked. */
+     glide that looked dragged rather than walked. The bubble is
+     absolutely positioned (see .sales-kitty-bubble) rather than flexed
+     above the cat, so showing/hiding it never displaces the cat itself —
+     this element's own box always stays anchored exactly on the cat. */
 }
 
 .sales-kitty {
@@ -938,6 +938,10 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .sales-kitty-bubble {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
   pointer-events: none;
   margin-bottom: 6px;
   max-width: 200px;

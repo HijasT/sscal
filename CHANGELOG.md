@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.11.1]
+
+### Fixed
+- The cat visibly jumped downward the instant a comment bubble appeared (and jumped back when it closed) — `.sales-kitty-wrap` laid the bubble and cat out with `flex-direction: column`, so the bubble (first in DOM order) pushed the cat down to make room for itself instead of appearing as an overlay. The bubble is now absolutely positioned above the cat (`bottom: 100%`, centered), so it never affects the cat's own position — verified the button's bounding rect is pixel-identical whether or not the bubble is showing. Comment duration is unchanged at 4 seconds (`BUBBLE_MS`).
+
 ## [8.11.0]
 
 ### Added
