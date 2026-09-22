@@ -2,8 +2,8 @@
   <defs>
     <!-- Gradient definitions -->
     <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#00CED1;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#008B8B;stop-opacity:1" />
+      <stop offset="0%" style="stop-color:#9184c9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#584c86;stop-opacity:1" />
     </linearGradient>
     
     <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">

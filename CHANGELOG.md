@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.13.0]
+
+### Changed
+- Rebranded the accent color from slate-blue to the new brand purple (klea health), across both themes: `--accent-primary`/`--accent-secondary`/`--accent-tertiary`/`--accent-soft` in `app/globals.css`. Semantic colors (`--success`, `--warning`, `--error`) and the per-tier colors are untouched — those are status/identity colors, not brand.
+- Added `--brand-gradient` (derived from the accent scale, so it stays theme-consistent) and applied it where a flat accent color reads as noise on a larger surface: `.btn-primary` backgrounds, the header `<h1>` title (gradient text via `background-clip: text`, with a solid-color fallback for browsers without support), and the active nav tab's underline (now a small gradient bar via `::after` instead of a flat `border-bottom-color`, since a gradient border-color isn't a thing). Thin elements (borders, small text, range slider thumb) keep the flat `--accent-primary` — a gradient doesn't read as anything but noise at 1-2px.
+- Recolored Sales Kitty from orange to the brand purple (body/ears/legs/stripes/whiskers); nose and tongue stay pink/red as natural facial features.
+- Updated `public/favicon.svg` and `public/manifest.json`'s `theme_color` from the old teal to the new purple.
+
 ## [8.12.0]
 
 ### Changed

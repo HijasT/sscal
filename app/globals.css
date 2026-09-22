@@ -9,11 +9,18 @@
   --surface: #1b1f24;
   --surface-hover: #21262c;
 
-  /* Accent — single restrained slate-blue, used sparingly */
-  --accent-primary: #7f9dc9;
-  --accent-secondary: #6a89bd;
-  --accent-tertiary: #5c7ab0;
-  --accent-soft: rgba(127, 157, 201, 0.16);
+  /* Accent — brand purple (klea health rebrand), used sparingly */
+  --accent-primary: #9184c9;
+  --accent-secondary: #6f61a3;
+  --accent-tertiary: #584c86;
+  --accent-soft: rgba(145, 132, 201, 0.16);
+
+  /* Brand gradient — for larger surfaces (buttons, header) where a flat
+     accent color isn't enough; derives from the accent scale above so it
+     stays in sync between themes. Thin elements (borders, small text,
+     icons) keep using the flat --accent-primary instead — a gradient
+     doesn't read as anything but noise at 1-2px. */
+  --brand-gradient: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-tertiary) 100%);
 
   /* Text */
   --text-primary: #ededeb;
@@ -56,10 +63,10 @@ body.light-mode {
   --surface: #ffffff;
   --surface-hover: #f6f5f1;
 
-  --accent-primary: #35507a;
-  --accent-secondary: #2c4368;
-  --accent-tertiary: #223454;
-  --accent-soft: #eef1f6;
+  --accent-primary: #4a3d7a;
+  --accent-secondary: #372c5c;
+  --accent-tertiary: #2b2248;
+  --accent-soft: #efecf8;
 
   --text-primary: #171a1f;
   --text-secondary: #4b5057;
@@ -190,9 +197,19 @@ body {
 .header h1 {
   font-size: 32px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--text-primary); /* fallback for browsers without background-clip: text */
   margin-bottom: 6px;
   letter-spacing: -0.01em;
+}
+
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .header h1 {
+    background: var(--brand-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
 }
 
 .header .subtitle {
@@ -210,6 +227,7 @@ body {
 }
 
 .nav-tab {
+  position: relative;
   flex: 1;
   padding: 12px 20px;
   background: transparent;
@@ -230,7 +248,18 @@ body {
 
 .nav-tab.active {
   color: var(--text-primary);
-  border-bottom-color: var(--accent-primary);
+}
+
+/* Gradient underline via pseudo-element — a 2px border-bottom-color can't
+   itself be a gradient. */
+.nav-tab.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  background: var(--brand-gradient);
 }
 
 .card {
@@ -449,7 +478,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .btn-primary {
-  background: var(--accent-primary);
+  background: var(--brand-gradient);
   color: #ffffff;
 }
 
@@ -841,24 +870,24 @@ input[type="range"]::-moz-range-thumb {
   overflow: visible;
 }
 
-/* Orange cat palette */
+/* Purple cat palette — matches the brand gradient */
 .kitty-body,
 .kitty-face,
 .kitty-ear {
-  fill: #f2994a;
+  fill: #9184c9;
 }
 
 .kitty-stripe {
-  fill: #d9822b;
+  fill: #584c86;
 }
 
 .kitty-legs rect {
-  fill: #e07f36;
+  fill: #786aad;
 }
 
 .kitty-tail {
   fill: none;
-  stroke: #f2994a;
+  stroke: #9184c9;
   stroke-width: 5;
   stroke-linecap: round;
   transform-box: fill-box;
@@ -881,7 +910,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .kitty-whisker {
-  stroke: #7a4a20;
+  stroke: #453a68;
   stroke-width: 0.75;
   stroke-linecap: round;
 }
@@ -1010,8 +1039,16 @@ input[type="range"]::-moz-range-thumb {
   }
 
   .nav-tab.active {
-    border-left-color: var(--accent-primary);
     background: var(--bg-tertiary);
+  }
+
+  .nav-tab.active::after {
+    top: 0;
+    bottom: 0;
+    left: -2px;
+    right: auto;
+    width: 2px;
+    height: auto;
   }
 
   .card {
