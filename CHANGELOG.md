@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.7.0]
+
+### Changed
+- Removed the old Tier 1 bracket (75–85%, 1.5% rate) from the default incentive tiers (`DEFAULT_TIERS` in `lib/utils.ts`). Team achievement below 85% now earns no pool (0% rate) instead of the old 1.5%. The default ladder is now: Tier 1 = 85–101% @ 2.5%, Tier 2 = 101–111% @ 3.0%, Tier 3 = 111%+ @ 3.5%. This only changes the *default* tiers — anyone with tiers already saved via Settings (`localStorage['sic_tiers']`) keeps their existing configuration and must update or reset it manually.
+
+### Fixed
+- The "next tier" projection shown when team achievement is below the lowest tier (in `IndividualTab` and `BulkResultsView`) hardcoded a 75% threshold and "Tier 1" label, which happened to match the old default. It now reads the actual lowest configured tier's minimum/name/rate, so it stays correct regardless of tier configuration.
+
 ## [8.6.5]
 
 ### Fixed

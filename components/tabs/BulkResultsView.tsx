@@ -266,8 +266,9 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     const tiers = [...loadTiers()].sort((a,b) => a.min - b.min)
     const idx   = tiers.findIndex(t => t.id === calculatedData.tier.id)
     if (calculatedData.tier.rate === 0) {
-      const req = (75/100) * calculatedData.target
-      return { nextTierName:'Tier 1', nextTierRate:tiers[0]?.rate??0, requiredPercentage:75, requiredSales:req, deficit:req-calculatedData.teamSales, isMaxTier:false }
+      const lowest = tiers[0]
+      const req = ((lowest?.min ?? 0)/100) * calculatedData.target
+      return { nextTierName:lowest?.name??'Tier 1', nextTierRate:lowest?.rate??0, requiredPercentage:lowest?.min??0, requiredSales:req, deficit:req-calculatedData.teamSales, isMaxTier:false }
     }
     if (idx >= 0 && idx < tiers.length - 1) {
       const next = tiers[idx+1]

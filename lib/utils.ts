@@ -13,10 +13,9 @@ export interface Tier {
 }
 
 export const DEFAULT_TIERS: Tier[] = [
-  { id: 'tier1', name: 'Tier 1', min: 75, max: 85, rate: 1.5, color: '#ff9800' },  // Orange
-  { id: 'tier2', name: 'Tier 2', min: 85, max: 101, rate: 2.5, color: '#2196f3' }, // Blue
-  { id: 'tier3', name: 'Tier 3', min: 101, max: 111, rate: 3.0, color: '#9c27b0' }, // Purple
-  { id: 'tier4', name: 'Tier 4', min: 111, max: Infinity, rate: 3.5, color: '#4caf50' }, // Green
+  { id: 'tier1', name: 'Tier 1', min: 85, max: 101, rate: 2.5, color: '#2196f3' }, // Blue
+  { id: 'tier2', name: 'Tier 2', min: 101, max: 111, rate: 3.0, color: '#9c27b0' }, // Purple
+  { id: 'tier3', name: 'Tier 3', min: 111, max: Infinity, rate: 3.5, color: '#4caf50' }, // Green
 ]
 
 export function loadTiers(): Tier[] {
@@ -201,12 +200,13 @@ export function calculateIncentive(
   const currentTierIndex = sortedTiers.findIndex(t => t.id === tier.id)
 
   if (tier.rate === 0) {
-    const requiredSales = (75 / 100) * teamTarget
+    const lowestTier = sortedTiers[0]
+    const requiredSales = (lowestTier.min / 100) * teamTarget
     const deficit = requiredSales - teamSales
     nextTierInfo = {
-      nextTierName: 'Tier 1',
-      nextTierRate: sortedTiers[0].rate,
-      requiredPercentage: 75,
+      nextTierName: lowestTier.name,
+      nextTierRate: lowestTier.rate,
+      requiredPercentage: lowestTier.min,
       requiredSales: requiredSales,
       deficit: deficit,
       isMaxTier: false
