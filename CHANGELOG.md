@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.12.0]
+
+### Changed
+- Sales Kitty's idle commentary now depends on team performance instead of one flat pool: separate `BEFORE_100_COMMENTS` and `AFTER_100_COMMENTS` sets, chosen by reading the most recently saved monthly team achievement from Bulk & Analytics' history (`localStorage['smart_incentive_analytics']`, read-only). Defaults to the before-100% pool if nothing's been calculated yet this session. Poke-reaction lines updated (one reworded, one added: "You think this is funny?").
+- Comment display time increased from 4 to 5 seconds (`BUBBLE_MS`).
+
+### Fixed
+- The comment bubble rendered one word per line in a tall, narrow column instead of wrapping normally — the absolutely-positioned bubble had no explicit width, so its shrink-to-fit sizing was computed against a tiny available-width budget (its containing block is only as wide as the cat itself, and the bubble's `left: 50%` offset ate most of that). Fixed with `width: max-content` so it sizes to its text first, then wraps normally against `max-width`.
+
 ## [8.11.1]
 
 ### Fixed

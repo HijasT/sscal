@@ -2,18 +2,25 @@
 import { useEffect, useRef, useState } from 'react'
 import { stripEmployeeCode } from '@/lib/excelUtils'
 
-// Idle commentary while wandering — sarcastic jabs about sales performance.
-const WANDER_COMMENTS = [
+// Idle commentary while wandering, before the team has hit 100% of target.
+const BEFORE_100_COMMENTS = [
   "Target's not going to hit itself.",
-  "I've made more sales than you this month. I sell nothing, so that's still a tie.",
-  "Cute spreadsheet. Still no sales in it though.",
-  "I walk in circles for a living. What's your excuse?",
-  "The P1 pool's looking thin. Might want to do something about that.",
-  "I'd clap for that number, but I don't have hands.",
+  "Still waiting on that 100% target? So am I. So is everyone.",
+  "I've seen snails move faster towards target.",
+  "The finish line called. It's still waiting.",
   "Somewhere, a target is laughing at you.",
+  "At this rate, I'll retire before you hit target.",
+  "I'd clap for that number, but I don't have hands. Also, it's not enough.",
   "Working hard or hardly working? Rhetorical — I can see your screen.",
-  "Tier 1 called. It said 'try again next month.'",
-  "Achievement percentage, or is that just a suggestion to you?",
+]
+
+// Idle commentary while wandering, once the team has hit/beaten 100% of target.
+const AFTER_100_COMMENTS = [
+  "Oh, so we CAN hit 100% target. Interesting.",
+  "Achievement unlocked. No trophy, just my grudging respect.",
+  "I'm almost impressed. Almost.",
+  "Target met. I still won't do any sales though.",
+  "Over 100%? Someone's trying to make the rest of us look bad.",
 ]
 
 // Shown when clicked/poked instead of a wander comment.
@@ -21,8 +28,9 @@ const POKE_COMMENTS = [
   "Stop poking me, go do some sales instead.",
   "Rude. I was napping. Also, sell something.",
   "Every click is a sale you didn't make.",
-  "I have nine lives. You have one quota.",
+  "I have nine lives. You have one target.",
   "Petting me won't hit target either.",
+  "You think this is funny?",
 ]
 
 // Chance an eligible auto-comment uses the personalized line instead of a wander comment.
@@ -42,7 +50,7 @@ const SETTLE_MAX_MS = 6000
 const JUMP_MS = 650
 // Comments only fire this often (or less) — anything shorter feels like nagging.
 const COMMENT_INTERVAL_MS = 20000
-const BUBBLE_MS = 4000
+const BUBBLE_MS = 5000
 
 type Behavior = 'walking' | 'sitting' | 'purring' | 'licking' | 'jumping'
 
@@ -90,6 +98,25 @@ function getRandomStaffFirstName(): string | null {
   }
 }
 
+// Reads the most recently saved monthly team achievement % from Bulk &
+// Analytics' history (localStorage, read-only) so the cat knows whether to
+// use the before/after-100% comment pool. Null if nothing's been calculated
+// yet this session — the cat falls back to the before-100% pool then.
+function getLatestTeamAchievement(): number | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const stored = localStorage.getItem('smart_incentive_analytics')
+    if (!stored) return null
+    const months = Object.values(JSON.parse(stored)?.teamHistory ?? {}) as { monthKey?: string; teamAchievement?: number }[]
+    if (months.length === 0) return null
+
+    const latest = months.reduce((best, m) => ((m.monthKey ?? '') > (best.monthKey ?? '') ? m : best))
+    return typeof latest.teamAchievement === 'number' ? latest.teamAchievement : null
+  } catch {
+    return null
+  }
+}
+
 export function Kitty() {
   const [pos, setPos] = useState({ x: MARGIN, y: MARGIN })
   const posRef = useRef(pos)
@@ -127,7 +154,9 @@ export function Kitty() {
     const pickComment = () => {
       const name = getRandomStaffFirstName()
       if (name && Math.random() < PERSONAL_COMMENT_CHANCE) return `${name}, is that you?`
-      const comment = pickRandom(WANDER_COMMENTS, lastCommentTextRef.current)
+      const achievement = getLatestTeamAchievement()
+      const pool = achievement !== null && achievement >= 100 ? AFTER_100_COMMENTS : BEFORE_100_COMMENTS
+      const comment = pickRandom(pool, lastCommentTextRef.current)
       lastCommentTextRef.current = comment
       return comment
     }

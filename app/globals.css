@@ -944,6 +944,12 @@ input[type="range"]::-moz-range-thumb {
   transform: translateX(-50%);
   pointer-events: none;
   margin-bottom: 6px;
+  /* Without an explicit width, an absolutely-positioned box anchored by
+     `left` inside this narrow containing block (only as wide as the cat
+     button) shrink-to-fits against a tiny available-width budget, wrapping
+     the text to one word per line. max-content sizes to the text's natural
+     width first, then max-width below caps it normally. */
+  width: max-content;
   max-width: 200px;
   padding: 8px 12px;
   background: var(--surface);
