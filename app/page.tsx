@@ -6,6 +6,7 @@ import { BulkAnalyticsTab } from '@/components/tabs/BulkAnalyticsTab'
 import { SettingsTab } from '@/components/tabs/SettingsTab'
 import { AboutTab } from '@/components/tabs/AboutTab'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { Kitty } from '@/components/Kitty'
 import { APP_VERSION, DEFAULT_THEME } from '@/lib/config'
 
 export default function Home() {
@@ -35,6 +36,7 @@ export default function Home() {
 
   return (
     <div className="container">
+      <Kitty />
       <header className="header">
         <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
           {theme === 'dark' ? <MoonIcon large /> : <SunIcon large />}

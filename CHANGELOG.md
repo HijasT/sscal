@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.8.0]
+
+### Added
+- Sales Kitty (`components/Kitty.tsx`): a small cat that wanders the app (fixed-position, random walk, ~7-14s between moves) and periodically pops up a sarcastic one-liner about sales performance. Clicking it shows a "stop poking me, go do some sales instead"-style comeback instead. Purely decorative — no localStorage, no network, no dependency on any calculator state. Respects `prefers-reduced-motion` by staying put (still clickable) instead of wandering.
+
 ## [8.7.1]
 
 ### Changed
