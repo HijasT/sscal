@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.7.1]
+
+### Changed
+- Moved the `Tier` interface and `DEFAULT_TIERS` from `lib/utils.ts` into `lib/config.ts`, alongside the app's other app-wide defaults (`DEFAULT_P1_SPLIT`, `DEFAULT_STAFF_COUNT`, `DEFAULT_THEME`) — `lib/utils.ts` now imports them from there. `SettingsTab.tsx` now imports `DEFAULT_TIERS`/`Tier` from `@/lib/config` instead of `@/lib/utils`. No behavior change.
+
+### Fixed
+- The About tab's "How It Works" tier list and calculation example still described the pre-8.7.0 tier ladder (Tier 1 at 75–85%, a "Tier 4" at 111%+) — missed when the tiers changed in 8.7.0. Updated to match the current 3-tier ladder (85–101% / 101–111% / 111%+).
+
 ## [8.7.0]
 
 ### Changed

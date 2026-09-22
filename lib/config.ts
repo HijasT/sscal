@@ -6,13 +6,34 @@
  *   - Default split:  change DEFAULT_P1_SPLIT (0–100; P2 = 100 - P1)
  *   - Default staff:  change DEFAULT_STAFF_COUNT
  *   - Default theme:  change DEFAULT_THEME ('light' | 'dark')
+ *   - Default tiers:  change DEFAULT_TIERS (lower bound inclusive, upper bound exclusive)
  *
  * Every component that needs these values imports from here — no more
  * hunting through multiple files to change a default.
  */
 
 /** Displayed in the header, About tab, and page title. */
-export const APP_VERSION = '8.7.0'
+export const APP_VERSION = '8.7.1'
+
+export interface Tier {
+  id: string
+  name: string
+  min: number
+  max: number
+  rate: number
+  color: string
+}
+
+/**
+ * Default incentive tier ladder, used until the user customises tiers via
+ * Settings (persisted to localStorage['sic_tiers']). Lookup is lower-bound
+ * inclusive, upper-bound exclusive — see getTier() in lib/utils.ts.
+ */
+export const DEFAULT_TIERS: Tier[] = [
+  { id: 'tier1', name: 'Tier 1', min: 85, max: 101, rate: 2.5, color: '#2196f3' }, // Blue
+  { id: 'tier2', name: 'Tier 2', min: 101, max: 111, rate: 3.0, color: '#9c27b0' }, // Purple
+  { id: 'tier3', name: 'Tier 3', min: 111, max: Infinity, rate: 3.5, color: '#4caf50' }, // Green
+]
 
 /** Default P1 percentage (0–100). P2 = 100 - DEFAULT_P1_SPLIT. */
 export const DEFAULT_P1_SPLIT = 50

@@ -1,12 +1,12 @@
 'use client'
 import { useState, useEffect } from 'react'
 import {
-  DEFAULT_TIERS, loadTiers, saveTiers, getTiersSavedAt,
-  backupTiers, loadTiersBackup, clearTiersBackup, type Tier,
+  loadTiers, saveTiers, getTiersSavedAt,
+  backupTiers, loadTiersBackup, clearTiersBackup,
   loadStaffCenters, saveStaffCenters, getStaffCentersSavedAt,
   backupStaffCenters, loadStaffCentersBackup, clearStaffCentersBackup,
 } from '@/lib/utils'
-import { CENTERS, STAFF_CENTERS } from '@/lib/config'
+import { CENTERS, STAFF_CENTERS, DEFAULT_TIERS, type Tier } from '@/lib/config'
 import { extractEmployeeCode, stripEmployeeCode, type ExcelData } from '@/lib/excelUtils'
 import { SlidersIcon, SaveIcon, BarChartIcon } from '@/components/icons'
 

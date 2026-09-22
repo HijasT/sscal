@@ -1,22 +1,7 @@
 // Utility functions extracted from original HTML
 
-import { STAFF_CENTERS } from './config'
+import { STAFF_CENTERS, DEFAULT_TIERS, type Tier } from './config'
 import { extractEmployeeCode } from './excelUtils'
-
-export interface Tier {
-  id: string
-  name: string
-  min: number
-  max: number
-  rate: number
-  color: string
-}
-
-export const DEFAULT_TIERS: Tier[] = [
-  { id: 'tier1', name: 'Tier 1', min: 85, max: 101, rate: 2.5, color: '#2196f3' }, // Blue
-  { id: 'tier2', name: 'Tier 2', min: 101, max: 111, rate: 3.0, color: '#9c27b0' }, // Purple
-  { id: 'tier3', name: 'Tier 3', min: 111, max: Infinity, rate: 3.5, color: '#4caf50' }, // Green
-]
 
 export function loadTiers(): Tier[] {
   // Ensure we're in browser environment (Next.js SSR safety)
