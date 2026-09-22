@@ -65,8 +65,8 @@ export async function parseExcelFile(file: File): Promise<ExcelData[]> {
 
         const monthSheets = getAvailableMonthsFromWorkbook(workbook)
 
-        for (const sheetName of monthSheets) {
-          const worksheet = workbook.Sheets[sheetName]
+        for (const { raw, sheetName } of monthSheets) {
+          const worksheet = workbook.Sheets[raw]
           const extracted = extractStaffFromSheet(worksheet, sheetName, XLSX)
 
           results.push({
@@ -112,26 +112,35 @@ const FULL_TO_SHORT: Record<string, string> = {
 }
 
 function normaliseSheetName(name: string): string {
+  // Trim + collapse internal whitespace first — sheet tabs sometimes carry
+  // stray leading/trailing/doubled spaces (e.g. "May 26 ", " May  26") which
+  // otherwise breaks exact-match and end-anchored lookups done downstream
+  // (view filters, year extraction) even though the sheet parses fine.
+  const cleaned = name.trim().replace(/\s+/g, ' ')
   for (const [full, abbr] of Object.entries(FULL_TO_SHORT)) {
-    if (name.includes(full)) return name.replace(full, abbr)
+    if (cleaned.includes(full)) return cleaned.replace(full, abbr)
   }
-  return name
+  return cleaned
 }
 
-function getAvailableMonthsFromWorkbook(workbook: { SheetNames: string[] }): string[] {
+// Raw workbook sheet name paired with its cleaned/normalised display name —
+// the raw name is what XLSX.Sheets is actually keyed by, so lookups must use
+// it verbatim even when the cleaned name differs (e.g. trailing whitespace).
+function getAvailableMonthsFromWorkbook(workbook: { SheetNames: string[] }): { raw: string; sheetName: string }[] {
   const allNames = [...SHORT_MONTHS, ...Object.keys(FULL_TO_SHORT)]
-  const months: string[] = []
+  const months: { raw: string; sheetName: string }[] = []
 
-  workbook.SheetNames.forEach((sheetName) => {
-    const hasMonth = allNames.some((m) => sheetName.includes(m))
-    const hasYear  = /\d{2}/.test(sheetName)
+  workbook.SheetNames.forEach((raw) => {
+    const trimmed = raw.trim()
+    const hasMonth = allNames.some((m) => trimmed.includes(m))
+    const hasYear  = /\d{2}/.test(trimmed)
     // 15 chars covers "September 26" (12 chars)
-    if (hasMonth && hasYear && sheetName.length <= 15) {
-      months.push(normaliseSheetName(sheetName))
+    if (hasMonth && hasYear && trimmed.length <= 15) {
+      months.push({ raw, sheetName: normaliseSheetName(trimmed) })
     }
   })
 
-  return sortSheetNamesChronologically(months)
+  return months.sort((a, b) => monthSortKey(a.sheetName) - monthSortKey(b.sheetName))
 }
 
 // Sorts "Mon YY" sheet names chronologically (Jan -> Dec, then by year)
