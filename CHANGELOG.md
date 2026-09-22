@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.11.0]
+
+### Added
+- Sales Kitty now plays hide-and-seek with the UI: every tab's `.card` section is given a z-index above the cat's default one, and the cat continuously checks (every 150ms, against the card's live bounding box) whether it's currently positioned over one — if so, it ducks behind it (fully obscured, matching a real occlusion, not just a fade), and pops back in front over open areas like the header, nav, and page margins. Since the card then paints above the cat there, clicks in that area correctly go to the card instead of the hidden cat, reinforcing the effect. Auto-comments are held off while the cat's arrival point is hidden (no talking to an empty spot) rather than spent uselessly, and `prefers-reduced-motion` keeps the cat always visible/clickable rather than risking it getting stuck out of reach.
+
 ## [8.10.1]
 
 ### Fixed

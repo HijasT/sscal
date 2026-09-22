@@ -31,6 +31,25 @@ const PERSONAL_COMMENT_CHANCE = 0.35
 const KITTY_SIZE = 40
 const MARGIN = 16
 
+// Hide-and-seek: the cat ducks behind whatever `.card` section it's
+// currently over (z-index below the card) and pops back in front
+// everywhere else (z-index above the card). Checked on an interval since
+// its position glides continuously via CSS transition, not React state.
+const HIDE_CHECK_MS = 150
+const Z_FRONT = 900
+const Z_BEHIND = 5
+
+function isBehindACard(centerX: number, centerY: number): boolean {
+  const cards = document.querySelectorAll('.card')
+  for (const card of cards) {
+    const r = card.getBoundingClientRect()
+    if (centerX >= r.left && centerX <= r.right && centerY >= r.top && centerY <= r.bottom) {
+      return true
+    }
+  }
+  return false
+}
+
 // Constant walking pace (px/sec) — duration is derived from distance so the
 // cat moves at a steady speed instead of gliding to its target on a fixed
 // timer (which looked like it was being dragged there, not walking).
@@ -100,10 +119,28 @@ export function Kitty() {
   const [bubble, setBubble] = useState<string | null>(null)
   const [poked, setPoked] = useState(false)
   const [pokeComment, setPokeComment] = useState<string | null>(null)
+  const [hidden, setHidden] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
   const lastCommentTextRef = useRef<string | undefined>(undefined)
   const lastCommentAtRef = useRef<number>(0)
   const bubbleTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
   const pokeTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
+
+  useEffect(() => {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    // Keep the cat clickable at all times: only play hide-and-seek when it's
+    // actually able to come back out on its own.
+    if (!reduceMotion) {
+      const hideCheck = setInterval(() => {
+        const wrap = wrapRef.current
+        if (!wrap) return
+        const r = wrap.getBoundingClientRect()
+        setHidden(isBehindACard(r.left + r.width / 2, r.top + r.height / 2))
+      }, HIDE_CHECK_MS)
+      return () => clearInterval(hideCheck)
+    }
+  }, [])
 
   useEffect(() => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -133,7 +170,14 @@ export function Kitty() {
     }
 
     const afterWalk = () => {
-      const dueForComment = Date.now() - lastCommentAtRef.current >= COMMENT_INTERVAL_MS
+      const arrivalHidden = wrapRef.current
+        ? (() => {
+            const r = wrapRef.current!.getBoundingClientRect()
+            return isBehindACard(r.left + r.width / 2, r.top + r.height / 2)
+          })()
+        : false
+      // Don't talk to an empty spot behind a card — wait until it's out again.
+      const dueForComment = !arrivalHidden && Date.now() - lastCommentAtRef.current >= COMMENT_INTERVAL_MS
 
       if (dueForComment) {
         // Stop and look at the user while it says its piece.
@@ -197,10 +241,12 @@ export function Kitty() {
 
   return (
     <div
+      ref={wrapRef}
       className="sales-kitty-wrap"
       style={{
         transform: `translate(${pos.x}px, ${pos.y}px)`,
         transition: `transform ${walkDurationMs}ms linear`,
+        zIndex: hidden ? Z_BEHIND : Z_FRONT,
       }}
     >
       {displayBubble && (
