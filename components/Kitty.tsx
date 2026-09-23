@@ -35,6 +35,8 @@ const POKE_COMMENTS = [
 
 // Chance an eligible auto-comment uses the personalized line instead of a wander comment.
 const PERSONAL_COMMENT_CHANCE = 0.35
+// The personalized line fires at most this often, regardless of chance rolls.
+const PERSONAL_COMMENT_COOLDOWN_MS = 120000
 
 const KITTY_SIZE = 40
 const MARGIN = 16
@@ -47,14 +49,27 @@ const MIN_WALK_MS = 900
 const MAX_WALK_MS = 5000
 const SETTLE_MIN_MS = 3000
 const SETTLE_MAX_MS = 6000
+const SLEEP_MIN_MS = 7000
+const SLEEP_MAX_MS = 13000
 const JUMP_MS = 650
 // Comments only fire this often (or less) — anything shorter feels like nagging.
 const COMMENT_INTERVAL_MS = 20000
 const BUBBLE_MS = 5000
 
-type Behavior = 'walking' | 'sitting' | 'purring' | 'licking' | 'jumping'
+// Rectangular UI elements the cat treats as "furniture" — it walks along the
+// top edge of one, then hops to another rather than roaming free over the
+// whole viewport.
+const BOX_SELECTOR = '.card, .result-card, .stat-card, .slider-section, .privacy-notice, .card-description, .realtime-stat, .btn, input, select'
+const BOX_MIN_WIDTH = 60
+const BOX_MIN_HEIGHT = 20
+// A landing point whose y differs from the current one by more than this is
+// treated as a hop to a different shelf (jump animation) rather than a
+// same-level walk.
+const JUMP_HEIGHT_THRESHOLD = 20
 
-const SETTLE_BEHAVIORS: Behavior[] = ['sitting', 'purring', 'licking', 'jumping']
+type Behavior = 'walking' | 'sitting' | 'purring' | 'licking' | 'jumping' | 'sleeping'
+
+const SETTLE_BEHAVIORS: Behavior[] = ['sitting', 'purring', 'licking', 'jumping', 'sleeping']
 
 function randomPoint() {
   if (typeof window === 'undefined') return { x: MARGIN, y: MARGIN }
@@ -64,6 +79,37 @@ function randomPoint() {
     x: MARGIN + Math.random() * (maxX - MARGIN),
     y: MARGIN + Math.random() * (maxY - MARGIN),
   }
+}
+
+// Picks a random point on top of one of the page's box-shaped elements —
+// preferring a different box than the one it's currently standing on, most
+// of the time, so it actually travels between them instead of pacing one.
+function pickBoxTarget(currentBox: Element | null): { x: number; y: number; box: Element } | null {
+  if (typeof document === 'undefined') return null
+
+  const boxes = Array.from(document.querySelectorAll<HTMLElement>(BOX_SELECTOR))
+    .map((el) => ({ el, rect: el.getBoundingClientRect() }))
+    .filter(
+      ({ rect }) =>
+        rect.width >= BOX_MIN_WIDTH &&
+        rect.height >= BOX_MIN_HEIGHT &&
+        rect.bottom > 0 &&
+        rect.top < window.innerHeight &&
+        rect.right > 0 &&
+        rect.left < window.innerWidth
+    )
+  if (boxes.length === 0) return null
+
+  const otherBoxes = currentBox ? boxes.filter((b) => b.el !== currentBox) : boxes
+  const pool = otherBoxes.length > 0 && Math.random() < 0.7 ? otherBoxes : boxes
+  const { el, rect } = pickRandom(pool)
+
+  const minX = Math.max(MARGIN, rect.left + 4)
+  const maxX = Math.min(window.innerWidth - KITTY_SIZE - MARGIN, Math.max(rect.right - KITTY_SIZE - 4, minX))
+  const x = minX + Math.random() * Math.max(maxX - minX, 0)
+  const y = Math.max(MARGIN, Math.min(window.innerHeight - KITTY_SIZE - MARGIN, rect.top - KITTY_SIZE))
+
+  return { x, y, box: el }
 }
 
 function pickRandom<T>(list: T[], exclude?: T): T {
@@ -120,6 +166,7 @@ function getLatestTeamAchievement(): number | null {
 export function Kitty() {
   const [pos, setPos] = useState({ x: MARGIN, y: MARGIN })
   const posRef = useRef(pos)
+  const currentBoxRef = useRef<Element | null>(null)
   const [walkDurationMs, setWalkDurationMs] = useState(MIN_WALK_MS)
   const [facingLeft, setFacingLeft] = useState(false)
   const [behavior, setBehavior] = useState<Behavior>('sitting')
@@ -129,6 +176,7 @@ export function Kitty() {
   const [pokeComment, setPokeComment] = useState<string | null>(null)
   const lastCommentTextRef = useRef<string | undefined>(undefined)
   const lastCommentAtRef = useRef<number>(0)
+  const lastPersonalCommentAtRef = useRef<number>(0)
   const bubbleTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
   const pokeTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
 
@@ -153,7 +201,11 @@ export function Kitty() {
 
     const pickComment = () => {
       const name = getRandomStaffFirstName()
-      if (name && Math.random() < PERSONAL_COMMENT_CHANCE) return `${name}, is that you?`
+      const personalDue = Date.now() - lastPersonalCommentAtRef.current >= PERSONAL_COMMENT_COOLDOWN_MS
+      if (name && personalDue && Math.random() < PERSONAL_COMMENT_CHANCE) {
+        lastPersonalCommentAtRef.current = Date.now()
+        return `${name}, is that you?`
+      }
       const achievement = getLatestTeamAchievement()
       const pool = achievement !== null && achievement >= 100 ? AFTER_100_COMMENTS : BEFORE_100_COMMENTS
       const comment = pickRandom(pool, lastCommentTextRef.current)
@@ -184,19 +236,25 @@ export function Kitty() {
       if (pose === 'jumping') {
         schedule(() => setBehavior('sitting'), JUMP_MS)
       }
-      schedule(walk, SETTLE_MIN_MS + Math.random() * (SETTLE_MAX_MS - SETTLE_MIN_MS))
+      const settleDuration = pose === 'sleeping'
+        ? SLEEP_MIN_MS + Math.random() * (SLEEP_MAX_MS - SLEEP_MIN_MS)
+        : SETTLE_MIN_MS + Math.random() * (SETTLE_MAX_MS - SETTLE_MIN_MS)
+      schedule(walk, settleDuration)
     }
 
     const walk = () => {
       const prev = posRef.current
-      const next = randomPoint()
+      const target = pickBoxTarget(currentBoxRef.current)
+      const next = target ? { x: target.x, y: target.y } : randomPoint()
+      const isJump = Math.abs(next.y - prev.y) > JUMP_HEIGHT_THRESHOLD
       const distance = Math.hypot(next.x - prev.x, next.y - prev.y)
       const duration = Math.min(MAX_WALK_MS, Math.max(MIN_WALK_MS, (distance / WALK_SPEED_PX_PER_S) * 1000))
 
       setFacingLeft(next.x < prev.x)
       setWalkDurationMs(duration)
-      setBehavior('walking')
+      setBehavior(isJump ? 'jumping' : 'walking')
       posRef.current = next
+      currentBoxRef.current = target?.box ?? null
       setPos(next)
       schedule(afterWalk, duration)
     }
@@ -221,7 +279,8 @@ export function Kitty() {
   const displayBubble = poked ? pokeComment : bubble
   const isWalking = behavior === 'walking' && !poked
   const isJumping = behavior === 'jumping' && !poked
-  const eyeState = poked ? 'wide' : behavior === 'purring' ? 'happy' : 'normal'
+  const isSleeping = behavior === 'sleeping' && !poked
+  const eyeState = poked ? 'wide' : behavior === 'purring' ? 'happy' : isSleeping ? 'closed' : 'normal'
   const showTongue = behavior === 'licking' && !poked
 
   return (
@@ -243,16 +302,16 @@ export function Kitty() {
       >
         <svg viewBox="0 0 64 40" className="kitty-svg" aria-hidden="true">
           <g style={{ transform: facingLeft ? 'scaleX(-1)' : undefined, transformOrigin: '32px 20px' }}>
-            <path className="kitty-tail" d="M15,23 C6,25 2,16 8,7" />
-            <g className={`kitty-legs kitty-legs-back ${isWalking ? 'stepping' : ''}`}>
+            <path className={`kitty-tail ${isSleeping ? 'sleeping' : ''}`} d="M15,23 C6,25 2,16 8,7" />
+            <g className={`kitty-legs kitty-legs-back ${isWalking ? 'stepping' : ''} ${isSleeping ? 'sleeping' : ''}`}>
               <rect x="15" y="27" width="4" height="10" rx="2" />
               <rect x="23" y="27" width="4" height="10" rx="2" />
             </g>
-            <ellipse className="kitty-body" cx="32" cy="23" rx="17" ry="10" />
+            <ellipse className={`kitty-body ${isSleeping ? 'sleeping' : ''}`} cx="32" cy="23" rx="17" ry="10" />
             <rect className="kitty-stripe" x="22" y="15" width="4" height="16" rx="2" />
             <rect className="kitty-stripe" x="31" y="15" width="4" height="16" rx="2" />
             <g
-              className={`kitty-legs kitty-legs-front ${isWalking ? 'stepping' : ''}`}
+              className={`kitty-legs kitty-legs-front ${isWalking ? 'stepping' : ''} ${isSleeping ? 'sleeping' : ''}`}
               style={{ animationDelay: isWalking ? '-0.3s' : undefined }}
             >
               <rect x="40" y="27" width="4" height="10" rx="2" />
@@ -270,6 +329,9 @@ export function Kitty() {
               <line className="kitty-whisker" x1="39" y1="18" x2="30" y2="18" />
               <line className="kitty-whisker" x1="59" y1="16" x2="68" y2="14" />
               <line className="kitty-whisker" x1="59" y1="18" x2="68" y2="18" />
+              {isSleeping && (
+                <text className="kitty-zzz" x="56" y="4" fontSize="8" fontWeight="700">Z</text>
+              )}
             </g>
           </g>
         </svg>

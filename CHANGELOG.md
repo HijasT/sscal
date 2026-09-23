@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.14.0]
+
+### Changed
+- Sales Kitty no longer roams to arbitrary points on the page — it now walks along the top edge of real rectangular UI elements (`.card`, result/stat cards, the slider section, inputs, selects, buttons, etc.), landing exactly on a box's top edge and walking horizontally across it. Moving to a box at roughly the same height reads as a normal walk; moving to one at a meaningfully different height triggers the jump/hop animation for the whole trip (looped bounce instead of one bounce then a flat glide) instead of a smooth diagonal glide. Falls back to the old free-roam behavior if no boxes are found on the page.
+- Added a "sleeping" idle pose alongside sit/purr/lick/jump: body squishes down, legs tuck away, eyes close, tail stops wagging, and a small floating "Z" appears — held for a longer 7-13s nap instead of the usual 3-6s idle window.
+- The personalized "{name}, is that you?" line is now capped to at most once every 2 minutes, regardless of how many auto-comments fire in between (previously it could roll on every ~20s comment).
+
+Verified the box-landing math, jump-vs-walk classification, and sleep-pose timing via console tracing during development — this session's browser automation tab was subject to Chrome's background-tab timer throttling (multi-minute gaps between expected and actual timer fires when left unattended), which is a testing-environment artifact and doesn't affect a normal, focused user tab.
+
 ## [8.13.0]
 
 ### Changed

@@ -850,7 +850,9 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .sales-kitty.jumping {
-  animation: sales-kitty-jump 0.65s ease;
+  /* infinite so a longer hop between two far-apart boxes keeps bouncing for
+     the whole trip instead of one bounce then a flat glide */
+  animation: sales-kitty-jump 0.65s ease infinite;
 }
 
 @keyframes sales-kitty-flinch {
@@ -895,6 +897,11 @@ input[type="range"]::-moz-range-thumb {
   animation: kitty-tail-wag 1.1s ease-in-out infinite;
 }
 
+.kitty-tail.sleeping {
+  animation: none;
+  transform: rotate(0deg);
+}
+
 .kitty-eye {
   fill: #2b2f35;
   transform-box: fill-box;
@@ -904,6 +911,7 @@ input[type="range"]::-moz-range-thumb {
 
 .kitty-eye.happy { transform: scaleY(0.2); }
 .kitty-eye.wide { transform: scaleY(1.4); }
+.kitty-eye.closed { transform: scaleY(0.05); }
 
 .kitty-nose {
   fill: #b23a3a;
@@ -940,10 +948,32 @@ input[type="range"]::-moz-range-thumb {
 .kitty-legs {
   transform-box: fill-box;
   transform-origin: 50% 0%;
+  transition: opacity 0.3s ease;
 }
 
 .kitty-legs.stepping {
   animation: kitty-leg-step 0.6s ease-in-out infinite;
+}
+
+.kitty-legs.sleeping {
+  opacity: 0;
+}
+
+.kitty-body {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: transform 0.3s ease;
+}
+
+.kitty-body.sleeping {
+  transform: scaleY(0.55);
+}
+
+.kitty-zzz {
+  fill: #584c86;
+  transform-box: fill-box;
+  transform-origin: 0% 100%;
+  animation: kitty-zzz-float 2s ease-in-out infinite;
 }
 
 @keyframes kitty-tail-wag {
@@ -959,6 +989,12 @@ input[type="range"]::-moz-range-thumb {
 @keyframes kitty-look-nod {
   0%, 100% { transform: rotate(0deg); }
   50% { transform: rotate(-6deg); }
+}
+
+@keyframes kitty-zzz-float {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.8); }
+  50% { opacity: 1; transform: translate(3px, -6px) scale(1); }
+  100% { opacity: 0; transform: translate(6px, -12px) scale(1.1); }
 }
 
 @keyframes kitty-lick {
@@ -1007,7 +1043,7 @@ input[type="range"]::-moz-range-thumb {
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
   .kitty-tail, .kitty-legs.stepping, .kitty-head.looking, .kitty-tongue.licking,
-  .sales-kitty.jumping, .sales-kitty.poked {
+  .kitty-zzz, .sales-kitty.jumping, .sales-kitty.poked {
     animation: none !important;
   }
 }
