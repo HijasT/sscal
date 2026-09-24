@@ -1033,6 +1033,20 @@ input[type="range"]::-moz-range-thumb {
   color: var(--warning);
 }
 
+/* Default (align-center) keeps the centered left:50%/translateX(-50%) above.
+   Near a viewport edge, JS switches to one of these instead so the bubble
+   grows away from the edge rather than getting clipped by it. */
+.sales-kitty-bubble.align-left {
+  left: 0;
+  transform: none;
+}
+
+.sales-kitty-bubble.align-right {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
 @media (max-width: 768px) {
   .sales-kitty-bubble {
     max-width: 150px;

@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.14.1]
+
+### Fixed
+- Sales Kitty jumped far more often than it walked — the jump-vs-walk threshold (20px) and box-target selection had no bias toward same-height targets, so most moves between the page's naturally varied-height boxes counted as jumps. Box selection now strongly prefers a target at roughly the same height as the current one (a walk) and prefers patrolling the current box over switching, with the height threshold raised to 50px. Verified via direct algorithmic sampling against live pages: walk-to-jump ratio improved from roughly even to ~75%/25% in favor of walking.
+- The comment bubble could render partially or fully off-screen (clipped by `body`'s `overflow-x: hidden`) when the cat was near the left or right edge of the viewport, since it was always centered on the cat regardless of available space. It now anchors to whichever side keeps it fully on-screen when the cat is close to an edge.
+
+### Changed
+- Added more sarcastic lines to both the before-100% and after-100% comment pools.
+- Sleeping is now a fixed 10 seconds (previously a 7-13s random range).
+
 ## [8.14.0]
 
 ### Changed

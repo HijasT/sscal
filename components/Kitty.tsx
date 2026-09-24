@@ -12,6 +12,14 @@ const BEFORE_100_COMMENTS = [
   "At this rate, I'll retire before you hit target.",
   "I'd clap for that number, but I don't have hands. Also, it's not enough.",
   "Working hard or hardly working? Rhetorical — I can see your screen.",
+  "Ninety percent isn't a hundred percent. Basic math, really.",
+  "I've licked my paw more times than we've hit target this year.",
+  "Keep going. Or don't. I still get fed either way.",
+  "That target's been waiting so long it filed a complaint.",
+  "Sales are like my naps — currently not happening.",
+  "I'd say 'almost there', but that would be generous.",
+  "Even my litter box has a better completion rate.",
+  "Tick tock. The target isn't going anywhere, unfortunately for you.",
 ]
 
 // Idle commentary while wandering, once the team has hit/beaten 100% of target.
@@ -21,6 +29,12 @@ const AFTER_100_COMMENTS = [
   "I'm almost impressed. Almost.",
   "Target met. I still won't do any sales though.",
   "Over 100%? Someone's trying to make the rest of us look bad.",
+  "Miracles do happen. Rare ones. Today, apparently.",
+  "You beat the target. I still won't clap. Physically can't.",
+  "Someone actually did their job. Mark the calendar.",
+  "100%+ noted. Don't get used to it.",
+  "Well would you look at that. Overachievers.",
+  "Fine, that's actually kind of impressive. Don't let it go to your head.",
 ]
 
 // Shown when clicked/poked instead of a wander comment.
@@ -49,8 +63,7 @@ const MIN_WALK_MS = 900
 const MAX_WALK_MS = 5000
 const SETTLE_MIN_MS = 3000
 const SETTLE_MAX_MS = 6000
-const SLEEP_MIN_MS = 7000
-const SLEEP_MAX_MS = 13000
+const SLEEP_MS = 10000
 const JUMP_MS = 650
 // Comments only fire this often (or less) — anything shorter feels like nagging.
 const COMMENT_INTERVAL_MS = 20000
@@ -65,7 +78,15 @@ const BOX_MIN_HEIGHT = 20
 // A landing point whose y differs from the current one by more than this is
 // treated as a hop to a different shelf (jump animation) rather than a
 // same-level walk.
-const JUMP_HEIGHT_THRESHOLD = 20
+const JUMP_HEIGHT_THRESHOLD = 50
+// How often box selection prefers a target at roughly the same height as the
+// current one (a walk) over any box at all (which may be a jump). Kept high
+// so walking is the common case and jumping stays occasional.
+const SAME_LEVEL_CHANCE = 0.8
+// How often box selection prefers switching to a different box at all,
+// rather than picking another spot on the one it's already standing on
+// (patrolling the same box is always a walk, never a jump).
+const SWITCH_BOX_CHANCE = 0.5
 
 type Behavior = 'walking' | 'sitting' | 'purring' | 'licking' | 'jumping' | 'sleeping'
 
@@ -81,11 +102,16 @@ function randomPoint() {
   }
 }
 
-// Picks a random point on top of one of the page's box-shaped elements —
-// preferring a different box than the one it's currently standing on, most
-// of the time, so it actually travels between them instead of pacing one.
-function pickBoxTarget(currentBox: Element | null): { x: number; y: number; box: Element } | null {
+// Picks a random point on top of one of the page's box-shaped elements.
+// Strongly prefers a target at roughly the same height as the cat's current
+// position (a walk) over a random one (which may land far enough away to be
+// a jump), and prefers patrolling the box it's already on over switching —
+// both biases keep walking the common case and jumping the occasional one.
+function pickBoxTarget(currentBox: Element | null, currentY: number): { x: number; y: number; box: Element } | null {
   if (typeof document === 'undefined') return null
+
+  const landingY = (rect: DOMRect) =>
+    Math.max(MARGIN, Math.min(window.innerHeight - KITTY_SIZE - MARGIN, rect.top - KITTY_SIZE))
 
   const boxes = Array.from(document.querySelectorAll<HTMLElement>(BOX_SELECTOR))
     .map((el) => ({ el, rect: el.getBoundingClientRect() }))
@@ -101,15 +127,17 @@ function pickBoxTarget(currentBox: Element | null): { x: number; y: number; box:
   if (boxes.length === 0) return null
 
   const otherBoxes = currentBox ? boxes.filter((b) => b.el !== currentBox) : boxes
-  const pool = otherBoxes.length > 0 && Math.random() < 0.7 ? otherBoxes : boxes
+  const candidates = otherBoxes.length > 0 && Math.random() < SWITCH_BOX_CHANCE ? otherBoxes : boxes
+
+  const sameLevel = candidates.filter((b) => Math.abs(landingY(b.rect) - currentY) <= JUMP_HEIGHT_THRESHOLD)
+  const pool = sameLevel.length > 0 && Math.random() < SAME_LEVEL_CHANCE ? sameLevel : candidates
   const { el, rect } = pickRandom(pool)
 
   const minX = Math.max(MARGIN, rect.left + 4)
   const maxX = Math.min(window.innerWidth - KITTY_SIZE - MARGIN, Math.max(rect.right - KITTY_SIZE - 4, minX))
   const x = minX + Math.random() * Math.max(maxX - minX, 0)
-  const y = Math.max(MARGIN, Math.min(window.innerHeight - KITTY_SIZE - MARGIN, rect.top - KITTY_SIZE))
 
-  return { x, y, box: el }
+  return { x, y: landingY(rect), box: el }
 }
 
 function pickRandom<T>(list: T[], exclude?: T): T {
@@ -237,14 +265,14 @@ export function Kitty() {
         schedule(() => setBehavior('sitting'), JUMP_MS)
       }
       const settleDuration = pose === 'sleeping'
-        ? SLEEP_MIN_MS + Math.random() * (SLEEP_MAX_MS - SLEEP_MIN_MS)
+        ? SLEEP_MS
         : SETTLE_MIN_MS + Math.random() * (SETTLE_MAX_MS - SETTLE_MIN_MS)
       schedule(walk, settleDuration)
     }
 
     const walk = () => {
       const prev = posRef.current
-      const target = pickBoxTarget(currentBoxRef.current)
+      const target = pickBoxTarget(currentBoxRef.current, prev.y)
       const next = target ? { x: target.x, y: target.y } : randomPoint()
       const isJump = Math.abs(next.y - prev.y) > JUMP_HEIGHT_THRESHOLD
       const distance = Math.hypot(next.x - prev.x, next.y - prev.y)
@@ -283,6 +311,17 @@ export function Kitty() {
   const eyeState = poked ? 'wide' : behavior === 'purring' ? 'happy' : isSleeping ? 'closed' : 'normal'
   const showTongue = behavior === 'licking' && !poked
 
+  // Keep the bubble on-screen near the viewport edges — centering it on the
+  // cat clips it against body's overflow-x:hidden when the cat is close to
+  // the left/right edge, since the bubble is much wider than the cat.
+  let bubbleAlign: 'left' | 'right' | 'center' = 'center'
+  if (typeof window !== 'undefined') {
+    const bubbleHalf = window.innerWidth <= 768 ? 75 : 100
+    const catCenterX = pos.x + KITTY_SIZE / 2
+    if (catCenterX - bubbleHalf < MARGIN) bubbleAlign = 'left'
+    else if (catCenterX + bubbleHalf > window.innerWidth - MARGIN) bubbleAlign = 'right'
+  }
+
   return (
     <div
       className="sales-kitty-wrap"
@@ -292,7 +331,7 @@ export function Kitty() {
       }}
     >
       {displayBubble && (
-        <div className={`sales-kitty-bubble ${poked ? 'poked' : ''}`}>{displayBubble}</div>
+        <div className={`sales-kitty-bubble align-${bubbleAlign} ${poked ? 'poked' : ''}`}>{displayBubble}</div>
       )}
       <button
         type="button"
