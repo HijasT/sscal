@@ -44,7 +44,13 @@ const POKE_COMMENTS = [
   "Every click is a sale you didn't make.",
   "I have nine lives. You have one target.",
   "Petting me won't hit target either.",
-  "You think this is funny?",
+  "You think this is funny? No incentive for you next month.",
+  "Click all you want. Still doesn't count as a sale.",
+  "That tickles. Unlike your commission check, apparently.",
+  "I felt that. Your target didn't.",
+  "Save the clicks for your CRM.",
+  "Keep this up and I'm telling your manager you have too much free time.",
+  "Was that supposed to hurt my feelings? I don't have a quota either.",
 ]
 
 // Chance an eligible auto-comment uses the personalized line instead of a wander comment.

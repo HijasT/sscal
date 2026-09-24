@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.14.2]
+
+### Changed
+- Added more variety to Sales Kitty's poke-reaction lines (6 new, on top of the existing 6), including the "You think this is funny? No incentive for you next month." line.
+
 ## [8.14.1]
 
 ### Fixed
