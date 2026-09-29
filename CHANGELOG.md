@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.17.0]
+
+### Added
+- **Bundle opportunities in the Sale Assistant tab** — when two or more packages are in the quote, the tab surfaces comprehensive packages that fully cover the selection, showing the bundle price vs buying individually, the price difference (a saving or an upsell premium), and what extra the bundle adds (extra lab tests / add-ons like DNA modules, BCA/ECG, microbiome). One click adds the bundle to the quote. Coverage is content-based (matches on the actual lab tests + service components a package includes), so it correctly links e.g. the Food Allergy & Intolerance Bundle to its two component tests even though their panel names differ.
+
+### Fixed
+- **Package drill-down now shows every included lab test.** Previously the "what's included" view only listed the curated service-level summary (`comps` — doctor, vitals, DNA modules, etc.), so blood/biomarker tests were missing (e.g. Standard Health Screening showed only the doctor consultation and vitals, not its 50 lab markers). The drill-down now also resolves and lists the full lab-test breakdown grouped by profile (Complete Blood Count, Lipid Profile, etc.).
+
 ## [8.16.0]
 
 ### Added

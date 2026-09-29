@@ -2,10 +2,15 @@
 /**
  * SaleAssistantTab — browse/search the sales catalogue and build a quote.
  *
- * - Catalogue browser: searchable, category-filtered package list with a
- *   per-package "what's included" drill-down.
+ * - Catalogue browser: searchable, category-filtered package list. Each
+ *   package's drill-down shows its full breakdown — service-level inclusions
+ *   (doctor, vitals, DNA modules, ECG, etc.) plus every resolved lab test,
+ *   grouped by profile.
  * - Quote basket: add packages, adjust quantity, apply an optional discount,
  *   see a running AED total, and export the quote to PDF.
+ * - Bundle opportunities: when 2+ packages are selected, surfaces comprehensive
+ *   packages that cover the whole selection, with the price difference vs
+ *   buying individually and what extra the bundle adds.
  *
  * All data comes from the bundled static snapshot (lib/catalogue.json via
  * lib/catalogueUtils) — no network calls, consistent with the app's
@@ -20,11 +25,14 @@ import {
   getServiceById,
   searchServices,
   groupComps,
+  groupServiceTests,
+  findBundleSuggestions,
   formatAED,
   quoteTotals,
   CATALOGUE_META,
   type CatalogueService,
   type QuoteLine,
+  type BundleSuggestion,
 } from '@/lib/catalogueUtils'
 import { exportQuoteToPDF } from '@/lib/pdfUtils'
 
@@ -58,6 +66,12 @@ export function SaleAssistantTab() {
   )
 
   const totals = useMemo(() => quoteTotals(lines, discountPct), [lines, discountPct])
+
+  // Comprehensive packages that cover the currently selected packages (top 3).
+  const suggestions = useMemo(
+    () => findBundleSuggestions(lines.map((l) => l.service)).slice(0, 3),
+    [lines]
+  )
 
   // Rehydrate the in-progress quote from sessionStorage on mount.
   useEffect(() => {
@@ -144,6 +158,7 @@ export function SaleAssistantTab() {
       <QuotePanel
         lines={lines}
         totals={totals}
+        suggestions={suggestions}
         discountPct={discountPct}
         customer={customer}
         open={quoteOpen}
@@ -153,6 +168,7 @@ export function SaleAssistantTab() {
         onSetDiscount={setDiscountPct}
         onSetCustomer={setCustomer}
         onClear={clearQuote}
+        onAddBundle={addToQuote}
       />
 
       {/* Search */}
@@ -208,6 +224,7 @@ export function SaleAssistantTab() {
 function QuotePanel({
   lines,
   totals,
+  suggestions,
   discountPct,
   customer,
   open,
@@ -217,9 +234,11 @@ function QuotePanel({
   onSetDiscount,
   onSetCustomer,
   onClear,
+  onAddBundle,
 }: {
   lines: QuoteLine[]
   totals: ReturnType<typeof quoteTotals>
+  suggestions: BundleSuggestion[]
   discountPct: number
   customer: string
   open: boolean
@@ -229,6 +248,7 @@ function QuotePanel({
   onSetDiscount: (pct: number) => void
   onSetCustomer: (name: string) => void
   onClear: () => void
+  onAddBundle: (service: CatalogueService) => void
 }) {
   const [exporting, setExporting] = useState(false)
   const empty = lines.length === 0
@@ -296,6 +316,15 @@ function QuotePanel({
                 </div>
               ))}
 
+              {suggestions.length > 0 && (
+                <div className="sa-bundles">
+                  <div className="sa-bundles-title">💡 Bundle opportunities</div>
+                  {suggestions.map((s) => (
+                    <BundleSuggestionRow key={s.bundle.id} s={s} onAdd={() => onAddBundle(s.bundle)} />
+                  ))}
+                </div>
+              )}
+
               <div className="sa-quote-controls">
                 <div className="form-group">
                   <label htmlFor="sa-customer">Customer (optional)</label>
@@ -358,6 +387,40 @@ function QuotePanel({
   )
 }
 
+function BundleSuggestionRow({ s, onAdd }: { s: BundleSuggestion; onAdd: () => void }) {
+  const saves = s.delta < 0
+  const extras: string[] = []
+  if (s.extraTests > 0) extras.push(`${s.extraTests} more test${s.extraTests === 1 ? '' : 's'}`)
+  if (s.extraComponents.length > 0)
+    extras.push(`${s.extraComponents.length} add-on${s.extraComponents.length === 1 ? '' : 's'}`)
+
+  return (
+    <div className="sa-bundle">
+      <div className="sa-bundle-info">
+        <span className="sa-bundle-name">{s.bundle.name}</span>
+        <span className="sa-bundle-meta">
+          Bundle {formatAED(s.bundlePrice)} · individually {formatAED(s.individualTotal)}
+          {extras.length > 0 && <> · includes {extras.join(' + ')}</>}
+        </span>
+        {s.extraComponents.length > 0 && (
+          <span className="sa-bundle-extras" title={s.extraComponents.join(', ')}>
+            + {s.extraComponents.slice(0, 4).join(', ')}
+            {s.extraComponents.length > 4 ? `, +${s.extraComponents.length - 4} more` : ''}
+          </span>
+        )}
+      </div>
+      <div className="sa-bundle-actions">
+        <span className={`sa-bundle-delta ${saves ? 'save' : 'more'}`}>
+          {saves ? `Save ${formatAED(-s.delta)}` : `+${formatAED(s.delta)}`}
+        </span>
+        <button className="btn btn-secondary btn-sm" onClick={onAdd}>
+          Add bundle
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function ServiceRow({
   service,
   inQuoteQty,
@@ -372,6 +435,8 @@ function ServiceRow({
   onAdd: () => void
 }) {
   const groups = useMemo(() => groupComps(service), [service])
+  const testGroups = useMemo(() => (expanded ? groupServiceTests(service) : []), [service, expanded])
+  const testCount = useMemo(() => testGroups.reduce((n, g) => n + g.tests.length, 0), [testGroups])
 
   return (
     <div className={`sa-item ${expanded ? 'expanded' : ''}`}>
@@ -398,20 +463,44 @@ function ServiceRow({
 
       {expanded && (
         <div className="sa-details">
-          {groups.length === 0 ? (
+          {groups.length === 0 && testGroups.length === 0 ? (
             <p className="sa-empty">No breakdown available for this package.</p>
           ) : (
-            groups.map((g) => (
-              <div key={g.group} className="sa-detail-group">
-                <div className="sa-detail-group-title">{g.group}</div>
-                {g.rows.map((r, i) => (
-                  <div key={i} className="sa-detail-row">
-                    <span className="sa-detail-name">{r.name}</span>
-                    <span className="sa-detail-value">{r.value}</span>
-                  </div>
-                ))}
-              </div>
-            ))
+            <>
+              {/* Service-level inclusions: doctor, vitals, DNA modules, ECG, etc. */}
+              {groups.map((g) => (
+                <div key={g.group} className="sa-detail-group">
+                  <div className="sa-detail-group-title">{g.group}</div>
+                  {g.rows.map((r, i) => (
+                    <div key={i} className="sa-detail-row">
+                      <span className="sa-detail-name">{r.name}</span>
+                      <span className="sa-detail-value">{r.value}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+
+              {/* Full lab-test / biomarker breakdown, grouped by profile. */}
+              {testGroups.length > 0 && (
+                <>
+                  <div className="sa-detail-section-head">Lab tests ({testCount})</div>
+                  {testGroups.map((g) => (
+                    <div key={g.group} className="sa-detail-group">
+                      <div className="sa-detail-group-title">
+                        {g.group} <span className="sa-detail-group-count">{g.tests.length}</span>
+                      </div>
+                      <div className="sa-test-list">
+                        {g.tests.map((t, i) => (
+                          <span key={i} className="sa-test-chip">
+                            {t.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </>
           )}
         </div>
       )}

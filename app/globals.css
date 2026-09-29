@@ -1692,6 +1692,120 @@ input[type="range"]::-moz-range-thumb {
   margin-top: 16px;
 }
 
+/* Bundle opportunities */
+.sa-bundles {
+  margin: 16px 0;
+  padding: 14px;
+  border: 1px dashed var(--accent-primary);
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+}
+
+.sa-bundles-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent-primary);
+  margin-bottom: 10px;
+}
+
+.sa-bundle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border-color);
+}
+
+.sa-bundle:first-of-type {
+  border-top: none;
+}
+
+.sa-bundle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.sa-bundle-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.sa-bundle-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.sa-bundle-extras {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.sa-bundle-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sa-bundle-delta {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+}
+
+.sa-bundle-delta.save {
+  color: var(--success);
+}
+
+.sa-bundle-delta.more {
+  color: var(--text-secondary);
+}
+
+/* Lab-test breakdown */
+.sa-detail-section-head {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 18px 0 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+.sa-detail-group-count {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.sa-test-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 0 2px;
+}
+
+.sa-test-chip {
+  font-size: 12px;
+  padding: 3px 9px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
 @media (max-width: 560px) {
   .sa-item-main {
     flex-direction: column;
