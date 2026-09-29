@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.18.0]
+
+### Added
+- **Side-by-side quote comparison.** The Sale Assistant tab now holds two quotes (A and B). Each catalogue row has "+A" / "+B" buttons, and a comparison bar shows both totals and which quote is lower. Each quote has an optional customer name.
+- **Per-line discounts.** Every line in a quote carries its own discount, entered as a percentage or a fixed AED amount, with the line total updating live.
+- **Search by marker.** Package search now also matches lab-test/marker names, so a package can be found by what it tests for (e.g. "vitamin d").
+- **"Blood tests only" filter** — hides packages with no lab tests (consult-, vitals-, DNA- or vaccination-only) from the catalogue list.
+- **Bundled-packages breakdown.** A bundle/comprehensive package's drill-down now lists the individual packages it is built from (e.g. Dubai It Men's shows Premium PLUS Men's, Cancer Risk – Men, Longevity, Blood Group, BRCA, and the Food Allergy & Intolerance Bundle) above the service inclusions and the full lab-test list, so it's clear which packages a bundle combines rather than only the raw tests.
+
+### Changed
+- **Bundle suggestions now support partial bundling.** Previously a bundle was only suggested when one comprehensive package covered the entire selection; now it finds the cheapest "bundle a subset + keep the rest" combination, so a bundle is still surfaced when it covers only part of the selection (uncovered packages stay as individual lines). Candidates are limited to comprehensive/bundle packages, and one click applies the suggestion (replaces the covered lines with the bundle).
+
+### Removed
+- **Quote PDF export.** The Sale Assistant quote no longer exports to PDF; the quote tool is now focused on on-screen comparison. (`exportQuoteToPDF` removed from `lib/pdfUtils.ts`.)
+
 ## [8.17.1]
 
 ### Changed

@@ -91,7 +91,10 @@ export function getServiceById(id: number): CatalogueService | undefined {
 
 /**
  * Filter services by free-text query and/or an exact category.
- * Query matches name, sub-label, and category (case-insensitive).
+ * Query matches package name, sub-label, category, and — so packages can be
+ * found by what they test for — the name of any lab test/marker they include
+ * (case-insensitive). The marker match is only evaluated when the cheaper
+ * name/category checks miss, so typing stays responsive.
  */
 export function searchServices(query: string, category?: string): CatalogueService[] {
   const q = query.trim().toLowerCase()
@@ -101,7 +104,8 @@ export function searchServices(query: string, category?: string): CatalogueServi
     return (
       s.name.toLowerCase().includes(q) ||
       (s.sub || '').toLowerCase().includes(q) ||
-      s.category.toLowerCase().includes(q)
+      s.category.toLowerCase().includes(q) ||
+      getServiceTests(s).some((t) => t.name.toLowerCase().includes(q))
     )
   })
 }
@@ -167,83 +171,138 @@ function serviceCompKeys(service: CatalogueService): Set<string> {
   return new Set(service.comps.map((c) => `${c.group}::${c.name}`))
 }
 
+/** Whether a service includes at least one resolved lab/blood test. */
+export function hasLabTests(service: CatalogueService): boolean {
+  return serviceTestIds(service).size > 0
+}
+
+/**
+ * The individual packages a bundle/comprehensive package is built from. Each of
+ * a service's panels maps to the standalone single-panel package that offers
+ * exactly that panel (e.g. the "Longevity Panel" → "Longevity Profile"), so a
+ * comprehensive resolves to the building-block packages it combines. Returns an
+ * empty list for a plain single-panel package (nothing to decompose).
+ */
+export function getComponentPackages(service: CatalogueService): CatalogueService[] {
+  const components: CatalogueService[] = []
+  const seen = new Set<number>()
+  for (const panelName of service.panels) {
+    const provider = data.services.find(
+      (s) => s.id !== service.id && s.panels.length === 1 && s.panels[0] === panelName
+    )
+    if (provider && !seen.has(provider.id)) {
+      seen.add(provider.id)
+      components.push(provider)
+    }
+  }
+  return components
+}
+
+/** True when `containerTests`/`containerComps` fully include every test and component of `p`. */
+function packageContains(
+  containerTests: Set<number>,
+  containerComps: Set<string>,
+  p: CatalogueService
+): boolean {
+  for (const id of serviceTestIds(p)) if (!containerTests.has(id)) return false
+  for (const k of serviceCompKeys(p)) if (!containerComps.has(k)) return false
+  return true
+}
+
+/** Category that holds the comprehensive/bundle packages. */
+const COMPREHENSIVE_CATEGORY = 'Comprehensive Packages / Bundles'
+
 export interface BundleSuggestion {
-  /** The comprehensive package that covers the whole selection. */
+  /** The comprehensive package that would replace the covered subset. */
   bundle: CatalogueService
-  /** Sum of the selected packages' prices (buying them individually). */
-  individualTotal: number
-  /** The comprehensive package's price. */
+  /** Selected packages the bundle fully covers (and would replace). */
+  covers: CatalogueService[]
+  /** Selected packages the bundle does not cover — kept as individual lines. */
+  leftovers: CatalogueService[]
+  /** The bundle's own price. */
   bundlePrice: number
-  /** bundlePrice − individualTotal. Negative = the bundle is cheaper (a saving). */
+  /** Sum of all selected packages' prices (buying everything individually). */
+  individualTotal: number
+  /** bundle price + leftover prices (the proposed combination). */
+  proposedTotal: number
+  /** proposedTotal − individualTotal. Negative = the proposed mix is cheaper. */
   delta: number
-  /** How many extra lab tests the bundle adds beyond the selection. */
+  /** Extra lab tests the bundle adds beyond the packages it replaces. */
   extraTests: number
-  /** Extra service components the bundle adds (display names, e.g. DNA modules, BCA/ECG). */
+  /** Extra service components the bundle adds beyond the packages it replaces. */
   extraComponents: string[]
 }
 
 /**
- * Given a set of selected packages, find comprehensive packages that fully
- * cover them — i.e. that include every selected lab test AND every selected
- * service component — and are worth surfacing (they add something extra, or
- * they cost less than buying the selection individually).
+ * Given a set of selected packages, find the best "bundle + keep the rest"
+ * combination: a comprehensive package that fully covers a subset (2 or more)
+ * of the selection, with any packages it does not cover kept as individual
+ * lines. This means a bundle is still suggested even when it only covers part
+ * of the selection.
  *
- * Coverage is content-based (tests + comps), not panel-name based, so it
- * correctly matches e.g. the "Food Allergy & Intolerance Bundle" to its two
- * component tests even though their panel names differ.
+ * Coverage is content-based (a package is covered when the bundle includes all
+ * of its lab tests AND all of its service components), so it matches e.g. the
+ * "Food Allergy & Intolerance Bundle" to its two component tests despite their
+ * differing panel names.
  *
- * Returns covering packages sorted by price ascending, so the first result is
- * the least-priced package that includes the whole selection. Requires at least
- * two selected packages (a bundle only makes sense for a combination).
+ * Results are sorted by the proposed total ascending (cheapest combination
+ * first), then by fewest leftovers. Requires at least two selected packages.
  */
 export function findBundleSuggestions(selected: CatalogueService[]): BundleSuggestion[] {
   if (selected.length < 2) return []
 
-  const selectedIds = new Set(selected.map((s) => s.id))
-  const unionTests = new Set<number>()
-  const unionComps = new Set<string>()
-  let individualTotal = 0
-  for (const s of selected) {
-    individualTotal += s.price ?? 0
-    for (const id of serviceTestIds(s)) unionTests.add(id)
-    for (const k of serviceCompKeys(s)) unionComps.add(k)
-  }
+  const individualTotal = selected.reduce((sum, p) => sum + (p.price ?? 0), 0)
 
   const suggestions: BundleSuggestion[] = []
-  for (const candidate of data.services) {
-    if (selectedIds.has(candidate.id) || candidate.price == null) continue
+  for (const bundle of data.services) {
+    if (bundle.price == null) continue
+    // Only genuine bundles/comprehensive packages are candidates — otherwise a
+    // plain package that merely includes a doctor consult would "cover" a bare
+    // Doctor Consultation line and be offered as a bundle.
+    if (bundle.category !== COMPREHENSIVE_CATEGORY && !/\bbundle\b/i.test(bundle.name)) continue
 
-    const candTests = serviceTestIds(candidate)
-    const candComps = serviceCompKeys(candidate)
+    const bundleTests = serviceTestIds(bundle)
+    const bundleComps = serviceCompKeys(bundle)
 
-    // Must contain every selected test and every selected component.
-    let covers = true
-    for (const id of unionTests) if (!candTests.has(id)) { covers = false; break }
-    if (covers) for (const k of unionComps) if (!candComps.has(k)) { covers = false; break }
-    if (!covers) continue
+    // Which selected packages does this bundle fully contain?
+    const covers = selected.filter((p) => packageContains(bundleTests, bundleComps, p))
+    if (covers.length < 2) continue // only worth bundling 2+ packages
 
-    const extraTests = [...candTests].filter((id) => !unionTests.has(id)).length
-    const extraComponents = [...candComps]
-      .filter((k) => !unionComps.has(k))
+    const leftovers = selected.filter((p) => !covers.includes(p))
+    const proposedTotal = bundle.price + leftovers.reduce((sum, p) => sum + (p.price ?? 0), 0)
+    const delta = proposedTotal - individualTotal
+
+    // What the bundle adds beyond the union of the packages it replaces.
+    const coveredTests = new Set<number>()
+    const coveredComps = new Set<string>()
+    for (const p of covers) {
+      for (const id of serviceTestIds(p)) coveredTests.add(id)
+      for (const k of serviceCompKeys(p)) coveredComps.add(k)
+    }
+    const extraTests = [...bundleTests].filter((id) => !coveredTests.has(id)).length
+    const extraComponents = [...bundleComps]
+      .filter((k) => !coveredComps.has(k))
       .map((k) => k.split('::')[1])
-    const delta = candidate.price - individualTotal
 
-    // Only worth showing if it adds something or saves money (skip a pure,
-    // more-expensive duplicate of the selection).
+    // Skip a bundle that replaces its subset with no added content and no saving.
     if (extraTests === 0 && extraComponents.length === 0 && delta >= 0) continue
 
     suggestions.push({
-      bundle: candidate,
+      bundle,
+      covers,
+      leftovers,
+      bundlePrice: bundle.price,
       individualTotal,
-      bundlePrice: candidate.price,
+      proposedTotal,
       delta,
       extraTests,
       extraComponents,
     })
   }
 
-  // Least-priced covering package first.
-  return suggestions.sort((a, b) => a.bundlePrice - b.bundlePrice)
+  return suggestions.sort(
+    (a, b) => a.proposedTotal - b.proposedTotal || a.leftovers.length - b.leftovers.length
+  )
 }
 
 /** Group a service's curated "what's included" rows by their `group` label. */
@@ -268,27 +327,61 @@ export function formatAED(n: number | null): string {
   return `AED ${n.toLocaleString('en-US')}`
 }
 
+/** Per-line discount type: a percentage of the line, or a fixed AED amount. */
+export type DiscountType = 'pct' | 'amt'
+
 export interface QuoteLine {
   service: CatalogueService
   qty: number
+  /** How this line's discount is interpreted. */
+  discountType: DiscountType
+  /** Discount value: 0–100 when type is 'pct', an AED amount when type is 'amt'. */
+  discountValue: number
+}
+
+/** Line total before discount = unit price × qty (a POA/no-price item counts as 0). */
+export function lineGross(line: QuoteLine): number {
+  return (line.service.price ?? 0) * line.qty
+}
+
+/**
+ * The discount amount applied to a line, always clamped so it can neither be
+ * negative nor exceed the line's gross. Percentages are clamped to 0–100.
+ */
+export function lineDiscountAmount(line: QuoteLine): number {
+  const gross = lineGross(line)
+  const v = Math.max(0, line.discountValue || 0)
+  if (line.discountType === 'pct') return Math.round((gross * Math.min(100, v)) / 100)
+  return Math.min(Math.round(v), gross)
+}
+
+/** Line total after its own discount. */
+export function lineNet(line: QuoteLine): number {
+  return lineGross(line) - lineDiscountAmount(line)
 }
 
 export interface QuoteTotals {
-  subtotal: number
-  discountPct: number
-  discountAmount: number
+  /** Sum of line grosses (before any discounts). */
+  gross: number
+  /** Sum of per-line discount amounts. */
+  discount: number
+  /** gross − discount. */
   total: number
   itemCount: number
 }
 
 /**
- * Compute quote totals from basket lines and an optional percentage discount
- * (0–100). Services with no price (POA) contribute 0 to the subtotal.
+ * Compute quote totals from basket lines, applying each line's own discount.
+ * Services with no price (POA) contribute 0.
  */
-export function quoteTotals(lines: QuoteLine[], discountPct = 0): QuoteTotals {
-  const subtotal = lines.reduce((sum, l) => sum + (l.service.price ?? 0) * l.qty, 0)
-  const pct = Math.min(100, Math.max(0, discountPct))
-  const discountAmount = Math.round((subtotal * pct) / 100)
-  const itemCount = lines.reduce((sum, l) => sum + l.qty, 0)
-  return { subtotal, discountPct: pct, discountAmount, total: subtotal - discountAmount, itemCount }
+export function quoteTotals(lines: QuoteLine[]): QuoteTotals {
+  let gross = 0
+  let discount = 0
+  let itemCount = 0
+  for (const l of lines) {
+    gross += lineGross(l)
+    discount += lineDiscountAmount(l)
+    itemCount += l.qty
+  }
+  return { gross, discount, total: gross - discount, itemCount }
 }
