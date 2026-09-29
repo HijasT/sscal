@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [9.0.0]
+
+### Added
+- **Quote B now suggests bundles based on Quote A.** As packages are added to Quote A, Quote B shows the cheapest "bundle a subset + keep the rest" combinations that cover Quote A's selection; one click fills Quote B with that bundled combination, so Quote A (à la carte) can be compared directly against the bundled version in Quote B.
+
+### Removed
+- **Customer name field** removed from both quotes — the quote tool is a pricing/comparison scratchpad, not a customer record.
+
 ## [8.18.0]
 
 ### Added
