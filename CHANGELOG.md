@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [9.1.0]
+
+### Changed
+- **Quote B is now an automatic, live bundled mirror of Quote A.** Instead of manually applying individual bundle suggestions, Quote B always shows the fully-bundled version of Quote A — composing every applicable comprehensive/bundle package (e.g. Ultimate Men's + Food Allergy & Intolerance Bundle) plus any packages no bundle covers — and it updates as Quote A changes. Two greedy strategies (fewest bundles vs cheapest-first) are tried and the lower-priced composition is shown, avoiding both over-reach (one huge comprehensive) and redundant overlapping bundles.
+- Quote B's lines are **editable for discounts** (percentage or fixed AED, per line), so the bundled price can be negotiated and compared against Quote A; the per-line discounts persist as Quote B recomposes. Quote B is otherwise read-only (its packages are derived from Quote A). The manual "+B" add button and per-bundle "Apply" suggestions are removed in favour of this automatic mirror.
+
 ## [9.0.0]
 
 ### Added

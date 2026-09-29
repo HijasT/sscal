@@ -212,97 +212,97 @@ function packageContains(
 /** Category that holds the comprehensive/bundle packages. */
 const COMPREHENSIVE_CATEGORY = 'Comprehensive Packages / Bundles'
 
-export interface BundleSuggestion {
-  /** The comprehensive package that would replace the covered subset. */
-  bundle: CatalogueService
-  /** Selected packages the bundle fully covers (and would replace). */
-  covers: CatalogueService[]
-  /** Selected packages the bundle does not cover — kept as individual lines. */
-  leftovers: CatalogueService[]
-  /** The bundle's own price. */
-  bundlePrice: number
-  /** Sum of all selected packages' prices (buying everything individually). */
-  individualTotal: number
-  /** bundle price + leftover prices (the proposed combination). */
-  proposedTotal: number
-  /** proposedTotal − individualTotal. Negative = the proposed mix is cheaper. */
-  delta: number
-  /** Extra lab tests the bundle adds beyond the packages it replaces. */
-  extraTests: number
-  /** Extra service components the bundle adds beyond the packages it replaces. */
-  extraComponents: string[]
+/** Candidate bundle/comprehensive packages that can replace a group of packages. */
+function bundleCandidates(): CatalogueService[] {
+  return data.services.filter(
+    (s) => s.price != null && (s.category === COMPREHENSIVE_CATEGORY || /\bbundle\b/i.test(s.name))
+  )
 }
 
 /**
- * Given a set of selected packages, find the best "bundle + keep the rest"
- * combination: a comprehensive package that fully covers a subset (2 or more)
- * of the selection, with any packages it does not cover kept as individual
- * lines. This means a bundle is still suggested even when it only covers part
- * of the selection.
+ * Greedily cover a selection with bundles under a given "pick the best next
+ * bundle" rule. Each chosen bundle must cover 2+ still-uncovered packages, and
+ * covered packages are removed before the next pick, so bundles never overlap.
+ */
+function greedyCover(
+  selected: CatalogueService[],
+  candidates: CatalogueService[],
+  better: (a: { covered: CatalogueService[]; cand: CatalogueService }, b: { covered: CatalogueService[]; cand: CatalogueService }) => boolean
+): { bundles: CatalogueService[]; leftovers: CatalogueService[] } {
+  const bundles: CatalogueService[] = []
+  let remaining = [...selected]
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    let best: { covered: CatalogueService[]; cand: CatalogueService } | null = null
+    for (const cand of candidates) {
+      const ct = serviceTestIds(cand)
+      const cc = serviceCompKeys(cand)
+      const covered = remaining.filter((p) => cand.id !== p.id && packageContains(ct, cc, p))
+      if (covered.length < 2) continue
+      const option = { covered, cand }
+      if (!best || better(option, best)) best = option
+    }
+    if (!best) break
+    bundles.push(best.cand)
+    const coveredIds = new Set(best.covered.map((c) => c.id))
+    remaining = remaining.filter((p) => !coveredIds.has(p.id))
+  }
+  return { bundles, leftovers: remaining }
+}
+
+export interface BundledQuote {
+  /** Bundle/comprehensive packages chosen to cover subsets of the selection. */
+  bundles: CatalogueService[]
+  /** Selected packages not covered by any bundle — kept as individual lines. */
+  leftovers: CatalogueService[]
+  /** The full bundled composition: bundles first, then leftovers. */
+  services: CatalogueService[]
+  /** Sum of the composition's prices. */
+  total: number
+}
+
+const priceOf = (list: CatalogueService[]) => list.reduce((sum, s) => sum + (s.price ?? 0), 0)
+
+/**
+ * Produce the fully-bundled version of a selection: replace every group of 2+
+ * selected packages that a comprehensive/bundle package covers with that
+ * bundle, composing multiple bundles when the selection spans several groups
+ * (e.g. men's packages + food tests → Ultimate Men's + Food Allergy &
+ * Intolerance Bundle), and keeping any uncovered packages as individual lines.
  *
  * Coverage is content-based (a package is covered when the bundle includes all
- * of its lab tests AND all of its service components), so it matches e.g. the
- * "Food Allergy & Intolerance Bundle" to its two component tests despite their
- * differing panel names.
- *
- * Results are sorted by the proposed total ascending (cheapest combination
- * first), then by fewest leftovers. Requires at least two selected packages.
+ * of its lab tests AND service components). Two greedy strategies are tried —
+ * fewest-bundles (max coverage first) and cheapest-bundle-first — and the
+ * lower-priced resulting composition is returned, which avoids both over-reach
+ * (one huge comprehensive) and redundant overlapping bundles.
  */
-export function findBundleSuggestions(selected: CatalogueService[]): BundleSuggestion[] {
-  if (selected.length < 2) return []
-
-  const individualTotal = selected.reduce((sum, p) => sum + (p.price ?? 0), 0)
-
-  const suggestions: BundleSuggestion[] = []
-  for (const bundle of data.services) {
-    if (bundle.price == null) continue
-    // Only genuine bundles/comprehensive packages are candidates — otherwise a
-    // plain package that merely includes a doctor consult would "cover" a bare
-    // Doctor Consultation line and be offered as a bundle.
-    if (bundle.category !== COMPREHENSIVE_CATEGORY && !/\bbundle\b/i.test(bundle.name)) continue
-
-    const bundleTests = serviceTestIds(bundle)
-    const bundleComps = serviceCompKeys(bundle)
-
-    // Which selected packages does this bundle fully contain?
-    const covers = selected.filter((p) => packageContains(bundleTests, bundleComps, p))
-    if (covers.length < 2) continue // only worth bundling 2+ packages
-
-    const leftovers = selected.filter((p) => !covers.includes(p))
-    const proposedTotal = bundle.price + leftovers.reduce((sum, p) => sum + (p.price ?? 0), 0)
-    const delta = proposedTotal - individualTotal
-
-    // What the bundle adds beyond the union of the packages it replaces.
-    const coveredTests = new Set<number>()
-    const coveredComps = new Set<string>()
-    for (const p of covers) {
-      for (const id of serviceTestIds(p)) coveredTests.add(id)
-      for (const k of serviceCompKeys(p)) coveredComps.add(k)
-    }
-    const extraTests = [...bundleTests].filter((id) => !coveredTests.has(id)).length
-    const extraComponents = [...bundleComps]
-      .filter((k) => !coveredComps.has(k))
-      .map((k) => k.split('::')[1])
-
-    // Skip a bundle that replaces its subset with no added content and no saving.
-    if (extraTests === 0 && extraComponents.length === 0 && delta >= 0) continue
-
-    suggestions.push({
-      bundle,
-      covers,
-      leftovers,
-      bundlePrice: bundle.price,
-      individualTotal,
-      proposedTotal,
-      delta,
-      extraTests,
-      extraComponents,
-    })
+export function bundleAll(selected: CatalogueService[]): BundledQuote {
+  const uniq = [...new Map(selected.map((s) => [s.id, s])).values()]
+  if (uniq.length < 2) {
+    return { bundles: [], leftovers: uniq, services: uniq, total: priceOf(uniq) }
   }
 
-  return suggestions.sort(
-    (a, b) => a.proposedTotal - b.proposedTotal || a.leftovers.length - b.leftovers.length
+  const candidates = bundleCandidates()
+
+  // Strategy 1: cover the most packages per bundle (fewest bundles).
+  const byCoverage = greedyCover(uniq, candidates, (a, b) =>
+    a.covered.length !== b.covered.length
+      ? a.covered.length > b.covered.length
+      : (a.cand.price ?? 0) < (b.cand.price ?? 0)
   )
+  // Strategy 2: use the cheapest qualifying bundle at each step.
+  const byPrice = greedyCover(uniq, candidates, (a, b) =>
+    (a.cand.price ?? 0) !== (b.cand.price ?? 0)
+      ? (a.cand.price ?? 0) < (b.cand.price ?? 0)
+      : a.covered.length > b.covered.length
+  )
+
+  const totalOf = (r: { bundles: CatalogueService[]; leftovers: CatalogueService[] }) =>
+    priceOf(r.bundles) + priceOf(r.leftovers)
+  const best = totalOf(byPrice) < totalOf(byCoverage) ? byPrice : byCoverage
+
+  const services = [...best.bundles, ...best.leftovers]
+  return { bundles: best.bundles, leftovers: best.leftovers, services, total: priceOf(services) }
 }
 
 /** Group a service's curated "what's included" rows by their `group` label. */

@@ -2105,3 +2105,52 @@ input[type="range"]::-moz-range-thumb {
     text-align: center;
   }
 }
+
+/* Quote B (bundled) line items */
+.sa-bline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.sa-bline-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sa-bline-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent-primary);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-primary);
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+
+.sa-bline-price {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+}
+
+.sa-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+  font-style: italic;
+}

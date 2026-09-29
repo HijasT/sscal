@@ -1,25 +1,24 @@
 'use client'
 /**
- * SaleAssistantTab — browse the catalogue and build/compare quotes.
+ * SaleAssistantTab — browse the catalogue, build a quote, and see its bundled
+ * equivalent side by side.
  *
  * - Catalogue browser: search by package name, category, or lab marker; an
  *   optional "blood tests only" filter hides consult/vitals-only packages. Each
- *   package's drill-down shows its full breakdown — service-level inclusions
- *   (doctor, vitals, DNA modules, ECG, etc.) plus every resolved lab test,
- *   grouped by profile.
- * - Side-by-side quotes (A and B): add packages to either side and compare the
- *   totals.
- * - Per-line discounts: every line in a quote can carry its own discount,
- *   entered as a percentage or a fixed AED amount.
- * - Bundle suggestions for Quote B are derived from Quote A's packages: the
- *   cheapest "bundle a subset + keep the rest" combinations covering Quote A,
- *   which one click fills into Quote B — so A (à la carte) can be compared with
- *   the bundled version in B.
+ *   package's drill-down shows its full breakdown — the packages a bundle is
+ *   built from, service-level inclusions (doctor, vitals, DNA modules, ECG…),
+ *   and every resolved lab test grouped by profile.
+ * - Quote A (editable): add packages, adjust quantity, and give each line its
+ *   own discount (a percentage or a fixed AED amount).
+ * - Quote B (auto, read-only): the fully-bundled version of Quote A. It
+ *   composes every applicable comprehensive/bundle package (e.g. Ultimate Men's
+ *   + Food Allergy & Intolerance Bundle) plus any packages no bundle covers,
+ *   and updates live as Quote A changes. The comparison bar shows Quote A (à la
+ *   carte, after discounts) against the bundled list price.
  *
  * All data comes from the bundled static snapshot (lib/catalogue.json via
- * lib/catalogueUtils) — no network calls. Both in-progress quotes are kept in
- * sessionStorage so they survive tab switches within a session and clear when
- * the tab is closed.
+ * lib/catalogueUtils) — no network calls. Quote A is kept in sessionStorage so
+ * it survives tab switches within a session and clears when the tab is closed.
  */
 import { useEffect, useMemo, useState } from 'react'
 import {
@@ -30,7 +29,7 @@ import {
   groupComps,
   groupServiceTests,
   getComponentPackages,
-  findBundleSuggestions,
+  bundleAll,
   hasLabTests,
   formatAED,
   quoteTotals,
@@ -39,32 +38,17 @@ import {
   lineDiscountAmount,
   type CatalogueService,
   type QuoteLine,
-  type QuoteTotals,
   type DiscountType,
-  type BundleSuggestion,
 } from '@/lib/catalogueUtils'
 
 const ALL = 'All'
 const QUOTE_KEY = 'sic_sale_quote'
-
-type Side = 'A' | 'B'
-const SIDES: Side[] = ['A', 'B']
-
-interface QuoteState {
-  lines: QuoteLine[]
-}
-
-const emptyQuote = (): QuoteState => ({ lines: [] })
 
 interface StoredLine {
   id: number
   qty: number
   discountType: DiscountType
   discountValue: number
-}
-interface StoredQuotes {
-  A: { lines: StoredLine[] }
-  B: { lines: StoredLine[] }
 }
 
 export function SaleAssistantTab() {
@@ -73,7 +57,10 @@ export function SaleAssistantTab() {
   const [bloodOnly, setBloodOnly] = useState(false)
   const [expandedId, setExpandedId] = useState<number | null>(null)
 
-  const [quotes, setQuotes] = useState<Record<Side, QuoteState>>({ A: emptyQuote(), B: emptyQuote() })
+  const [lines, setLines] = useState<QuoteLine[]>([]) // Quote A
+  // Quote B mirrors A's bundling, but the salesperson can try discounts on it.
+  // Discounts are kept per service id so they survive B recomposing when A changes.
+  const [bDiscounts, setBDiscounts] = useState<Record<number, { type: DiscountType; value: number }>>({})
   const [quoteOpen, setQuoteOpen] = useState(false)
   const [hydrated, setHydrated] = useState(false)
 
@@ -86,28 +73,47 @@ export function SaleAssistantTab() {
     return r
   }, [query, category, bloodOnly])
 
-  // Rehydrate both quotes from sessionStorage on mount.
+  const totalsA = useMemo(() => quoteTotals(lines), [lines])
+  const bundled = useMemo(() => bundleAll(lines.map((l) => l.service)), [lines])
+
+  // Quote B lines: the bundled composition, each carrying its own (editable)
+  // discount pulled from bDiscounts. Quantity is fixed at 1 (composition-level).
+  const bundleIds = useMemo(() => new Set(bundled.bundles.map((b) => b.id)), [bundled])
+  const bLines: QuoteLine[] = useMemo(
+    () =>
+      bundled.services.map((service) => ({
+        service,
+        qty: 1,
+        discountType: bDiscounts[service.id]?.type ?? 'pct',
+        discountValue: bDiscounts[service.id]?.value ?? 0,
+      })),
+    [bundled, bDiscounts]
+  )
+  const totalsB = useMemo(() => quoteTotals(bLines), [bLines])
+
+  // Rehydrate Quote A from sessionStorage on mount (tolerates the older
+  // two-quote {A,B} shape by reading Quote A).
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(QUOTE_KEY)
       if (raw) {
-        const stored: StoredQuotes = JSON.parse(raw)
-        const restore = (q: StoredQuotes['A']): QuoteState => ({
-          lines: (q?.lines || [])
-            .map((l) => {
-              const service = getServiceById(l.id)
-              return service
-                ? {
-                    service,
-                    qty: l.qty,
-                    discountType: (l.discountType as DiscountType) || 'pct',
-                    discountValue: l.discountValue || 0,
-                  }
-                : null
-            })
-            .filter((l): l is QuoteLine => l !== null),
-        })
-        setQuotes({ A: restore(stored.A), B: restore(stored.B) })
+        const stored = JSON.parse(raw)
+        const storedLines: StoredLine[] = stored?.lines ?? stored?.A?.lines ?? []
+        const restored = storedLines
+          .map((l) => {
+            const service = getServiceById(l.id)
+            return service
+              ? {
+                  service,
+                  qty: l.qty,
+                  discountType: (l.discountType as DiscountType) || 'pct',
+                  discountValue: l.discountValue || 0,
+                }
+              : null
+          })
+          .filter((l): l is QuoteLine => l !== null)
+        setLines(restored)
+        if (stored?.bDiscounts && typeof stored.bDiscounts === 'object') setBDiscounts(stored.bDiscounts)
       }
     } catch {
       /* ignore malformed/unavailable sessionStorage */
@@ -115,74 +121,64 @@ export function SaleAssistantTab() {
     setHydrated(true)
   }, [])
 
-  // Persist both quotes whenever they change (after the initial hydrate).
+  // Persist Quote A whenever it changes (after the initial hydrate).
   useEffect(() => {
     if (!hydrated) return
     try {
-      const dump = (q: QuoteState) => ({
-        lines: q.lines.map((l) => ({
+      const payload = {
+        lines: lines.map((l) => ({
           id: l.service.id,
           qty: l.qty,
           discountType: l.discountType,
           discountValue: l.discountValue,
         })),
-      })
-      const payload: StoredQuotes = { A: dump(quotes.A), B: dump(quotes.B) }
+        bDiscounts,
+      }
       sessionStorage.setItem(QUOTE_KEY, JSON.stringify(payload))
     } catch {
       /* ignore */
     }
-  }, [quotes, hydrated])
+  }, [lines, bDiscounts, hydrated])
 
-  const updateSide = (side: Side, updater: (q: QuoteState) => QuoteState) =>
-    setQuotes((prev) => ({ ...prev, [side]: updater(prev[side]) }))
-
-  const addToQuote = (side: Side, service: CatalogueService) => {
-    updateSide(side, (q) => {
-      const existing = q.lines.find((l) => l.service.id === service.id)
-      const lines = existing
-        ? q.lines.map((l) => (l.service.id === service.id ? { ...l, qty: l.qty + 1 } : l))
-        : [...q.lines, { service, qty: 1, discountType: 'pct' as DiscountType, discountValue: 0 }]
-      return { ...q, lines }
+  const addToQuote = (service: CatalogueService) => {
+    setLines((prev) => {
+      const existing = prev.find((l) => l.service.id === service.id)
+      return existing
+        ? prev.map((l) => (l.service.id === service.id ? { ...l, qty: l.qty + 1 } : l))
+        : [...prev, { service, qty: 1, discountType: 'pct' as DiscountType, discountValue: 0 }]
     })
     setQuoteOpen(true)
   }
 
-  const setQty = (side: Side, id: number, qty: number) =>
-    updateSide(side, (q) => ({
-      ...q,
-      lines:
-        qty <= 0
-          ? q.lines.filter((l) => l.service.id !== id)
-          : q.lines.map((l) => (l.service.id === id ? { ...l, qty } : l)),
-    }))
+  const setQty = (id: number, qty: number) =>
+    setLines((prev) =>
+      qty <= 0
+        ? prev.filter((l) => l.service.id !== id)
+        : prev.map((l) => (l.service.id === id ? { ...l, qty } : l))
+    )
 
-  const setLineDiscount = (side: Side, id: number, patch: Partial<Pick<QuoteLine, 'discountType' | 'discountValue'>>) =>
-    updateSide(side, (q) => ({
-      ...q,
-      lines: q.lines.map((l) => (l.service.id === id ? { ...l, ...patch } : l)),
-    }))
+  const setLineDiscount = (id: number, patch: Partial<Pick<QuoteLine, 'discountType' | 'discountValue'>>) =>
+    setLines((prev) => prev.map((l) => (l.service.id === id ? { ...l, ...patch } : l)))
 
-  const removeLine = (side: Side, id: number) =>
-    updateSide(side, (q) => ({ ...q, lines: q.lines.filter((l) => l.service.id !== id) }))
+  const removeLine = (id: number) => setLines((prev) => prev.filter((l) => l.service.id !== id))
 
-  const clearQuote = (side: Side) => updateSide(side, () => emptyQuote())
+  const clearQuote = () => setLines([])
 
-  // Build a quote side from a suggestion: the bundle plus the packages it does
-  // not cover ("leftovers"), replacing whatever was on that side. Used to fill
-  // Quote B with the bundled alternative to Quote A.
-  const useSuggestion = (side: Side, suggestion: BundleSuggestion) =>
-    updateSide(side, () => ({
-      lines: [suggestion.bundle, ...suggestion.leftovers].map((service) => ({
-        service,
-        qty: 1,
-        discountType: 'pct' as DiscountType,
-        discountValue: 0,
-      })),
-    }))
+  const setBLineDiscount = (id: number, patch: Partial<Pick<QuoteLine, 'discountType' | 'discountValue'>>) =>
+    setBDiscounts((prev) => {
+      const cur = prev[id] ?? { type: 'pct' as DiscountType, value: 0 }
+      return {
+        ...prev,
+        [id]: {
+          type: patch.discountType ?? cur.type,
+          value: patch.discountValue ?? cur.value,
+        },
+      }
+    })
 
-  const qtyInQuote = (side: Side, id: number) =>
-    quotes[side].lines.find((l) => l.service.id === id)?.qty ?? 0
+  const qtyInQuote = (id: number) => lines.find((l) => l.service.id === id)?.qty ?? 0
+
+  const empty = lines.length === 0
 
   return (
     <div className="card">
@@ -195,17 +191,67 @@ export function SaleAssistantTab() {
         100% local · catalogue bundled with the app · no data shared
       </div>
 
-      {/* Two-sided quote comparison */}
-      <QuoteComparison
-        quotes={quotes}
-        open={quoteOpen}
-        onToggleOpen={() => setQuoteOpen((o) => !o)}
-        onSetQty={setQty}
-        onSetLineDiscount={setLineDiscount}
-        onRemove={removeLine}
-        onClear={clearQuote}
-        onUseSuggestion={useSuggestion}
-      />
+      {/* Quote A (editable) vs Quote B (auto-bundled) */}
+      <div className="sa-quote">
+        <button className="sa-quote-bar" onClick={() => setQuoteOpen((o) => !o)} aria-expanded={quoteOpen}>
+          <span className="sa-quote-title">Quote comparison</span>
+          <span className="sa-quote-compare-mini">
+            A <b>{formatAED(totalsA.total)}</b> · Bundled <b>{formatAED(totalsB.total)}</b>
+          </span>
+          <span className="sa-quote-chevron">{quoteOpen ? '▲' : '▼'}</span>
+        </button>
+
+        {quoteOpen && (
+          <div className="sa-quote-body">
+            <div className="sa-columns">
+              {/* Quote A — editable à la carte */}
+              <div className="sa-col">
+                <div className="sa-col-head">
+                  <span className="sa-col-badge">Quote A · à la carte</span>
+                  {!empty && (
+                    <button className="sa-col-clear" onClick={clearQuote}>
+                      Clear
+                    </button>
+                  )}
+                </div>
+
+                {empty ? (
+                  <p className="sa-empty" style={{ padding: '8px 0' }}>
+                    No packages yet. Use “Add” on any package below.
+                  </p>
+                ) : (
+                  <>
+                    <div className="sa-col-lines">
+                      {lines.map((l) => (
+                        <QuoteLineRow
+                          key={l.service.id}
+                          line={l}
+                          onSetQty={(qty) => setQty(l.service.id, qty)}
+                          onSetDiscount={(patch) => setLineDiscount(l.service.id, patch)}
+                          onRemove={() => removeLine(l.service.id)}
+                        />
+                      ))}
+                    </div>
+                    <QuoteTotalsRows gross={totalsA.gross} discount={totalsA.discount} total={totalsA.total} />
+                  </>
+                )}
+              </div>
+
+              {/* Quote B — auto-bundled mirror of A, discounts editable */}
+              <BundledColumn
+                lines={bLines}
+                bundleIds={bundleIds}
+                totals={totalsB}
+                hasBundle={bundled.bundles.length > 0}
+                empty={empty}
+                onSetDiscount={setBLineDiscount}
+              />
+            </div>
+
+            {!empty && <ComparisonSummary a={totalsA.total} b={totalsB.total} />}
+          </div>
+        )}
+      </div>
 
       {/* Search */}
       <div className="form-group" style={{ marginBottom: 16 }}>
@@ -234,11 +280,7 @@ export function SaleAssistantTab() {
 
       <div className="sa-filter-row">
         <label className="sa-check">
-          <input
-            type="checkbox"
-            checked={bloodOnly}
-            onChange={(e) => setBloodOnly(e.target.checked)}
-          />
+          <input type="checkbox" checked={bloodOnly} onChange={(e) => setBloodOnly(e.target.checked)} />
           Blood tests only
         </label>
         <span className="sa-count">
@@ -255,11 +297,10 @@ export function SaleAssistantTab() {
             <ServiceRow
               key={s.id}
               service={s}
-              qtyA={qtyInQuote('A', s.id)}
-              qtyB={qtyInQuote('B', s.id)}
+              qty={qtyInQuote(s.id)}
               expanded={expandedId === s.id}
               onToggle={() => setExpandedId(expandedId === s.id ? null : s.id)}
-              onAdd={(side) => addToQuote(side, s)}
+              onAdd={() => addToQuote(s)}
             />
           ))}
         </div>
@@ -268,66 +309,69 @@ export function SaleAssistantTab() {
   )
 }
 
-function QuoteComparison({
-  quotes,
-  open,
-  onToggleOpen,
-  onSetQty,
-  onSetLineDiscount,
-  onRemove,
-  onClear,
-  onUseSuggestion,
-}: {
-  quotes: Record<Side, QuoteState>
-  open: boolean
-  onToggleOpen: () => void
-  onSetQty: (side: Side, id: number, qty: number) => void
-  onSetLineDiscount: (side: Side, id: number, patch: Partial<Pick<QuoteLine, 'discountType' | 'discountValue'>>) => void
-  onRemove: (side: Side, id: number) => void
-  onClear: (side: Side) => void
-  onUseSuggestion: (side: Side, suggestion: BundleSuggestion) => void
-}) {
-  const totals = { A: quoteTotals(quotes.A.lines), B: quoteTotals(quotes.B.lines) } as Record<Side, QuoteTotals>
-  const bothHaveItems = quotes.A.lines.length > 0 && quotes.B.lines.length > 0
-
-  // Bundle suggestions for Quote B are derived from what's in Quote A, so the
-  // salesperson can compare Quote A (à la carte) with the bundled version in B.
-  const suggestionsForB = useMemo(
-    () => findBundleSuggestions(quotes.A.lines.map((l) => l.service)).slice(0, 3),
-    [quotes.A.lines]
-  )
-
+function QuoteTotalsRows({ gross, discount, total }: { gross: number; discount: number; total: number }) {
   return (
-    <div className="sa-quote">
-      <button className="sa-quote-bar" onClick={onToggleOpen} aria-expanded={open}>
-        <span className="sa-quote-title">Quote comparison</span>
-        <span className="sa-quote-compare-mini">
-          A <b>{formatAED(totals.A.total)}</b> · B <b>{formatAED(totals.B.total)}</b>
-        </span>
-        <span className="sa-quote-chevron">{open ? '▲' : '▼'}</span>
-      </button>
+    <div className="sa-quote-totals">
+      <div className="sa-quote-total-row">
+        <span>Subtotal</span>
+        <span>{formatAED(gross)}</span>
+      </div>
+      {discount > 0 && (
+        <div className="sa-quote-total-row sa-quote-discount">
+          <span>Discounts</span>
+          <span>− {formatAED(discount)}</span>
+        </div>
+      )}
+      <div className="sa-quote-total-row sa-quote-grand">
+        <span>Total</span>
+        <span>{formatAED(total)}</span>
+      </div>
+    </div>
+  )
+}
 
-      {open && (
-        <div className="sa-quote-body">
-          <div className="sa-columns">
-            {SIDES.map((side) => (
-              <QuoteColumn
-                key={side}
-                side={side}
-                quote={quotes[side]}
-                totals={totals[side]}
-                suggestions={side === 'B' ? suggestionsForB : []}
-                onSetQty={(id, qty) => onSetQty(side, id, qty)}
-                onSetLineDiscount={(id, patch) => onSetLineDiscount(side, id, patch)}
-                onRemove={(id) => onRemove(side, id)}
-                onClear={() => onClear(side)}
-                onUseSuggestion={(suggestion) => onUseSuggestion(side, suggestion)}
+function BundledColumn({
+  lines,
+  bundleIds,
+  totals,
+  hasBundle,
+  empty,
+  onSetDiscount,
+}: {
+  lines: QuoteLine[]
+  bundleIds: Set<number>
+  totals: ReturnType<typeof quoteTotals>
+  hasBundle: boolean
+  empty: boolean
+  onSetDiscount: (id: number, patch: Partial<Pick<QuoteLine, 'discountType' | 'discountValue'>>) => void
+}) {
+  return (
+    <div className="sa-col">
+      <div className="sa-col-head">
+        <span className="sa-col-badge">Quote B · bundled</span>
+      </div>
+
+      {empty ? (
+        <p className="sa-empty" style={{ padding: '8px 0' }}>
+          The bundled version of Quote A appears here automatically. You can try discounts on it.
+        </p>
+      ) : (
+        <>
+          {!hasBundle && (
+            <p className="sa-note">No bundle covers this selection — the packages mirror Quote A.</p>
+          )}
+          <div className="sa-col-lines">
+            {lines.map((l) => (
+              <QuoteLineRow
+                key={l.service.id}
+                line={l}
+                tag={bundleIds.has(l.service.id) ? 'Bundle' : undefined}
+                onSetDiscount={(patch) => onSetDiscount(l.service.id, patch)}
               />
             ))}
           </div>
-
-          {bothHaveItems && <ComparisonSummary a={totals.A.total} b={totals.B.total} />}
-        </div>
+          <QuoteTotalsRows gross={totals.gross} discount={totals.discount} total={totals.total} />
+        </>
       )}
     </div>
   )
@@ -335,7 +379,7 @@ function QuoteComparison({
 
 function ComparisonSummary({ a, b }: { a: number; b: number }) {
   const diff = Math.abs(a - b)
-  const cheaper: Side | null = a < b ? 'A' : b < a ? 'B' : null
+  const cheaper = a < b ? 'A' : b < a ? 'Bundled' : null
   return (
     <div className="sa-compare">
       <div className="sa-compare-cell">
@@ -347,135 +391,59 @@ function ComparisonSummary({ a, b }: { a: number; b: number }) {
           <>Both totals are equal</>
         ) : (
           <>
-            Quote <b>{cheaper}</b> is lower by <b>{formatAED(diff)}</b>
+            <b>{cheaper}</b> is lower by <b>{formatAED(diff)}</b>
           </>
         )}
       </div>
       <div className="sa-compare-cell">
-        <span className="sa-compare-label">Quote B</span>
+        <span className="sa-compare-label">Bundled</span>
         <span className="sa-compare-val">{formatAED(b)}</span>
       </div>
     </div>
   )
 }
 
-function QuoteColumn({
-  side,
-  quote,
-  totals,
-  suggestions,
-  onSetQty,
-  onSetLineDiscount,
-  onRemove,
-  onClear,
-  onUseSuggestion,
-}: {
-  side: Side
-  quote: QuoteState
-  totals: QuoteTotals
-  suggestions: BundleSuggestion[]
-  onSetQty: (id: number, qty: number) => void
-  onSetLineDiscount: (id: number, patch: Partial<Pick<QuoteLine, 'discountType' | 'discountValue'>>) => void
-  onRemove: (id: number) => void
-  onClear: () => void
-  onUseSuggestion: (suggestion: BundleSuggestion) => void
-}) {
-  const empty = quote.lines.length === 0
-
-  return (
-    <div className="sa-col">
-      <div className="sa-col-head">
-        <span className="sa-col-badge">Quote {side}</span>
-        {!empty && (
-          <button className="sa-col-clear" onClick={onClear}>
-            Clear
-          </button>
-        )}
-      </div>
-
-      {suggestions.length > 0 && (
-        <div className="sa-bundles">
-          <div className="sa-bundles-title">💡 Suggested bundles for Quote A</div>
-          {suggestions.map((s) => (
-            <BundleSuggestionRow key={s.bundle.id} s={s} onApply={() => onUseSuggestion(s)} />
-          ))}
-        </div>
-      )}
-
-      {empty ? (
-        <p className="sa-empty" style={{ padding: '8px 0' }}>
-          {suggestions.length > 0
-            ? 'Apply a suggested bundle above, or use “+B” on any package below.'
-            : `No packages yet. Use “+${side}” on any package below to add it here.`}
-        </p>
-      ) : (
-        <>
-          <div className="sa-col-lines">
-            {quote.lines.map((l) => (
-              <QuoteLineRow
-                key={l.service.id}
-                line={l}
-                onSetQty={(qty) => onSetQty(l.service.id, qty)}
-                onSetDiscount={(patch) => onSetLineDiscount(l.service.id, patch)}
-                onRemove={() => onRemove(l.service.id)}
-              />
-            ))}
-          </div>
-
-          <div className="sa-quote-totals">
-            <div className="sa-quote-total-row">
-              <span>Subtotal</span>
-              <span>{formatAED(totals.gross)}</span>
-            </div>
-            {totals.discount > 0 && (
-              <div className="sa-quote-total-row sa-quote-discount">
-                <span>Discounts</span>
-                <span>− {formatAED(totals.discount)}</span>
-              </div>
-            )}
-            <div className="sa-quote-total-row sa-quote-grand">
-              <span>Total</span>
-              <span>{formatAED(totals.total)}</span>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  )
-}
-
 function QuoteLineRow({
   line,
-  onSetQty,
   onSetDiscount,
+  onSetQty,
   onRemove,
+  tag,
 }: {
   line: QuoteLine
-  onSetQty: (qty: number) => void
   onSetDiscount: (patch: Partial<Pick<QuoteLine, 'discountType' | 'discountValue'>>) => void
-  onRemove: () => void
+  onSetQty?: (qty: number) => void
+  onRemove?: () => void
+  tag?: string
 }) {
   const discount = lineDiscountAmount(line)
 
   return (
     <div className="sa-line">
       <div className="sa-line-top">
-        <span className="sa-line-name">{line.service.name}</span>
-        <button className="sa-quote-line-remove" onClick={onRemove} aria-label="Remove from quote">
-          ✕
-        </button>
+        <span className="sa-line-name">
+          {line.service.name}
+          {tag && <span className="sa-bline-tag">{tag}</span>}
+        </span>
+        {onRemove && (
+          <button className="sa-quote-line-remove" onClick={onRemove} aria-label="Remove from quote">
+            ✕
+          </button>
+        )}
       </div>
 
       <div className="sa-line-controls">
-        <div className="sa-qty">
-          <button className="sa-qty-btn" onClick={() => onSetQty(line.qty - 1)} aria-label="Decrease quantity">
-            −
-          </button>
-          <span className="sa-qty-val">{line.qty}</span>
-          <button className="sa-qty-btn" onClick={() => onSetQty(line.qty + 1)} aria-label="Increase quantity">
-            +
-          </button>
-        </div>
+        {onSetQty && (
+          <div className="sa-qty">
+            <button className="sa-qty-btn" onClick={() => onSetQty(line.qty - 1)} aria-label="Decrease quantity">
+              −
+            </button>
+            <span className="sa-qty-val">{line.qty}</span>
+            <button className="sa-qty-btn" onClick={() => onSetQty(line.qty + 1)} aria-label="Increase quantity">
+              +
+            </button>
+          </div>
+        )}
 
         <div className="sa-disc">
           <div className="sa-disc-type">
@@ -515,58 +483,18 @@ function QuoteLineRow({
   )
 }
 
-function BundleSuggestionRow({ s, onApply }: { s: BundleSuggestion; onApply: () => void }) {
-  const saves = s.delta < 0
-  const extras: string[] = []
-  if (s.extraTests > 0) extras.push(`${s.extraTests} more test${s.extraTests === 1 ? '' : 's'}`)
-  if (s.extraComponents.length > 0)
-    extras.push(`${s.extraComponents.length} add-on${s.extraComponents.length === 1 ? '' : 's'}`)
-
-  return (
-    <div className="sa-bundle">
-      <div className="sa-bundle-info">
-        <span className="sa-bundle-name">{s.bundle.name}</span>
-        <span className="sa-bundle-meta">
-          Replaces {s.covers.map((c) => c.name).join(' + ')}
-          {s.leftovers.length > 0 && <> · keeps {s.leftovers.map((c) => c.name).join(', ')}</>}
-        </span>
-        <span className="sa-bundle-meta">
-          Combined {formatAED(s.proposedTotal)} vs {formatAED(s.individualTotal)} individually
-          {extras.length > 0 && <> · adds {extras.join(' + ')}</>}
-        </span>
-        {s.extraComponents.length > 0 && (
-          <span className="sa-bundle-extras" title={s.extraComponents.join(', ')}>
-            + {s.extraComponents.slice(0, 4).join(', ')}
-            {s.extraComponents.length > 4 ? `, +${s.extraComponents.length - 4} more` : ''}
-          </span>
-        )}
-      </div>
-      <div className="sa-bundle-actions">
-        <span className={`sa-bundle-delta ${saves ? 'save' : 'more'}`}>
-          {saves ? `Save ${formatAED(-s.delta)}` : `+${formatAED(s.delta)}`}
-        </span>
-        <button className="btn btn-secondary btn-sm" onClick={onApply}>
-          Apply
-        </button>
-      </div>
-    </div>
-  )
-}
-
 function ServiceRow({
   service,
-  qtyA,
-  qtyB,
+  qty,
   expanded,
   onToggle,
   onAdd,
 }: {
   service: CatalogueService
-  qtyA: number
-  qtyB: number
+  qty: number
   expanded: boolean
   onToggle: () => void
-  onAdd: (side: Side) => void
+  onAdd: () => void
 }) {
   const groups = useMemo(() => groupComps(service), [service])
   const components = useMemo(() => (expanded ? getComponentPackages(service) : []), [service, expanded])
@@ -590,22 +518,9 @@ function ServiceRow({
           <button className="btn btn-secondary btn-sm" onClick={onToggle}>
             {expanded ? 'Hide' : 'Details'}
           </button>
-          <div className="sa-add-group">
-            <button
-              className={`sa-addbtn ${qtyA > 0 ? 'active' : ''}`}
-              onClick={() => onAdd('A')}
-              aria-label="Add to Quote A"
-            >
-              +A{qtyA > 0 ? ` ${qtyA}` : ''}
-            </button>
-            <button
-              className={`sa-addbtn ${qtyB > 0 ? 'active' : ''}`}
-              onClick={() => onAdd('B')}
-              aria-label="Add to Quote B"
-            >
-              +B{qtyB > 0 ? ` ${qtyB}` : ''}
-            </button>
-          </div>
+          <button className={`sa-addbtn ${qty > 0 ? 'active' : ''}`} onClick={onAdd} aria-label="Add to quote">
+            {qty > 0 ? `Added ${qty}` : 'Add'}
+          </button>
         </div>
       </div>
 
