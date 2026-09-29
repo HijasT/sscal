@@ -192,8 +192,9 @@ export interface BundleSuggestion {
  * correctly matches e.g. the "Food Allergy & Intolerance Bundle" to its two
  * component tests even though their panel names differ.
  *
- * Returns suggestions sorted by delta ascending (best deal first). Requires at
- * least two selected packages (a bundle only makes sense for a combination).
+ * Returns covering packages sorted by price ascending, so the first result is
+ * the least-priced package that includes the whole selection. Requires at least
+ * two selected packages (a bundle only makes sense for a combination).
  */
 export function findBundleSuggestions(selected: CatalogueService[]): BundleSuggestion[] {
   if (selected.length < 2) return []
@@ -241,7 +242,8 @@ export function findBundleSuggestions(selected: CatalogueService[]): BundleSugge
     })
   }
 
-  return suggestions.sort((a, b) => a.delta - b.delta)
+  // Least-priced covering package first.
+  return suggestions.sort((a, b) => a.bundlePrice - b.bundlePrice)
 }
 
 /** Group a service's curated "what's included" rows by their `group` label. */

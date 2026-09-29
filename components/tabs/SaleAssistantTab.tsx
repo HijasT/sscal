@@ -8,9 +8,9 @@
  *   grouped by profile.
  * - Quote basket: add packages, adjust quantity, apply an optional discount,
  *   see a running AED total, and export the quote to PDF.
- * - Bundle opportunities: when 2+ packages are selected, surfaces comprehensive
- *   packages that cover the whole selection, with the price difference vs
- *   buying individually and what extra the bundle adds.
+ * - Bundle opportunity: when 2+ packages are selected, surfaces the single
+ *   least-priced comprehensive package that covers the whole selection, with the
+ *   price difference vs buying individually and what extra the bundle adds.
  *
  * All data comes from the bundled static snapshot (lib/catalogue.json via
  * lib/catalogueUtils) — no network calls, consistent with the app's
@@ -67,9 +67,9 @@ export function SaleAssistantTab() {
 
   const totals = useMemo(() => quoteTotals(lines, discountPct), [lines, discountPct])
 
-  // Comprehensive packages that cover the currently selected packages (top 3).
+  // The least-priced comprehensive package that covers the whole selection.
   const suggestions = useMemo(
-    () => findBundleSuggestions(lines.map((l) => l.service)).slice(0, 3),
+    () => findBundleSuggestions(lines.map((l) => l.service)).slice(0, 1),
     [lines]
   )
 
@@ -318,7 +318,7 @@ function QuotePanel({
 
               {suggestions.length > 0 && (
                 <div className="sa-bundles">
-                  <div className="sa-bundles-title">💡 Bundle opportunities</div>
+                  <div className="sa-bundles-title">💡 Bundle opportunity</div>
                   {suggestions.map((s) => (
                     <BundleSuggestionRow key={s.bundle.id} s={s} onAdd={() => onAddBundle(s.bundle)} />
                   ))}

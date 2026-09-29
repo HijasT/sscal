@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.17.1]
+
+### Changed
+- The Sale Assistant bundle suggestion now shows only the single least-priced comprehensive package that covers the selection (previously up to three covering packages were listed). Covering packages are sorted by price, so the one shown is the cheapest package that includes the selected tests.
+
 ## [8.17.0]
 
 ### Added
