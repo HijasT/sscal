@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { IndividualTab } from '@/components/tabs/IndividualTab'
 import { MoonIcon, SunIcon } from '@/components/icons'
 import { BulkAnalyticsTab } from '@/components/tabs/BulkAnalyticsTab'
+import { SaleAssistantTab } from '@/components/tabs/SaleAssistantTab'
 import { SettingsTab } from '@/components/tabs/SettingsTab'
 import { AboutTab } from '@/components/tabs/AboutTab'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
@@ -68,6 +69,12 @@ export default function Home() {
           Individual
         </button>
         <button
+          className={`nav-tab ${activeTab === 'sale-assistant' ? 'active' : ''}`}
+          onClick={() => setActiveTab('sale-assistant')}
+        >
+          Sale Assistant
+        </button>
+        <button
           className={`nav-tab ${activeTab === 'settings' ? 'active' : ''}`}
           onClick={() => setActiveTab('settings')}
         >
@@ -82,6 +89,11 @@ export default function Home() {
       </nav>
 
       {activeTab === 'individual'     && <IndividualTab />}
+      {activeTab === 'sale-assistant' && (
+        <ErrorBoundary label="Sale Assistant tab">
+          <SaleAssistantTab />
+        </ErrorBoundary>
+      )}
       {activeTab === 'bulk-analytics' && (
         <ErrorBoundary label="Bulk & Analytics tab">
           <BulkAnalyticsTab />

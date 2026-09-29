@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.15.0]
+
+### Added
+- **Sale Assistant tab** — a searchable, category-filtered browser for the full package catalogue (51 packages), showing AED prices and an expandable "what's included" breakdown per package. Runs entirely on a bundled static snapshot, so it makes no network calls (preserves the "100% local · no data shared" guarantee).
+- `lib/catalogue.json` — bundled catalogue snapshot (51 services with prices + 33 panels + 471 tests), extracted from the upstream catalogue page.
+- `lib/catalogueUtils.ts` — typed loader and pure helpers (search, category listing, AED formatting, panel/test drill-down, and quote-total math for the upcoming basket).
+- `scripts/fetch-catalogue.mjs` — one-command re-sync that regenerates `lib/catalogue.json` from the upstream catalogue page (`node scripts/fetch-catalogue.mjs`); plain Node 18+, no dependencies.
+
 ## [8.14.2]
 
 ### Changed
