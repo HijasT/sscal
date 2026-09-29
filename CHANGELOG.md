@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [8.16.0]
+
+### Added
+- **Quote builder in the Sale Assistant tab** — add packages to a quote, adjust quantities, apply an optional percentage discount, and see a running AED subtotal/discount/total. The in-progress quote persists to `sessionStorage['sic_sale_quote']` so it survives tab switches within a session (and clears when the tab is closed), matching the Individual tab's behaviour.
+- **Quote PDF export** (`exportQuoteToPDF` in `lib/pdfUtils.ts`) — exports the quote (optional customer name, line items, discount, total) to a PDF using the existing bundled jsPDF dynamic-import pattern, so it works with no network request.
+
 ## [8.15.0]
 
 ### Added

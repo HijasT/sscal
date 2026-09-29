@@ -1,5 +1,103 @@
 // PDF export utilities using jsPDF (bundled, not CDN)
 import { formatCurrency } from './utils'
+import type { QuoteLine, QuoteTotals } from './catalogueUtils'
+
+/** Whole-AED formatter matching the Sale Assistant tab's on-screen style. */
+function aed(n: number): string {
+  return `AED ${n.toLocaleString('en-US')}`
+}
+
+/**
+ * Export a package quote (Sale Assistant tab) as a PDF. Uses the same
+ * dynamic-import jsPDF pattern as the other reports — no CDN, no network.
+ */
+export async function exportQuoteToPDF(
+  lines: QuoteLine[],
+  totals: QuoteTotals,
+  customer?: string,
+) {
+  const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+    import('jspdf'),
+    import('jspdf-autotable'),
+  ])
+
+  const doc = new jsPDF()
+
+  doc.setFontSize(20)
+  doc.setTextColor(53, 80, 122)
+  doc.text('Package Quote', 15, 20)
+
+  doc.setFontSize(11)
+  doc.setTextColor(100, 100, 100)
+  doc.text(`Date: ${new Date().toLocaleDateString()}`, 15, 28)
+  if (customer && customer.trim()) {
+    doc.text(`Prepared for: ${customer.trim()}`, 15, 34)
+  }
+
+  const startY = customer && customer.trim() ? 42 : 38
+
+  const body = lines.map((l, i) => [
+    `${i + 1}`,
+    l.service.name,
+    l.service.category,
+    `${l.qty}`,
+    l.service.price == null ? 'POA' : aed(l.service.price),
+    l.service.price == null ? 'POA' : aed(l.service.price * l.qty),
+  ])
+
+  autoTable(doc, {
+    startY,
+    head: [['#', 'Package', 'Category', 'Qty', 'Unit', 'Amount']],
+    body,
+    theme: 'grid',
+    headStyles: {
+      fillColor: [53, 80, 122] as [number, number, number],
+      textColor: [255, 255, 255] as [number, number, number],
+      fontSize: 9,
+    },
+    styles: { fontSize: 9, cellPadding: 2 },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 10 },
+      3: { halign: 'center', cellWidth: 14 },
+      4: { halign: 'right' },
+      5: { halign: 'right' },
+    },
+  })
+
+  const totalsRows: string[][] = [['Subtotal', aed(totals.subtotal)]]
+  if (totals.discountPct > 0) {
+    totalsRows.push([`Discount (${totals.discountPct}%)`, `- ${aed(totals.discountAmount)}`])
+  }
+  totalsRows.push(['Total', aed(totals.total)])
+
+  autoTable(doc, {
+    startY: (doc as any).lastAutoTable.finalY + 6,
+    head: [],
+    body: totalsRows,
+    theme: 'plain',
+    styles: { fontSize: 11, cellPadding: 3 },
+    margin: { left: doc.internal.pageSize.getWidth() - 95 },
+    columnStyles: {
+      0: { fontStyle: 'bold', textColor: [80, 80, 80] as [number, number, number] },
+      1: {
+        halign: 'right',
+        fontStyle: 'bold',
+        textColor: [53, 80, 122] as [number, number, number],
+      },
+    },
+  })
+
+  const finalY = (doc as any).lastAutoTable.finalY + 12
+  doc.setFontSize(8)
+  doc.setTextColor(150, 150, 150)
+  doc.text(
+    'Prices in AED and indicative. Generated locally — no data shared.',
+    15,
+    finalY,
+  )
+
+  doc.save(`package-quote-${new Date().toISOString().split('T')[0]}.pdf`)
+}
 
 export async function exportBulkToPDF(calculatedData: any, results: any[]) {
   const [{ jsPDF }, { default: autoTable }] = await Promise.all([
