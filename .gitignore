@@ -53,3 +53,8 @@ CLAUDE.md
 
 # Claude Code local state (settings, worktrees, etc.)
 .claude/
+
+# Impeccable design-tooling artifacts (product/design context, critique snapshots, config)
+PRODUCT.md
+DESIGN.md
+.impeccable/
