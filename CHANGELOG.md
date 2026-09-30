@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [9.5.5]
+
+### Changed
+- Package details no longer show the catalogue's bare "X" inclusion marks next to items (Vital Signs, BCA, ECG, DNA modules); an item being listed already means it is included. Real values such as "30 min" are still shown.
+
 ## [9.5.4]
 
 ### Changed

@@ -679,7 +679,10 @@ function ServiceRow({
                   {g.rows.map((r, i) => (
                     <div key={i} className="sa-detail-row">
                       <span className="sa-detail-name">{r.name}</span>
-                      <span className="sa-detail-value">{r.value}</span>
+                      {/* The catalogue marks "included" with a bare "X"; show only real values (e.g. "30 min"). */}
+                      {r.value.trim().toUpperCase() !== 'X' && (
+                        <span className="sa-detail-value">{r.value}</span>
+                      )}
                     </div>
                   ))}
                 </div>
