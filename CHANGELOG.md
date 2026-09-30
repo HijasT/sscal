@@ -2,7 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
-## [9.3.0]
+## [9.4.0]
+
+### Added
+- **Men/Women toggle** (default Men) at the top of the Sale Assistant — the catalogue and suggestions show only that gender's packages plus common (non-gendered) ones.
+- **Category headings** in the catalogue list: results are grouped under the five source categories (Core Health Screening, Specialised Screening, DNA Insights, Other Screenings & Consults, Comprehensive Packages / Bundles).
+- **"Selected Packages" → "Suggestions" ladder.** Suggestions shows the single cheapest package that includes everything selected, gendered to match the toggle (e.g. Blood Group + BRCA → Executive Men's, or Executive Women's on the Women toggle). The packages that suggestion would still add are listed **greyed with an Add button** under Selected Packages, and a **"Move to Selected (replace)"** button swaps the whole selection for that one package.
+
+### Changed
+- Renamed the quote section to **Package Ladder**, "Quote A" to **Selected Packages**, and "Quote B" to **Suggestions**.
+- Suggestions now surface a single package (the cheapest that fully includes the selection) rather than an auto-composed multi-bundle mirror. **HEALTHMAXXING** is only suggested once the selected total reaches AED 10,000.
 
 ### Changed
 - **Bundle suggestions now use an explicit package-composition graph.** Quote B suggests the cheapest package that *includes* the selected individual packages (based on how packages are actually built from one another), rather than the largest one that merely contains their markers. Examples: Premium + Cancer Risk – Men + Cortisol → **Premium PLUS Men's** (AED 1,695, cheaper than buying them separately); Blood Group + BRCA → **Executive** (not Dubai It); Premium PLUS Men's + Longevity + food tests → **Ultimate Men's Longevity + Food Allergy & Intolerance Bundle**. Coverage is transitive (e.g. Dubai It includes Executive, which includes All of You, which includes Premium PLUS…).

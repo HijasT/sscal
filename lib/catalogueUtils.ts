@@ -319,112 +319,56 @@ function includesClosure(name: string): Set<string> {
   return set
 }
 
-/** Candidate packages that are composed of other packages (can bundle a group). */
-function bundleCandidates(): CatalogueService[] {
-  return data.services.filter((s) => s.price != null && includesClosure(s.name).size > 0)
+/** 'M' for a men's package, 'W' for a women's package, or null when it applies to anyone. */
+export function serviceGender(service: CatalogueService): 'M' | 'W' | null {
+  const n = service.name
+  if (/\bwomen/i.test(n)) return 'W'
+  if (/\bmen('|\b)/i.test(n)) return 'M'
+  return null
 }
 
 /**
- * The selected packages a candidate would collapse, or null if it does not
- * apply. A candidate applies when it includes (via its business composition) at
- * least two of the still-selected packages — so the cheapest package that
- * includes the selection gets suggested (e.g. Premium + Cancer + Cortisol →
- * Premium PLUS; Blood Group + BRCA → Executive), rather than the most expensive
- * one that merely contains them.
+ * The single cheapest package that INCLUDES every selected package (via the
+ * business composition), or null if none does. Used to suggest the next rung on
+ * the package ladder. Gender-filtered when a gender is given, and HEALTHMAXXING
+ * is only offered once the selection's own total reaches AED 10,000.
  */
-function coveredSelection(bundle: CatalogueService, pool: CatalogueService[]): CatalogueService[] | null {
-  const inc = includesClosure(bundle.name)
-  if (inc.size === 0) return null
-  const covered = pool.filter((p) => p.id !== bundle.id && inc.has(p.name))
-  return covered.length >= 2 ? covered : null
-}
-
-/**
- * Greedily cover a selection with bundles under a given "pick the best next
- * bundle" rule. Each chosen bundle must apply (see coveredSelection) and cover
- * 2+ still-uncovered packages; covered packages are removed before the next
- * pick, so bundles never overlap.
- */
-function greedyCover(
-  selected: CatalogueService[],
-  candidates: CatalogueService[],
-  better: (a: { covered: CatalogueService[]; cand: CatalogueService }, b: { covered: CatalogueService[]; cand: CatalogueService }) => boolean
-): { bundles: CatalogueService[]; leftovers: CatalogueService[] } {
-  const bundles: CatalogueService[] = []
-  let remaining = [...selected]
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    let best: { covered: CatalogueService[]; cand: CatalogueService } | null = null
-    for (const cand of candidates) {
-      const covered = coveredSelection(cand, remaining)
-      if (!covered || covered.length < 2) continue
-      const option = { covered, cand }
-      if (!best || better(option, best)) best = option
-    }
-    if (!best) break
-    bundles.push(best.cand)
-    const coveredIds = new Set(best.covered.map((c) => c.id))
-    remaining = remaining.filter((p) => !coveredIds.has(p.id))
+export function suggestPackage(selected: CatalogueService[], gender?: 'M' | 'W'): CatalogueService | null {
+  if (selected.length < 2) return null
+  const selNames = new Set(selected.map((s) => s.name))
+  const sum = selected.reduce((a, s) => a + (s.price ?? 0), 0)
+  let best: CatalogueService | null = null
+  for (const p of data.services) {
+    if (p.price == null || selNames.has(p.name)) continue
+    const inc = includesClosure(p.name)
+    if (inc.size === 0) continue
+    const g = serviceGender(p)
+    if (gender && g && g !== gender) continue
+    if (p.name === 'HEALTHMAXXING' && sum < 10000) continue
+    let coversAll = true
+    for (const n of selNames) if (!inc.has(n)) { coversAll = false; break }
+    if (!coversAll) continue
+    if (!best || (p.price as number) < (best.price as number)) best = p
   }
-  return { bundles, leftovers: remaining }
+  return best
 }
-
-export interface BundledQuote {
-  /** Bundle/comprehensive packages chosen to cover subsets of the selection. */
-  bundles: CatalogueService[]
-  /** Selected packages not covered by any bundle — kept as individual lines. */
-  leftovers: CatalogueService[]
-  /** The full bundled composition: bundles first, then leftovers. */
-  services: CatalogueService[]
-  /** Sum of the composition's prices. */
-  total: number
-}
-
-const priceOf = (list: CatalogueService[]) => list.reduce((sum, s) => sum + (s.price ?? 0), 0)
 
 /**
- * Produce the fully-bundled version of a selection: replace every group of 2+
- * selected packages that a comprehensive/bundle package covers with that
- * bundle, composing multiple bundles when the selection spans several groups
- * (e.g. men's packages + food tests → Ultimate Men's + Food Allergy &
- * Intolerance Bundle), and keeping any uncovered packages as individual lines.
- *
- * Coverage is content-based (a package is covered when the bundle includes all
- * of its lab tests AND service components). Two greedy strategies are tried —
- * fewest-bundles (max coverage first) and cheapest-bundle-first — and the
- * lower-priced resulting composition is returned, which avoids both over-reach
- * (one huge comprehensive) and redundant overlapping bundles.
+ * The atomic (non-composite) packages a suggested package includes that are not
+ * yet selected — i.e. what still needs adding to build up to that package.
+ * Sorted cheapest first.
  */
-export function bundleAll(selected: CatalogueService[]): BundledQuote {
-  const uniq = [...new Map(selected.map((s) => [s.id, s])).values()]
-  if (uniq.length < 2) {
-    return { bundles: [], leftovers: uniq, services: uniq, total: priceOf(uniq) }
-  }
-
-  const candidates = bundleCandidates()
-
-  // Strategy 1: cover the most packages per bundle (fewest bundles).
-  const byCoverage = greedyCover(uniq, candidates, (a, b) =>
-    a.covered.length !== b.covered.length
-      ? a.covered.length > b.covered.length
-      : (a.cand.price ?? 0) < (b.cand.price ?? 0)
-  )
-  // Strategy 2: use the cheapest qualifying bundle at each step.
-  const byPrice = greedyCover(uniq, candidates, (a, b) =>
-    (a.cand.price ?? 0) !== (b.cand.price ?? 0)
-      ? (a.cand.price ?? 0) < (b.cand.price ?? 0)
-      : a.covered.length > b.covered.length
-  )
-
-  const totalOf = (r: { bundles: CatalogueService[]; leftovers: CatalogueService[] }) =>
-    priceOf(r.bundles) + priceOf(r.leftovers)
-  const best = totalOf(byPrice) < totalOf(byCoverage) ? byPrice : byCoverage
-
-  // A chosen bundle could coincide with a leftover package — keep it once.
-  const bundleIds = new Set(best.bundles.map((b) => b.id))
-  const leftovers = best.leftovers.filter((l) => !bundleIds.has(l.id))
-  const services = [...best.bundles, ...leftovers]
-  return { bundles: best.bundles, leftovers, services, total: priceOf(services) }
+export function getMissingComponents(
+  suggestion: CatalogueService,
+  selected: CatalogueService[]
+): CatalogueService[] {
+  const selNames = new Set(selected.map((s) => s.name))
+  const byName = new Map(data.services.map((s) => [s.name, s]))
+  return [...includesClosure(suggestion.name)]
+    .filter((n) => (COMPOSITION[n] || []).length === 0 && !selNames.has(n))
+    .map((n) => byName.get(n))
+    .filter((s): s is CatalogueService => Boolean(s))
+    .sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
 }
 
 /** Group a service's curated "what's included" rows by their `group` label. */

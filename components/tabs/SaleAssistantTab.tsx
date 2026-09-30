@@ -1,24 +1,22 @@
 'use client'
 /**
- * SaleAssistantTab — browse the catalogue, build a quote, and see its bundled
- * equivalent side by side.
+ * SaleAssistantTab — browse the catalogue and climb the "package ladder".
  *
- * - Catalogue browser: search by package name, category, or lab marker; an
- *   optional "blood tests only" filter hides consult/vitals-only packages. Each
- *   package's drill-down shows its full breakdown — the packages a bundle is
- *   built from, service-level inclusions (doctor, vitals, DNA modules, ECG…),
- *   and every resolved lab test grouped by profile.
- * - Quote A (editable): add packages, adjust quantity, and give each line its
- *   own discount (a percentage or a fixed AED amount).
- * - Quote B (auto, read-only): the fully-bundled version of Quote A. It
- *   composes every applicable comprehensive/bundle package (e.g. Ultimate Men's
- *   + Food Allergy & Intolerance Bundle) plus any packages no bundle covers,
- *   and updates live as Quote A changes. The comparison bar shows Quote A (à la
- *   carte, after discounts) against the bundled list price.
+ * - Men/Women toggle (default Men) filters the catalogue and suggestions to that
+ *   gender plus common (non-gendered) packages.
+ * - Catalogue browser: search by name, category or lab marker; an optional
+ *   "blood tests only" filter; results grouped under the 5 category headings.
+ *   Each package's drill-down shows its "what's included" groups and blood
+ *   panels (marker-level), mirroring the source catalogue.
+ * - Selected Packages: the individual packages picked (each with its own
+ *   discount). When a suggestion exists, the packages it would still add are
+ *   shown greyed with an "Add" button so the set can be built up.
+ * - Suggestions: the cheapest package that includes everything selected (via the
+ *   business composition), e.g. Blood Group + BRCA → Executive. "Move to
+ *   Selected" swaps the whole selection for that one package.
  *
- * All data comes from the bundled static snapshot (lib/catalogue.json via
- * lib/catalogueUtils) — no network calls. Quote A is kept in sessionStorage so
- * it survives tab switches within a session and clears when the tab is closed.
+ * All data is bundled with the app (no network calls). The selection and gender
+ * are kept in sessionStorage for the session.
  */
 import { useEffect, useMemo, useState } from 'react'
 import {
@@ -28,7 +26,9 @@ import {
   searchServices,
   groupComps,
   getPanelTests,
-  bundleAll,
+  serviceGender,
+  suggestPackage,
+  getMissingComponents,
   excludedMarkers,
   hasLabTests,
   formatAED,
@@ -43,144 +43,133 @@ import {
 
 const ALL = 'All'
 const QUOTE_KEY = 'sic_sale_quote'
+type Gender = 'M' | 'W'
 
 /** Display label for a comp group, matching the source catalogue's wording. */
 function compGroupLabel(group: string): string {
   return group === 'Doctor & Vital Signs' ? 'Consultation' : group
 }
 
-interface StoredLine {
-  id: number
-  qty: number
-  discountType: DiscountType
-  discountValue: number
-}
-
 export function SaleAssistantTab() {
+  const [gender, setGender] = useState<Gender>('M')
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<string>(ALL)
   const [bloodOnly, setBloodOnly] = useState(false)
   const [expandedId, setExpandedId] = useState<number | null>(null)
 
-  const [lines, setLines] = useState<QuoteLine[]>([]) // Quote A
-  // Quote B mirrors A's bundling, but the salesperson can try discounts on it.
-  // Discounts are kept per service id so they survive B recomposing when A changes.
-  const [bDiscounts, setBDiscounts] = useState<Record<number, { type: DiscountType; value: number }>>({})
-  const [quoteOpen, setQuoteOpen] = useState(false)
+  const [lines, setLines] = useState<QuoteLine[]>([]) // Selected Packages
+  const [ladderOpen, setLadderOpen] = useState(false)
   const [hydrated, setHydrated] = useState(false)
 
   const totalCount = getServices().length
   const categories = useMemo(() => [ALL, ...getCategories()], [])
 
-  const results = useMemo(() => {
+  // Catalogue results: search + gender + blood filter, grouped by category.
+  const grouped = useMemo(() => {
     let r = searchServices(query, category === ALL ? undefined : category)
+    r = r.filter((s) => {
+      const g = serviceGender(s)
+      return g === null || g === gender
+    })
     if (bloodOnly) r = r.filter(hasLabTests)
-    return r
-  }, [query, category, bloodOnly])
+    const map = new Map<string, CatalogueService[]>()
+    for (const s of r) {
+      if (!map.has(s.category)) map.set(s.category, [])
+      map.get(s.category)!.push(s)
+    }
+    return { list: r, groups: [...map.entries()] }
+  }, [query, category, gender, bloodOnly])
 
-  const totalsA = useMemo(() => quoteTotals(lines), [lines])
-  const bundled = useMemo(() => bundleAll(lines.map((l) => l.service)), [lines])
-
-  // Quote B lines: the bundled composition, each carrying its own (editable)
-  // discount pulled from bDiscounts. Quantity is fixed at 1 (composition-level).
-  const bundleIds = useMemo(() => new Set(bundled.bundles.map((b) => b.id)), [bundled])
-  const bLines: QuoteLine[] = useMemo(
-    () =>
-      bundled.services.map((service) => ({
-        service,
-        qty: 1,
-        discountType: bDiscounts[service.id]?.type ?? 'pct',
-        discountValue: bDiscounts[service.id]?.value ?? 0,
-      })),
-    [bundled, bDiscounts]
+  const selServices = useMemo(() => lines.map((l) => l.service), [lines])
+  const totalsSel = useMemo(() => quoteTotals(lines), [lines])
+  const suggestion = useMemo(() => suggestPackage(selServices, gender), [selServices, gender])
+  const missing = useMemo(
+    () => (suggestion ? getMissingComponents(suggestion, selServices) : []),
+    [suggestion, selServices]
   )
-  const totalsB = useMemo(() => quoteTotals(bLines), [bLines])
-  // Any markers from Quote A's packages that the bundled version leaves out.
   const excluded = useMemo(
-    () => (bundled.bundles.length > 0 ? excludedMarkers(lines.map((l) => l.service), bundled.services) : []),
-    [lines, bundled]
+    () => (suggestion ? excludedMarkers(selServices, [suggestion]) : []),
+    [suggestion, selServices]
   )
 
-  // Rehydrate Quote A from sessionStorage on mount (tolerates the older
-  // two-quote {A,B} shape by reading Quote A).
+  // Rehydrate the selection + gender from sessionStorage on mount.
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(QUOTE_KEY)
       if (raw) {
         const stored = JSON.parse(raw)
-        const storedLines: StoredLine[] = stored?.lines ?? stored?.A?.lines ?? []
+        if (stored?.gender === 'W' || stored?.gender === 'M') setGender(stored.gender)
+        const storedLines = stored?.lines ?? stored?.A?.lines ?? []
         const restored = storedLines
-          .map((l) => {
+          .map((l: any) => {
             const service = getServiceById(l.id)
             return service
               ? {
                   service,
-                  qty: l.qty,
+                  qty: l.qty ?? 1,
                   discountType: (l.discountType as DiscountType) || 'pct',
                   discountValue: l.discountValue || 0,
                 }
               : null
           })
-          .filter((l): l is QuoteLine => l !== null)
+          .filter((l: QuoteLine | null): l is QuoteLine => l !== null)
         setLines(restored)
-        if (stored?.bDiscounts && typeof stored.bDiscounts === 'object') setBDiscounts(stored.bDiscounts)
       }
     } catch {
-      /* ignore malformed/unavailable sessionStorage */
+      /* ignore */
     }
     setHydrated(true)
   }, [])
 
-  // Persist Quote A whenever it changes (after the initial hydrate).
+  // Persist selection + gender.
   useEffect(() => {
     if (!hydrated) return
     try {
       const payload = {
+        gender,
         lines: lines.map((l) => ({
           id: l.service.id,
           qty: l.qty,
           discountType: l.discountType,
           discountValue: l.discountValue,
         })),
-        bDiscounts,
       }
       sessionStorage.setItem(QUOTE_KEY, JSON.stringify(payload))
     } catch {
       /* ignore */
     }
-  }, [lines, bDiscounts, hydrated])
+  }, [lines, gender, hydrated])
 
-  // The catalogue button toggles a package in/out of Quote A (no quantities —
-  // people don't buy the same package twice).
+  const addToSelected = (service: CatalogueService) => {
+    setLines((prev) =>
+      prev.some((l) => l.service.id === service.id)
+        ? prev
+        : [...prev, { service, qty: 1, discountType: 'pct' as DiscountType, discountValue: 0 }]
+    )
+    setLadderOpen(true)
+  }
+
   const toggleInQuote = (service: CatalogueService) => {
     setLines((prev) =>
       prev.some((l) => l.service.id === service.id)
         ? prev.filter((l) => l.service.id !== service.id)
         : [...prev, { service, qty: 1, discountType: 'pct' as DiscountType, discountValue: 0 }]
     )
-    setQuoteOpen(true)
+    setLadderOpen(true)
   }
 
   const setLineDiscount = (id: number, patch: Partial<Pick<QuoteLine, 'discountType' | 'discountValue'>>) =>
     setLines((prev) => prev.map((l) => (l.service.id === id ? { ...l, ...patch } : l)))
 
   const removeLine = (id: number) => setLines((prev) => prev.filter((l) => l.service.id !== id))
-
-  const clearQuote = () => setLines([])
-
-  const setBLineDiscount = (id: number, patch: Partial<Pick<QuoteLine, 'discountType' | 'discountValue'>>) =>
-    setBDiscounts((prev) => {
-      const cur = prev[id] ?? { type: 'pct' as DiscountType, value: 0 }
-      return {
-        ...prev,
-        [id]: {
-          type: patch.discountType ?? cur.type,
-          value: patch.discountValue ?? cur.value,
-        },
-      }
-    })
-
+  const clearSelected = () => setLines([])
   const inQuote = (id: number) => lines.some((l) => l.service.id === id)
+
+  // Replace the whole selection with the single suggested package.
+  const moveSuggestionToSelected = () => {
+    if (!suggestion) return
+    setLines([{ service: suggestion, qty: 1, discountType: 'pct', discountValue: 0 }])
+  }
 
   const empty = lines.length === 0
 
@@ -195,31 +184,53 @@ export function SaleAssistantTab() {
         100% local · catalogue bundled with the app · no data shared
       </div>
 
-      {/* Quote A (editable) vs Quote B (auto-bundled) */}
+      {/* Gender toggle */}
+      <div className="sa-gender">
+        <button
+          className={`sa-gender-btn ${gender === 'M' ? 'active' : ''}`}
+          onClick={() => setGender('M')}
+        >
+          Men
+        </button>
+        <button
+          className={`sa-gender-btn ${gender === 'W' ? 'active' : ''}`}
+          onClick={() => setGender('W')}
+        >
+          Women
+        </button>
+      </div>
+
+      {/* Package Ladder */}
       <div className="sa-quote">
-        <button className="sa-quote-bar" onClick={() => setQuoteOpen((o) => !o)} aria-expanded={quoteOpen}>
-          <span className="sa-quote-title">Quote comparison</span>
+        <button className="sa-quote-bar" onClick={() => setLadderOpen((o) => !o)} aria-expanded={ladderOpen}>
+          <span className="sa-quote-title">Package Ladder</span>
           <span className="sa-quote-compare-mini">
-            A <b>{formatAED(totalsA.total)}</b> · Bundled <b>{formatAED(totalsB.total)}</b>
+            Selected <b>{formatAED(totalsSel.total)}</b>
+            {suggestion && (
+              <>
+                {' '}
+                · Suggested <b>{formatAED(suggestion.price)}</b>
+              </>
+            )}
           </span>
-          <span className="sa-quote-chevron">{quoteOpen ? '▲' : '▼'}</span>
+          <span className="sa-quote-chevron">{ladderOpen ? '▲' : '▼'}</span>
         </button>
 
-        {quoteOpen && (
+        {ladderOpen && (
           <div className="sa-quote-body">
             <div className="sa-columns">
-              {/* Quote A — editable à la carte */}
+              {/* Selected Packages */}
               <div className="sa-col">
                 <div className="sa-col-head">
-                  <span className="sa-col-badge">Quote A · à la carte</span>
+                  <span className="sa-col-badge">Selected Packages</span>
                   {!empty && (
-                    <button className="sa-col-clear" onClick={clearQuote}>
+                    <button className="sa-col-clear" onClick={clearSelected}>
                       Clear
                     </button>
                   )}
                 </div>
 
-                {empty ? (
+                {empty && missing.length === 0 ? (
                   <p className="sa-empty" style={{ padding: '8px 0' }}>
                     No packages yet. Use “Add” on any package below.
                   </p>
@@ -234,25 +245,77 @@ export function SaleAssistantTab() {
                           onRemove={() => removeLine(l.service.id)}
                         />
                       ))}
+                      {/* Greyed packages the suggestion still needs. */}
+                      {missing.map((m) => (
+                        <div key={m.id} className="sa-missing">
+                          <span className="sa-missing-name">{m.name}</span>
+                          <span className="sa-missing-price">{formatAED(m.price)}</span>
+                          <button className="sa-addbtn" onClick={() => addToSelected(m)}>
+                            Add
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                    <QuoteTotalsRows gross={totalsA.gross} discount={totalsA.discount} total={totalsA.total} />
+                    {!empty && (
+                      <QuoteTotalsRows
+                        gross={totalsSel.gross}
+                        discount={totalsSel.discount}
+                        total={totalsSel.total}
+                      />
+                    )}
                   </>
                 )}
               </div>
 
-              {/* Quote B — auto-bundled mirror of A, discounts editable */}
-              <BundledColumn
-                lines={bLines}
-                bundleIds={bundleIds}
-                totals={totalsB}
-                hasBundle={bundled.bundles.length > 0}
-                excluded={excluded}
-                empty={empty}
-                onSetDiscount={setBLineDiscount}
-              />
+              {/* Suggestions */}
+              <div className="sa-col">
+                <div className="sa-col-head">
+                  <span className="sa-col-badge">Suggestions</span>
+                </div>
+                {suggestion ? (
+                  <>
+                    <div className="sa-suggestion">
+                      <div className="sa-suggestion-info">
+                        <span className="sa-suggestion-name">
+                          {suggestion.name}
+                          <span className="sa-bline-tag">Bundle</span>
+                        </span>
+                        <span className="sa-suggestion-meta">
+                          Includes your {lines.length} selected package{lines.length === 1 ? '' : 's'}
+                          {missing.length > 0 ? ` + ${missing.length} more` : ''}
+                        </span>
+                      </div>
+                      <span className="sa-suggestion-price">{formatAED(suggestion.price)}</span>
+                    </div>
+                    {excluded.length > 0 && (
+                      <div className="sa-excluded">
+                        <div className="sa-excluded-title">
+                          ⚠️ Not in this package ({excluded.length} marker{excluded.length === 1 ? '' : 's'})
+                        </div>
+                        <div className="sa-test-list">
+                          {excluded.map((m, i) => (
+                            <span key={i} className="sa-test-chip sa-test-chip-warn">
+                              {m}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <button className="btn btn-primary btn-sm btn-block" onClick={moveSuggestionToSelected}>
+                      Move to Selected (replace)
+                    </button>
+                  </>
+                ) : (
+                  <p className="sa-empty" style={{ padding: '8px 0' }}>
+                    Add two or more packages and the cheapest package that includes them appears here.
+                  </p>
+                )}
+              </div>
             </div>
 
-            {!empty && <ComparisonSummary a={totalsA.total} b={totalsB.total} />}
+            {suggestion && !empty && (
+              <ComparisonSummary selected={totalsSel.total} suggested={suggestion.price ?? 0} />
+            )}
           </div>
         )}
       </div>
@@ -288,26 +351,31 @@ export function SaleAssistantTab() {
           Blood tests only
         </label>
         <span className="sa-count">
-          Showing {results.length} of {totalCount} packages
+          Showing {grouped.list.length} of {totalCount} packages
         </span>
       </div>
 
-      {/* Results */}
-      {results.length === 0 ? (
+      {/* Results grouped by category */}
+      {grouped.list.length === 0 ? (
         <p className="sa-empty">No packages match your search.</p>
       ) : (
-        <div className="sa-list">
-          {results.map((s) => (
-            <ServiceRow
-              key={s.id}
-              service={s}
-              inQuote={inQuote(s.id)}
-              expanded={expandedId === s.id}
-              onToggle={() => setExpandedId(expandedId === s.id ? null : s.id)}
-              onToggleQuote={() => toggleInQuote(s)}
-            />
-          ))}
-        </div>
+        grouped.groups.map(([cat, items]) => (
+          <div key={cat} className="sa-cat">
+            <div className="sa-cat-head">{cat}</div>
+            <div className="sa-list">
+              {items.map((s) => (
+                <ServiceRow
+                  key={s.id}
+                  service={s}
+                  inQuote={inQuote(s.id)}
+                  expanded={expandedId === s.id}
+                  onToggle={() => setExpandedId(expandedId === s.id ? null : s.id)}
+                  onToggleQuote={() => toggleInQuote(s)}
+                />
+              ))}
+            </div>
+          </div>
+        ))
       )}
     </div>
   )
@@ -334,77 +402,14 @@ function QuoteTotalsRows({ gross, discount, total }: { gross: number; discount: 
   )
 }
 
-function BundledColumn({
-  lines,
-  bundleIds,
-  totals,
-  hasBundle,
-  excluded,
-  empty,
-  onSetDiscount,
-}: {
-  lines: QuoteLine[]
-  bundleIds: Set<number>
-  totals: ReturnType<typeof quoteTotals>
-  hasBundle: boolean
-  excluded: string[]
-  empty: boolean
-  onSetDiscount: (id: number, patch: Partial<Pick<QuoteLine, 'discountType' | 'discountValue'>>) => void
-}) {
-  return (
-    <div className="sa-col">
-      <div className="sa-col-head">
-        <span className="sa-col-badge">Quote B · bundled</span>
-      </div>
-
-      {empty ? (
-        <p className="sa-empty" style={{ padding: '8px 0' }}>
-          The bundled version of Quote A appears here automatically. You can try discounts on it.
-        </p>
-      ) : (
-        <>
-          {!hasBundle && (
-            <p className="sa-note">No bundle covers this selection — the packages mirror Quote A.</p>
-          )}
-          <div className="sa-col-lines">
-            {lines.map((l) => (
-              <QuoteLineRow
-                key={l.service.id}
-                line={l}
-                tag={bundleIds.has(l.service.id) ? 'Bundle' : undefined}
-                onSetDiscount={(patch) => onSetDiscount(l.service.id, patch)}
-              />
-            ))}
-          </div>
-          {excluded.length > 0 && (
-            <div className="sa-excluded">
-              <div className="sa-excluded-title">
-                ⚠️ Not in the bundle ({excluded.length} marker{excluded.length === 1 ? '' : 's'})
-              </div>
-              <div className="sa-test-list">
-                {excluded.map((m, i) => (
-                  <span key={i} className="sa-test-chip sa-test-chip-warn">
-                    {m}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-          <QuoteTotalsRows gross={totals.gross} discount={totals.discount} total={totals.total} />
-        </>
-      )}
-    </div>
-  )
-}
-
-function ComparisonSummary({ a, b }: { a: number; b: number }) {
-  const diff = Math.abs(a - b)
-  const cheaper = a < b ? 'A' : b < a ? 'Bundled' : null
+function ComparisonSummary({ selected, suggested }: { selected: number; suggested: number }) {
+  const diff = Math.abs(selected - suggested)
+  const cheaper = selected < suggested ? 'Selected' : suggested < selected ? 'Suggested' : null
   return (
     <div className="sa-compare">
       <div className="sa-compare-cell">
-        <span className="sa-compare-label">Quote A</span>
-        <span className="sa-compare-val">{formatAED(a)}</span>
+        <span className="sa-compare-label">Selected</span>
+        <span className="sa-compare-val">{formatAED(selected)}</span>
       </div>
       <div className="sa-compare-verdict">
         {cheaper === null ? (
@@ -416,8 +421,8 @@ function ComparisonSummary({ a, b }: { a: number; b: number }) {
         )}
       </div>
       <div className="sa-compare-cell">
-        <span className="sa-compare-label">Bundled</span>
-        <span className="sa-compare-val">{formatAED(b)}</span>
+        <span className="sa-compare-label">Suggested</span>
+        <span className="sa-compare-val">{formatAED(suggested)}</span>
       </div>
     </div>
   )
@@ -503,7 +508,6 @@ function ServiceRow({
   onToggleQuote: () => void
 }) {
   const groups = useMemo(() => groupComps(service), [service])
-  // Breakdown by blood panel, matching the source catalogue's structure.
   const panelBreakdown = useMemo(
     () => (expanded ? service.panels.map((pn) => ({ name: pn, tests: getPanelTests(pn) })) : []),
     [service, expanded]
@@ -542,7 +546,6 @@ function ServiceRow({
             <p className="sa-empty">No breakdown available for this package.</p>
           ) : (
             <>
-              {/* What's included: consultation, BCA/ECG, DNA modules, etc. */}
               {groups.map((g) => (
                 <div key={g.group} className="sa-detail-group">
                   <div className="sa-detail-group-title">{compGroupLabel(g.group)}</div>
@@ -555,12 +558,9 @@ function ServiceRow({
                 </div>
               ))}
 
-              {/* Blood panels, each with its markers — mirrors the source catalogue. */}
               {panelBreakdown.length > 0 && (
                 <>
-                  <div className="sa-detail-section-head">
-                    Blood panels ({panelBreakdown.length})
-                  </div>
+                  <div className="sa-detail-section-head">Blood panels ({panelBreakdown.length})</div>
                   {panelBreakdown.map((p) => (
                     <div key={p.name} className="sa-detail-group">
                       <div className="sa-detail-group-title">
