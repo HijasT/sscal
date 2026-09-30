@@ -160,6 +160,18 @@ export function SaleAssistantTab() {
     }
   }, [lines, gender, hydrated])
 
+  const addServiceById = (id?: number) => {
+    if (id == null) return
+    const service = getServiceById(id)
+    if (!service) return
+    setLines((prev) =>
+      prev.some((l) => l.service.id === id)
+        ? prev
+        : [...prev, { service, qty: 1, discountType: 'pct' as DiscountType, discountValue: 0 }]
+    )
+    setLadderOpen(true)
+  }
+
   const toggleInQuote = (service: CatalogueService) => {
     setLines((prev) =>
       prev.some((l) => l.service.id === service.id)
@@ -268,29 +280,41 @@ export function SaleAssistantTab() {
                       <div className="sa-extras">
                         <div className="sa-extras-title">Suggested package adds</div>
                         <div className="sa-test-list">
-                          {extras.map((it, i) => (
-                            <span key={i} className="sa-extra-wrap">
-                              <button
-                                className={`sa-extra-chip ${it.complete ? 'complete' : ''} ${
-                                  it.markers.length > 0 ? 'clickable' : ''
-                                }`}
-                                onClick={() =>
-                                  it.markers.length > 0 && setOpenExtra(openExtra === i ? null : i)
-                                }
-                              >
-                                {it.label}
-                              </button>
-                              {openExtra === i && it.markers.length > 0 && (
-                                <div className="sa-extra-bubble">
-                                  {it.markers.map((m, j) => (
-                                    <span key={j} className="sa-test-chip">
-                                      {m}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                            </span>
-                          ))}
+                          {extras.map((it, i) =>
+                            it.complete ? (
+                              // A complete package — offer to add it, no bubble.
+                              <span key={i} className="sa-extra-complete">
+                                <span className="sa-extra-chip complete">{it.label}</span>
+                                {it.serviceId != null && (
+                                  <button
+                                    className="sa-addbtn"
+                                    onClick={() => addServiceById(it.serviceId)}
+                                  >
+                                    Add
+                                  </button>
+                                )}
+                              </span>
+                            ) : (
+                              // A partial addition — click to reveal the extra markers.
+                              <span key={i} className="sa-extra-wrap">
+                                <button
+                                  className="sa-extra-chip clickable"
+                                  onClick={() => setOpenExtra(openExtra === i ? null : i)}
+                                >
+                                  {it.label}
+                                </button>
+                                {openExtra === i && it.markers.length > 0 && (
+                                  <div className="sa-extra-bubble">
+                                    {it.markers.map((m, j) => (
+                                      <span key={j} className="sa-test-chip">
+                                        {m}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </span>
+                            )
+                          )}
                         </div>
                       </div>
                     )}

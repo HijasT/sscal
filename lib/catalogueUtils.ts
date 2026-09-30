@@ -411,8 +411,10 @@ export interface ExtraItem {
   label: string
   /** True when the whole of a recognised package (all its markers/modules) is added. */
   complete: boolean
-  /** The actual extra marker/module names, shown in the click-bubble. */
+  /** The actual extra marker/module names, shown in the click-bubble (partial items). */
   markers: string[]
+  /** The catalogue package a complete item maps to — offered with an "Add" button. */
+  serviceId?: number
 }
 
 /**
@@ -447,7 +449,7 @@ export function getSuggestionExtras(
     let allIn = true
     for (const id of pm) if (!extra.has(id)) { allIn = false; break }
     if (!allIn) continue
-    items.push({ label: p.name, complete: true, markers: [...pm].map(nameOf) })
+    items.push({ label: p.name, complete: true, markers: [...pm].map(nameOf), serviceId: p.id })
     for (const id of pm) extra.delete(id)
   }
 
@@ -481,11 +483,18 @@ export function getSuggestionExtras(
       const mods = [...dnaOf([s])]
       return mods.length === extraDna.length && mods.every((m) => extraDna.includes(m))
     })
-    if (dnaPkg) items.push({ label: dnaPkg.name, complete: true, markers: extraDna })
+    if (dnaPkg) items.push({ label: dnaPkg.name, complete: true, markers: extraDna, serviceId: dnaPkg.id })
     else items.push({ label: `+${extraDna.length} DNA modules`, complete: false, markers: extraDna })
   }
 
-  // Service add-ons (BCA / ECG / gut microbiome).
+  // Service add-ons (BCA / ECG / gut microbiome), mapped to their standalone package.
+  const byName = new Map(data.services.map((s) => [s.name, s]))
+  const addonPackage = (comp: CatalogueComp): CatalogueService | undefined => {
+    if (comp.group === 'Microbiome') return byName.get('Gut Microbiome Test')
+    if (comp.name === 'BCA') return byName.get('Body Composition Analysis')
+    if (comp.name === 'ECG') return byName.get('ECG & Consult')
+    return undefined
+  }
   const addGroups = new Set(['BCA / ECG', 'Microbiome'])
   const selAdd = new Set<string>()
   for (const s of selected) for (const c of s.comps) if (addGroups.has(c.group)) selAdd.add(c.name)
@@ -493,7 +502,8 @@ export function getSuggestionExtras(
   for (const c of suggestion.comps) {
     if (addGroups.has(c.group) && !selAdd.has(c.name) && !seenAdd.has(c.name)) {
       seenAdd.add(c.name)
-      items.push({ label: `+${c.name}`, complete: true, markers: [] })
+      const pkg = addonPackage(c)
+      items.push({ label: `+${c.name}`, complete: true, markers: [], serviceId: pkg?.id })
     }
   }
 

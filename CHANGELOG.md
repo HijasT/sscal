@@ -2,7 +2,10 @@
 
 All notable changes to this project are documented in this file.
 
-## [9.5.1]
+## [9.5.2]
+
+### Changed
+- In "Suggested package adds", a **complete package** (all its markers/modules added, e.g. DNA - Essentials when a suggestion covers the whole DNA package) now shows the package name with an **Add button** — clicking it adds that package to Selected — and no click-bubble. Partial additions still show "+N …" with a click-bubble of the exact markers. Service add-ons (BCA/ECG/gut microbiome) map to their standalone package for the Add button.
 
 ### Changed
 - **"Suggested package adds" is now package-aware and clickable.** When the extra markers make up a complete individual package (none of it already selected), the package name is shown greyed (e.g. "Cancer Risk - BRCA Genetic Test"); the rest is summarised per profile ("+3 Cancer Risk Profile"). A complete DNA package shows by name, otherwise "+N DNA modules". Clicking any chip opens a bubble listing the actual extra markers.

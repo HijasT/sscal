@@ -2443,3 +2443,10 @@ input[type="range"]::-moz-range-thumb {
   flex-wrap: wrap;
   gap: 6px;
 }
+
+/* Complete-package "adds" item: name chip + Add button */
+.sa-extra-complete {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
