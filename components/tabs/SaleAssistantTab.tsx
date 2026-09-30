@@ -67,6 +67,7 @@ export function SaleAssistantTab() {
     value: 0,
   })
   const [ladderOpen, setLadderOpen] = useState(false)
+  const [openExtra, setOpenExtra] = useState<number | null>(null)
   const [hydrated, setHydrated] = useState(false)
 
   const totalCount = getServices().length
@@ -101,6 +102,7 @@ export function SaleAssistantTab() {
     () => (suggestion ? getSuggestionExtras(selServices, suggestion) : null),
     [suggestion, selServices]
   )
+  useEffect(() => setOpenExtra(null), [suggestion, selServices])
   const excluded = useMemo(
     () => (suggestion ? excludedMarkers(selServices, [suggestion]) : []),
     [suggestion, selServices]
@@ -260,28 +262,38 @@ export function SaleAssistantTab() {
                       discount={totalsSel.discount}
                       total={totalsSel.total}
                     />
-                    {/* What the suggested package would add on top, by markers. */}
-                    {extras &&
-                      (extras.markerGroups.length > 0 || extras.dnaModules > 0 || extras.addOns.length > 0) && (
-                        <div className="sa-extras">
-                          <div className="sa-extras-title">Suggested package adds</div>
-                          <div className="sa-test-list">
-                            {extras.markerGroups.map((g) => (
-                              <span key={g.group} className="sa-extra-chip">
-                                +{g.count} {g.group}
-                              </span>
-                            ))}
-                            {extras.dnaModules > 0 && (
-                              <span className="sa-extra-chip">+{extras.dnaModules} DNA modules</span>
-                            )}
-                            {extras.addOns.map((a) => (
-                              <span key={a} className="sa-extra-chip">
-                                +{a}
-                              </span>
-                            ))}
-                          </div>
+                    {/* What the suggested package adds on top — complete packages by
+                        name, the rest summarised by profile; click a chip for markers. */}
+                    {extras && extras.length > 0 && (
+                      <div className="sa-extras">
+                        <div className="sa-extras-title">Suggested package adds</div>
+                        <div className="sa-test-list">
+                          {extras.map((it, i) => (
+                            <span key={i} className="sa-extra-wrap">
+                              <button
+                                className={`sa-extra-chip ${it.complete ? 'complete' : ''} ${
+                                  it.markers.length > 0 ? 'clickable' : ''
+                                }`}
+                                onClick={() =>
+                                  it.markers.length > 0 && setOpenExtra(openExtra === i ? null : i)
+                                }
+                              >
+                                {it.label}
+                              </button>
+                              {openExtra === i && it.markers.length > 0 && (
+                                <div className="sa-extra-bubble">
+                                  {it.markers.map((m, j) => (
+                                    <span key={j} className="sa-test-chip">
+                                      {m}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </span>
+                          ))}
                         </div>
-                      )}
+                      </div>
+                    )}
                   </>
                 )}
               </div>

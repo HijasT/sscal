@@ -2,7 +2,10 @@
 
 All notable changes to this project are documented in this file.
 
-## [9.5.0]
+## [9.5.1]
+
+### Changed
+- **"Suggested package adds" is now package-aware and clickable.** When the extra markers make up a complete individual package (none of it already selected), the package name is shown greyed (e.g. "Cancer Risk - BRCA Genetic Test"); the rest is summarised per profile ("+3 Cancer Risk Profile"). A complete DNA package shows by name, otherwise "+N DNA modules". Clicking any chip opens a bubble listing the actual extra markers.
 
 ### Added
 - **"Non-invasive" filter** — shows only packages that don't prick the patient: no blood markers, no DNA modules (DNA tests are blood-drawn) and no vaccinations (a needle). Leaves body composition, ECG, gut microbiome and plain consults.

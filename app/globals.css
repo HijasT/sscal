@@ -2406,3 +2406,40 @@ input[type="range"]::-moz-range-thumb {
   gap: 18px;
   flex-wrap: wrap;
 }
+
+/* Suggestion "adds" chips: complete package (grey) vs partial, with click-bubble */
+.sa-extra-chip {
+  font-family: inherit;
+  cursor: default;
+}
+
+.sa-extra-chip.clickable {
+  cursor: pointer;
+}
+
+.sa-extra-chip.complete {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.sa-extra-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.sa-extra-bubble {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  max-width: 320px;
+  padding: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

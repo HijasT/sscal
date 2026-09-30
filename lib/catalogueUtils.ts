@@ -406,60 +406,98 @@ export function suggestPackage(selected: CatalogueService[], gender?: 'M' | 'W')
  * yet selected — i.e. what still needs adding to build up to that package.
  * Sorted cheapest first.
  */
-export interface SuggestionExtras {
-  /** Extra lab markers a suggestion adds beyond the selection, grouped by profile. */
-  markerGroups: { group: string; count: number }[]
-  /** Extra DNA modules the suggestion adds. */
-  dnaModules: number
-  /** Extra service add-ons the suggestion adds (BCA, ECG, gut microbiome). */
-  addOns: string[]
+export interface ExtraItem {
+  /** Chip label: a package name when complete, or "+N Group" / "+N DNA modules" when partial. */
+  label: string
+  /** True when the whole of a recognised package (all its markers/modules) is added. */
+  complete: boolean
+  /** The actual extra marker/module names, shown in the click-bubble. */
+  markers: string[]
 }
 
 /**
- * What a suggested package adds beyond what's already selected — summarised by
- * marker profile ("+3 Thyroid Profile"), DNA-module count and service add-ons —
- * rather than as component packages, so markers already covered by a selected
- * package (e.g. liver/thyroid inside Premium) aren't shown as "missing".
+ * What a suggested package adds beyond what's already selected. When the extra
+ * markers make up a complete individual package (none of it already selected),
+ * the package name is returned; otherwise the remaining markers are summarised
+ * per profile ("+3 Thyroid Profile"). DNA modules and service add-ons (BCA/ECG/
+ * gut microbiome) are appended. Each item carries the extra marker names for a
+ * click-to-reveal bubble.
  */
 export function getSuggestionExtras(
   selected: CatalogueService[],
   suggestion: CatalogueService
-): SuggestionExtras {
+): ExtraItem[] {
+  const selNames = new Set(selected.map((s) => s.name))
   const selTests = new Set<number>()
   for (const s of selected) for (const id of serviceTestIds(s)) selTests.add(id)
+  const nameOf = (id: number) => data.tests[String(id)]?.name || ''
+
+  // Extra lab markers the suggestion has that the selection doesn't.
+  const extra = new Set<number>()
+  for (const id of serviceTestIds(suggestion)) if (!selTests.has(id)) extra.add(id)
+
+  const items: ExtraItem[] = []
+
+  // Complete individual packages fully contained in the extra set (largest first).
+  const candidates = data.services
+    .filter((s) => s.category !== COMPREHENSIVE_CATEGORY && !selNames.has(s.name) && serviceTestIds(s).size > 0)
+    .sort((a, b) => serviceTestIds(b).size - serviceTestIds(a).size)
+  for (const p of candidates) {
+    const pm = serviceTestIds(p)
+    let allIn = true
+    for (const id of pm) if (!extra.has(id)) { allIn = false; break }
+    if (!allIn) continue
+    items.push({ label: p.name, complete: true, markers: [...pm].map(nameOf) })
+    for (const id of pm) extra.delete(id)
+  }
+
+  // Remaining extra markers, summarised per profile.
   const order: string[] = []
-  const counts = new Map<string, number>()
-  for (const id of serviceTestIds(suggestion)) {
-    if (selTests.has(id)) continue
+  const groups = new Map<string, number[]>()
+  for (const id of extra) {
     const g = data.tests[String(id)]?.group || 'Other'
-    if (!counts.has(g)) {
-      counts.set(g, 0)
+    if (!groups.has(g)) {
+      groups.set(g, [])
       order.push(g)
     }
-    counts.set(g, counts.get(g)! + 1)
+    groups.get(g)!.push(id)
   }
-  const markerGroups = order
-    .map((g) => ({ group: g, count: counts.get(g)! }))
-    .sort((a, b) => b.count - a.count)
+  for (const g of order.sort((a, b) => groups.get(b)!.length - groups.get(a)!.length)) {
+    const ids = groups.get(g)!
+    items.push({ label: `+${ids.length} ${g}`, complete: false, markers: ids.map(nameOf) })
+  }
 
-  const compNames = (svc: CatalogueService[], group: string) => {
+  // DNA modules — complete DNA package name, or a partial count.
+  const dnaOf = (svc: CatalogueService[]) => {
     const set = new Set<string>()
-    for (const s of svc) for (const c of s.comps) if (c.group === group) set.add(c.name)
+    for (const s of svc) for (const c of s.comps) if (c.group === 'DNA Modules') set.add(c.name)
     return set
   }
-  const selDna = compNames(selected, 'DNA Modules')
-  const dnaModules = [...compNames([suggestion], 'DNA Modules')].filter((n) => !selDna.has(n)).length
+  const selDna = dnaOf(selected)
+  const extraDna = [...dnaOf([suggestion])].filter((m) => !selDna.has(m))
+  if (extraDna.length > 0) {
+    const dnaPkg = data.services.find((s) => {
+      if (!/^DNA -/.test(s.name) || selNames.has(s.name)) return false
+      const mods = [...dnaOf([s])]
+      return mods.length === extraDna.length && mods.every((m) => extraDna.includes(m))
+    })
+    if (dnaPkg) items.push({ label: dnaPkg.name, complete: true, markers: extraDna })
+    else items.push({ label: `+${extraDna.length} DNA modules`, complete: false, markers: extraDna })
+  }
 
-  const addOns: string[] = []
-  const seen = new Set<string>()
-  const selAddOns = new Set([...compNames(selected, 'BCA / ECG'), ...compNames(selected, 'Microbiome')])
+  // Service add-ons (BCA / ECG / gut microbiome).
+  const addGroups = new Set(['BCA / ECG', 'Microbiome'])
+  const selAdd = new Set<string>()
+  for (const s of selected) for (const c of s.comps) if (addGroups.has(c.group)) selAdd.add(c.name)
+  const seenAdd = new Set<string>()
   for (const c of suggestion.comps) {
-    if ((c.group === 'BCA / ECG' || c.group === 'Microbiome') && !selAddOns.has(c.name) && !seen.has(c.name)) {
-      seen.add(c.name)
-      addOns.push(c.name)
+    if (addGroups.has(c.group) && !selAdd.has(c.name) && !seenAdd.has(c.name)) {
+      seenAdd.add(c.name)
+      items.push({ label: `+${c.name}`, complete: true, markers: [] })
     }
   }
-  return { markerGroups, dnaModules, addOns }
+
+  return items
 }
 
 /** Group a service's curated "what's included" rows by their `group` label. */
