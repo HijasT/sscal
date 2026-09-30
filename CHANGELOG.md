@@ -2,7 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
-## [9.1.2]
+## [9.2.0]
+
+### Changed
+- **Package drill-down now mirrors the source catalogue's structure.** A package's details are shown as "What's included" groups (Consultation, BCA/ECG, DNA Modules, Microbiome, Vaccinations) followed by **Blood panels** — each panel listed with its marker count and markers — instead of the previous derived "component packages" / profile-grouped view. This applies to every package; a comprehensive simply lists its several panels (e.g. Dubai It → Premium PLUS Men's 80, Cancer Risk – Men 6, Longevity 22, Blood Group 2, BRCA 2, Food Allergy & Intolerance 292).
+
+### Added
+- **Excluded-markers check on Quote B.** When Quote B suggests a bundled version of Quote A, any markers present in Quote A's packages but not in the bundled composition are flagged ("Not in the bundle"). With the current catalogue (nested base panels; bundles are supersets of what they replace) this will normally be empty, but it surfaces automatically if a suggested bundle ever leaves a marker out.
 
 ### Fixed
 - **Quote B no longer over-bundles into the most expensive package.** A bundle is now used only when the selection contains all of that bundle's own component packages (or, for a bundle with no panel-derived components like the Food Allergy & Intolerance Bundle, packages whose tests exactly make it up) — so, for example, Blood Group + BRCA Genetic Test now stay as individual lines instead of collapsing into the Dubai It package. Also fixed a circular component match where the Food Allergy & Intolerance Bundle and Ultimate Gut package each treated the other as their component (a bundle's component package is now the cheapest non-comprehensive package for that panel).

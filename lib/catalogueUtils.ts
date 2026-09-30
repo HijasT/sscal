@@ -177,6 +177,29 @@ export function hasLabTests(service: CatalogueService): boolean {
 }
 
 /**
+ * Marker (test) names present in `from` but missing from `within` — i.e. what a
+ * bundled composition would leave out compared with the individual packages.
+ * Empty when `within` covers every marker in `from`.
+ */
+export function excludedMarkers(from: CatalogueService[], within: CatalogueService[]): string[] {
+  const covered = new Set<number>()
+  for (const s of within) for (const id of serviceTestIds(s)) covered.add(id)
+  const out: string[] = []
+  const seen = new Set<string>()
+  for (const s of from) {
+    for (const id of serviceTestIds(s)) {
+      if (covered.has(id)) continue
+      const name = data.tests[String(id)]?.name
+      if (name && !seen.has(name)) {
+        seen.add(name)
+        out.push(name)
+      }
+    }
+  }
+  return out
+}
+
+/**
  * The individual packages a bundle/comprehensive package is built from. Each of
  * a service's panels maps to the standalone single-panel package that offers
  * exactly that panel (e.g. the "Longevity Panel" → "Longevity Profile"), so a

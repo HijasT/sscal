@@ -27,10 +27,9 @@ import {
   getServiceById,
   searchServices,
   groupComps,
-  groupServiceTests,
-  getServiceItems,
-  getComponentPackages,
+  getPanelTests,
   bundleAll,
+  excludedMarkers,
   hasLabTests,
   formatAED,
   quoteTotals,
@@ -44,6 +43,11 @@ import {
 
 const ALL = 'All'
 const QUOTE_KEY = 'sic_sale_quote'
+
+/** Display label for a comp group, matching the source catalogue's wording. */
+function compGroupLabel(group: string): string {
+  return group === 'Doctor & Vital Signs' ? 'Consultation' : group
+}
 
 interface StoredLine {
   id: number
@@ -91,6 +95,11 @@ export function SaleAssistantTab() {
     [bundled, bDiscounts]
   )
   const totalsB = useMemo(() => quoteTotals(bLines), [bLines])
+  // Any markers from Quote A's packages that the bundled version leaves out.
+  const excluded = useMemo(
+    () => (bundled.bundles.length > 0 ? excludedMarkers(lines.map((l) => l.service), bundled.services) : []),
+    [lines, bundled]
+  )
 
   // Rehydrate Quote A from sessionStorage on mount (tolerates the older
   // two-quote {A,B} shape by reading Quote A).
@@ -244,6 +253,7 @@ export function SaleAssistantTab() {
                 bundleIds={bundleIds}
                 totals={totalsB}
                 hasBundle={bundled.bundles.length > 0}
+                excluded={excluded}
                 empty={empty}
                 onSetDiscount={setBLineDiscount}
               />
@@ -336,6 +346,7 @@ function BundledColumn({
   bundleIds,
   totals,
   hasBundle,
+  excluded,
   empty,
   onSetDiscount,
 }: {
@@ -343,6 +354,7 @@ function BundledColumn({
   bundleIds: Set<number>
   totals: ReturnType<typeof quoteTotals>
   hasBundle: boolean
+  excluded: string[]
   empty: boolean
   onSetDiscount: (id: number, patch: Partial<Pick<QuoteLine, 'discountType' | 'discountValue'>>) => void
 }) {
@@ -371,6 +383,20 @@ function BundledColumn({
               />
             ))}
           </div>
+          {excluded.length > 0 && (
+            <div className="sa-excluded">
+              <div className="sa-excluded-title">
+                ⚠️ Not in the bundle ({excluded.length} marker{excluded.length === 1 ? '' : 's'})
+              </div>
+              <div className="sa-test-list">
+                {excluded.map((m, i) => (
+                  <span key={i} className="sa-test-chip sa-test-chip-warn">
+                    {m}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           <QuoteTotalsRows gross={totals.gross} discount={totals.discount} total={totals.total} />
         </>
       )}
@@ -498,21 +524,11 @@ function ServiceRow({
   onAdd: () => void
 }) {
   const groups = useMemo(() => groupComps(service), [service])
-  // For a bundle: its component packages, each with their own resolved tests.
-  const componentBreakdown = useMemo(
-    () =>
-      expanded
-        ? getComponentPackages(service).map((c) => ({ service: c, items: getServiceItems(c) }))
-        : [],
+  // Breakdown by blood panel, matching the source catalogue's structure.
+  const panelBreakdown = useMemo(
+    () => (expanded ? service.panels.map((pn) => ({ name: pn, tests: getPanelTests(pn) })) : []),
     [service, expanded]
   )
-  const isBundle = componentBreakdown.length > 0
-  // For a plain package: the flat lab-test breakdown grouped by profile.
-  const testGroups = useMemo(
-    () => (expanded && !isBundle ? groupServiceTests(service) : []),
-    [service, expanded, isBundle]
-  )
-  const testCount = useMemo(() => testGroups.reduce((n, g) => n + g.tests.length, 0), [testGroups])
 
   return (
     <div className={`sa-item ${expanded ? 'expanded' : ''}`}>
@@ -539,45 +555,14 @@ function ServiceRow({
 
       {expanded && (
         <div className="sa-details">
-          {groups.length === 0 && testGroups.length === 0 && !isBundle ? (
+          {groups.length === 0 && panelBreakdown.length === 0 ? (
             <p className="sa-empty">No breakdown available for this package.</p>
           ) : (
             <>
-              {/* Bundle: the component packages it is built from, each with its
-                  own tests nested underneath. */}
-              {isBundle && (
-                <>
-                  <div className="sa-detail-section-head">Bundled packages ({componentBreakdown.length})</div>
-                  <div className="sa-comp-eq">
-                    {componentBreakdown.map((c) => c.service.name).join('  +  ')}
-                  </div>
-                  {componentBreakdown.map(({ service: c, items }) => (
-                    <div key={c.id} className="sa-comp">
-                      <div className="sa-comp-head">
-                        <span className="sa-comp-name">{c.name}</span>
-                        <span className="sa-comp-meta">
-                          {formatAED(c.price)}
-                          {items.length > 0 ? ` · ${items.length} items` : ''}
-                        </span>
-                      </div>
-                      {items.length > 0 && (
-                        <div className="sa-test-list">
-                          {items.map((label, i) => (
-                            <span key={i} className="sa-test-chip">
-                              {label}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </>
-              )}
-
-              {/* Service-level inclusions: doctor, vitals, DNA modules, ECG, etc. */}
+              {/* What's included: consultation, BCA/ECG, DNA modules, etc. */}
               {groups.map((g) => (
                 <div key={g.group} className="sa-detail-group">
-                  <div className="sa-detail-group-title">{g.group}</div>
+                  <div className="sa-detail-group-title">{compGroupLabel(g.group)}</div>
                   {g.rows.map((r, i) => (
                     <div key={i} className="sa-detail-row">
                       <span className="sa-detail-name">{r.name}</span>
@@ -587,17 +572,19 @@ function ServiceRow({
                 </div>
               ))}
 
-              {/* Plain package: full lab-test breakdown grouped by profile. */}
-              {testGroups.length > 0 && (
+              {/* Blood panels, each with its markers — mirrors the source catalogue. */}
+              {panelBreakdown.length > 0 && (
                 <>
-                  <div className="sa-detail-section-head">Lab tests ({testCount})</div>
-                  {testGroups.map((g) => (
-                    <div key={g.group} className="sa-detail-group">
+                  <div className="sa-detail-section-head">
+                    Blood panels ({panelBreakdown.length})
+                  </div>
+                  {panelBreakdown.map((p) => (
+                    <div key={p.name} className="sa-detail-group">
                       <div className="sa-detail-group-title">
-                        {g.group} <span className="sa-detail-group-count">{g.tests.length}</span>
+                        {p.name} <span className="sa-detail-group-count">{p.tests.length}</span>
                       </div>
                       <div className="sa-test-list">
-                        {g.tests.map((t, i) => (
+                        {p.tests.map((t, i) => (
                           <span key={i} className="sa-test-chip">
                             {t.name}
                           </span>

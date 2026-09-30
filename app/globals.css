@@ -2192,3 +2192,25 @@ input[type="range"]::-moz-range-thumb {
   font-family: 'JetBrains Mono', monospace;
   white-space: nowrap;
 }
+
+/* Quote B: markers the bundle leaves out vs the individual packages */
+.sa-excluded {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-sm);
+  background: rgba(208, 151, 63, 0.08);
+}
+
+.sa-excluded-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--warning);
+  margin-bottom: 8px;
+}
+
+.sa-test-chip-warn {
+  border-color: var(--warning);
+  color: var(--warning);
+  background: transparent;
+}
