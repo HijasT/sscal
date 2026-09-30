@@ -476,15 +476,23 @@ export function getSuggestionExtras(
     return set
   }
   const selDna = dnaOf(selected)
-  const extraDna = [...dnaOf([suggestion])].filter((m) => !selDna.has(m))
-  if (extraDna.length > 0) {
-    const dnaPkg = data.services.find((s) => {
-      if (!/^DNA -/.test(s.name) || selNames.has(s.name)) return false
-      const mods = [...dnaOf([s])]
-      return mods.length === extraDna.length && mods.every((m) => extraDna.includes(m))
-    })
-    if (dnaPkg) items.push({ label: dnaPkg.name, complete: true, markers: extraDna, serviceId: dnaPkg.id })
-    else items.push({ label: `+${extraDna.length} DNA modules`, complete: false, markers: extraDna })
+  const remainingDna = new Set([...dnaOf([suggestion])].filter((m) => !selDna.has(m)))
+  if (remainingDna.size > 0) {
+    // Peel off complete DNA packages whose modules are all in the extra set,
+    // largest first (e.g. 11 modules → DNA - Essentials (6) + "+5 DNA modules").
+    const dnaPkgs = data.services
+      .filter((s) => /^DNA -/.test(s.name) && !selNames.has(s.name) && dnaOf([s]).size > 0)
+      .sort((a, b) => dnaOf([b]).size - dnaOf([a]).size)
+    for (const p of dnaPkgs) {
+      const mods = [...dnaOf([p])]
+      if (mods.length >= 1 && mods.every((m) => remainingDna.has(m))) {
+        items.push({ label: p.name, complete: true, markers: mods, serviceId: p.id })
+        for (const m of mods) remainingDna.delete(m)
+      }
+    }
+    if (remainingDna.size > 0) {
+      items.push({ label: `+${remainingDna.size} DNA modules`, complete: false, markers: [...remainingDna] })
+    }
   }
 
   // Service add-ons (BCA / ECG / gut microbiome), mapped to their standalone package.

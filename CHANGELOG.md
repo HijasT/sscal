@@ -2,7 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
-## [9.5.2]
+## [9.5.3]
+
+### Fixed
+- The extra-markers click-bubble is no longer clipped — the Package Ladder container no longer hides overflow.
+
+### Changed
+- Extra DNA modules are now split into recognisable DNA packages plus a remainder: a suggestion that adds 11 DNA modules (All of You minus Ancestry) now shows "DNA - Essentials" (complete, with Add) and "+5 DNA modules", instead of a single "+11 DNA modules".
 
 ### Changed
 - In "Suggested package adds", a **complete package** (all its markers/modules added, e.g. DNA - Essentials when a suggestion covers the whole DNA package) now shows the package name with an **Add button** — clicking it adds that package to Selected — and no click-bubble. Partial additions still show "+N …" with a click-bubble of the exact markers. Service add-ons (BCA/ECG/gut microbiome) map to their standalone package for the Add button.

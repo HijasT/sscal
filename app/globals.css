@@ -1510,7 +1510,13 @@ input[type="range"]::-moz-range-thumb {
   border-radius: var(--radius-md);
   background: var(--accent-soft);
   margin-bottom: 20px;
-  overflow: hidden;
+  /* visible so the extra-markers click-bubble isn't clipped */
+  overflow: visible;
+}
+
+/* Keep the collapsed bar's top corners rounded without clipping the body. */
+.sa-quote-bar {
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
 .sa-quote-bar {
