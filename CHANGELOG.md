@@ -2,7 +2,10 @@
 
 All notable changes to this project are documented in this file.
 
-## [9.4.0]
+## [9.4.1]
+
+### Fixed
+- The greyed "still needed" packages under Selected Packages no longer list items already covered by a selected package. It now subtracts everything the current selection transitively includes, so e.g. with Premium PLUS Women's + BCA selected and Essentials Women's suggested, only DNA - Essentials is shown as missing (not Premium, Cortisol, Liver or the Thyroid profile, which Premium PLUS already includes).
 
 ### Added
 - **Men/Women toggle** (default Men) at the top of the Sale Assistant — the catalogue and suggestions show only that gender's packages plus common (non-gendered) ones.

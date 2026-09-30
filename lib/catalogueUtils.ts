@@ -362,10 +362,17 @@ export function getMissingComponents(
   suggestion: CatalogueService,
   selected: CatalogueService[]
 ): CatalogueService[] {
-  const selNames = new Set(selected.map((s) => s.name))
+  // Everything the selection already covers: each selected package plus all the
+  // packages it itself includes (so e.g. Premium PLUS's Premium/Cortisol/Liver/
+  // Thyroid aren't listed as still-needed once Premium PLUS is selected).
+  const covered = new Set<string>()
+  for (const s of selected) {
+    covered.add(s.name)
+    for (const n of includesClosure(s.name)) covered.add(n)
+  }
   const byName = new Map(data.services.map((s) => [s.name, s]))
   return [...includesClosure(suggestion.name)]
-    .filter((n) => (COMPOSITION[n] || []).length === 0 && !selNames.has(n))
+    .filter((n) => (COMPOSITION[n] || []).length === 0 && !covered.has(n))
     .map((n) => byName.get(n))
     .filter((s): s is CatalogueService => Boolean(s))
     .sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
