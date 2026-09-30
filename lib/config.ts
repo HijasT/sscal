@@ -14,7 +14,7 @@
  */
 
 /** Displayed in the header, About tab, and page title. */
-export const APP_VERSION = '9.5.3'
+export const APP_VERSION = '9.5.4'
 
 export interface Tier {
   id: string
@@ -49,7 +49,7 @@ export const DEFAULT_STAFF_COUNT = 29
 export const DEFAULT_THEME: 'light' | 'dark' = 'light'
 
 /** Whether the Sales Kitty easter egg wanders the app by default. */
-export const DEFAULT_KITTY_ENABLED = true
+export const DEFAULT_KITTY_ENABLED = false
 
 /**
  * Center names shown in the Bulk Results "Center-wise Stats" section.

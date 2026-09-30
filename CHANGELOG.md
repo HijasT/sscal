@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [9.5.4]
+
+### Changed
+- Sales Kitty is now **off by default** (`DEFAULT_KITTY_ENABLED = false`); it can still be enabled in Settings.
+
 ## [9.5.3]
 
 ### Fixed
