@@ -28,7 +28,7 @@ import {
   getPanelTests,
   serviceGender,
   suggestPackage,
-  getMissingComponents,
+  getSuggestionExtras,
   excludedMarkers,
   excludedDnaModules,
   isBloodTestOnly,
@@ -93,8 +93,8 @@ export function SaleAssistantTab() {
     : null
   const suggestedNet = suggestionLine ? lineNet(suggestionLine) : 0
   const suggestedDiscount = suggestionLine ? lineDiscountAmount(suggestionLine) : 0
-  const missing = useMemo(
-    () => (suggestion ? getMissingComponents(suggestion, selServices) : []),
+  const extras = useMemo(
+    () => (suggestion ? getSuggestionExtras(selServices, suggestion) : null),
     [suggestion, selServices]
   )
   const excluded = useMemo(
@@ -153,15 +153,6 @@ export function SaleAssistantTab() {
       /* ignore */
     }
   }, [lines, gender, hydrated])
-
-  const addToSelected = (service: CatalogueService) => {
-    setLines((prev) =>
-      prev.some((l) => l.service.id === service.id)
-        ? prev
-        : [...prev, { service, qty: 1, discountType: 'pct' as DiscountType, discountValue: 0 }]
-    )
-    setLadderOpen(true)
-  }
 
   const toggleInQuote = (service: CatalogueService) => {
     setLines((prev) =>
@@ -244,7 +235,7 @@ export function SaleAssistantTab() {
                   )}
                 </div>
 
-                {empty && missing.length === 0 ? (
+                {empty ? (
                   <p className="sa-empty" style={{ padding: '8px 0' }}>
                     No packages yet. Use “Add” on any package below.
                   </p>
@@ -259,24 +250,34 @@ export function SaleAssistantTab() {
                           onRemove={() => removeLine(l.service.id)}
                         />
                       ))}
-                      {/* Greyed packages the suggestion still needs. */}
-                      {missing.map((m) => (
-                        <div key={m.id} className="sa-missing">
-                          <span className="sa-missing-name">{m.name}</span>
-                          <span className="sa-missing-price">{formatAED(m.price)}</span>
-                          <button className="sa-addbtn" onClick={() => addToSelected(m)}>
-                            Add
-                          </button>
-                        </div>
-                      ))}
                     </div>
-                    {!empty && (
-                      <QuoteTotalsRows
-                        gross={totalsSel.gross}
-                        discount={totalsSel.discount}
-                        total={totalsSel.total}
-                      />
-                    )}
+                    <QuoteTotalsRows
+                      gross={totalsSel.gross}
+                      discount={totalsSel.discount}
+                      total={totalsSel.total}
+                    />
+                    {/* What the suggested package would add on top, by markers. */}
+                    {extras &&
+                      (extras.markerGroups.length > 0 || extras.dnaModules > 0 || extras.addOns.length > 0) && (
+                        <div className="sa-extras">
+                          <div className="sa-extras-title">Suggested package adds</div>
+                          <div className="sa-test-list">
+                            {extras.markerGroups.map((g) => (
+                              <span key={g.group} className="sa-extra-chip">
+                                +{g.count} {g.group}
+                              </span>
+                            ))}
+                            {extras.dnaModules > 0 && (
+                              <span className="sa-extra-chip">+{extras.dnaModules} DNA modules</span>
+                            )}
+                            {extras.addOns.map((a) => (
+                              <span key={a} className="sa-extra-chip">
+                                +{a}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                   </>
                 )}
               </div>
@@ -296,7 +297,6 @@ export function SaleAssistantTab() {
                         </span>
                         <span className="sa-suggestion-meta">
                           Includes your {lines.length} selected package{lines.length === 1 ? '' : 's'}
-                          {missing.length > 0 ? ` + ${missing.length} more` : ''}
                         </span>
                       </div>
                       <span className="sa-suggestion-price">

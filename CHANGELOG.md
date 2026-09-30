@@ -2,7 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
-## [9.4.3]
+## [9.4.4]
+
+### Changed
+- **Selected Packages now shows what the suggestion adds by marker group, not by package.** Instead of greying out component packages (which could list e.g. Liver/Thyroid profiles whose markers are already inside a selected Premium screening), it shows only the extra markers the suggested package brings, summarised per profile (e.g. "+5 Lipid Profile", "+2 Thyroid Profile"), plus extra DNA modules and add-ons (BCA/ECG/gut microbiome).
+
+### Fixed
+- **Base screenings now ladder up for suggestions.** The composition graph nests HDS ⊂ Standard ⊂ Premium ⊂ Premium PLUS, so e.g. Standard + Cortisol now suggests Premium PLUS (previously only Premium + Cortisol did).
 
 ### Changed
 - **"Blood tests only" now shows pure blood-test packages.** It hides any package that includes non-blood add-ons — DNA modules, gut microbiome kit, BCA or ECG — so comprehensives no longer appear (a doctor consultation is still allowed).

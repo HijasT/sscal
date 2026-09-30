@@ -243,6 +243,10 @@ const COMPREHENSIVE_CATEGORY = 'Comprehensive Packages / Bundles'
  * Names must match catalogue service names exactly.
  */
 const COMPOSITION: Record<string, string[]> = {
+  // Base screenings are nested (HDS ⊂ Standard ⊂ Premium ⊂ Premium PLUS), so a
+  // higher tier covers a lower one for suggestions.
+  'Standard Health Screening': ['Household Domestic Health Screening'],
+  'Premium Health Screening': ['Standard Health Screening'],
   'Fasted Glucose & Insulin Test': ['Fasted Glucose Test'],
   'Diabetes Screening': ['Fasted Glucose Test'],
   'Advanced Diabetes Screening': ['Diabetes Screening', 'Fasted Glucose & Insulin Test'],
@@ -392,24 +396,60 @@ export function suggestPackage(selected: CatalogueService[], gender?: 'M' | 'W')
  * yet selected — i.e. what still needs adding to build up to that package.
  * Sorted cheapest first.
  */
-export function getMissingComponents(
-  suggestion: CatalogueService,
-  selected: CatalogueService[]
-): CatalogueService[] {
-  // Everything the selection already covers: each selected package plus all the
-  // packages it itself includes (so e.g. Premium PLUS's Premium/Cortisol/Liver/
-  // Thyroid aren't listed as still-needed once Premium PLUS is selected).
-  const covered = new Set<string>()
-  for (const s of selected) {
-    covered.add(s.name)
-    for (const n of includesClosure(s.name)) covered.add(n)
+export interface SuggestionExtras {
+  /** Extra lab markers a suggestion adds beyond the selection, grouped by profile. */
+  markerGroups: { group: string; count: number }[]
+  /** Extra DNA modules the suggestion adds. */
+  dnaModules: number
+  /** Extra service add-ons the suggestion adds (BCA, ECG, gut microbiome). */
+  addOns: string[]
+}
+
+/**
+ * What a suggested package adds beyond what's already selected — summarised by
+ * marker profile ("+3 Thyroid Profile"), DNA-module count and service add-ons —
+ * rather than as component packages, so markers already covered by a selected
+ * package (e.g. liver/thyroid inside Premium) aren't shown as "missing".
+ */
+export function getSuggestionExtras(
+  selected: CatalogueService[],
+  suggestion: CatalogueService
+): SuggestionExtras {
+  const selTests = new Set<number>()
+  for (const s of selected) for (const id of serviceTestIds(s)) selTests.add(id)
+  const order: string[] = []
+  const counts = new Map<string, number>()
+  for (const id of serviceTestIds(suggestion)) {
+    if (selTests.has(id)) continue
+    const g = data.tests[String(id)]?.group || 'Other'
+    if (!counts.has(g)) {
+      counts.set(g, 0)
+      order.push(g)
+    }
+    counts.set(g, counts.get(g)! + 1)
   }
-  const byName = new Map(data.services.map((s) => [s.name, s]))
-  return [...includesClosure(suggestion.name)]
-    .filter((n) => (COMPOSITION[n] || []).length === 0 && !covered.has(n))
-    .map((n) => byName.get(n))
-    .filter((s): s is CatalogueService => Boolean(s))
-    .sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
+  const markerGroups = order
+    .map((g) => ({ group: g, count: counts.get(g)! }))
+    .sort((a, b) => b.count - a.count)
+
+  const compNames = (svc: CatalogueService[], group: string) => {
+    const set = new Set<string>()
+    for (const s of svc) for (const c of s.comps) if (c.group === group) set.add(c.name)
+    return set
+  }
+  const selDna = compNames(selected, 'DNA Modules')
+  const dnaModules = [...compNames([suggestion], 'DNA Modules')].filter((n) => !selDna.has(n)).length
+
+  const addOns: string[] = []
+  const seen = new Set<string>()
+  const selAddOns = new Set([...compNames(selected, 'BCA / ECG'), ...compNames(selected, 'Microbiome')])
+  for (const c of suggestion.comps) {
+    if ((c.group === 'BCA / ECG' || c.group === 'Microbiome') && !selAddOns.has(c.name) && !seen.has(c.name)) {
+      seen.add(c.name)
+      addOns.push(c.name)
+    }
+  }
+  return { markerGroups, dnaModules, addOns }
 }
 
 /** Group a service's curated "what's included" rows by their `group` label. */
