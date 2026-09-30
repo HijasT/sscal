@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [9.2.2]
+
+### Changed
+- The catalogue package button now **toggles** the package in and out of Quote A (Add ↔ Remove) instead of incrementing a quantity — packages are one-per-quote. Removed the per-line quantity stepper from Quote A accordingly (people don't buy the same package twice).
+
 ## [9.2.1]
 
 ### Fixed

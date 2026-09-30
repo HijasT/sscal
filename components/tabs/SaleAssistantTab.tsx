@@ -150,22 +150,16 @@ export function SaleAssistantTab() {
     }
   }, [lines, bDiscounts, hydrated])
 
-  const addToQuote = (service: CatalogueService) => {
-    setLines((prev) => {
-      const existing = prev.find((l) => l.service.id === service.id)
-      return existing
-        ? prev.map((l) => (l.service.id === service.id ? { ...l, qty: l.qty + 1 } : l))
+  // The catalogue button toggles a package in/out of Quote A (no quantities —
+  // people don't buy the same package twice).
+  const toggleInQuote = (service: CatalogueService) => {
+    setLines((prev) =>
+      prev.some((l) => l.service.id === service.id)
+        ? prev.filter((l) => l.service.id !== service.id)
         : [...prev, { service, qty: 1, discountType: 'pct' as DiscountType, discountValue: 0 }]
-    })
+    )
     setQuoteOpen(true)
   }
-
-  const setQty = (id: number, qty: number) =>
-    setLines((prev) =>
-      qty <= 0
-        ? prev.filter((l) => l.service.id !== id)
-        : prev.map((l) => (l.service.id === id ? { ...l, qty } : l))
-    )
 
   const setLineDiscount = (id: number, patch: Partial<Pick<QuoteLine, 'discountType' | 'discountValue'>>) =>
     setLines((prev) => prev.map((l) => (l.service.id === id ? { ...l, ...patch } : l)))
@@ -186,7 +180,7 @@ export function SaleAssistantTab() {
       }
     })
 
-  const qtyInQuote = (id: number) => lines.find((l) => l.service.id === id)?.qty ?? 0
+  const inQuote = (id: number) => lines.some((l) => l.service.id === id)
 
   const empty = lines.length === 0
 
@@ -236,7 +230,6 @@ export function SaleAssistantTab() {
                         <QuoteLineRow
                           key={l.service.id}
                           line={l}
-                          onSetQty={(qty) => setQty(l.service.id, qty)}
                           onSetDiscount={(patch) => setLineDiscount(l.service.id, patch)}
                           onRemove={() => removeLine(l.service.id)}
                         />
@@ -308,10 +301,10 @@ export function SaleAssistantTab() {
             <ServiceRow
               key={s.id}
               service={s}
-              qty={qtyInQuote(s.id)}
+              inQuote={inQuote(s.id)}
               expanded={expandedId === s.id}
               onToggle={() => setExpandedId(expandedId === s.id ? null : s.id)}
-              onAdd={() => addToQuote(s)}
+              onToggleQuote={() => toggleInQuote(s)}
             />
           ))}
         </div>
@@ -433,13 +426,11 @@ function ComparisonSummary({ a, b }: { a: number; b: number }) {
 function QuoteLineRow({
   line,
   onSetDiscount,
-  onSetQty,
   onRemove,
   tag,
 }: {
   line: QuoteLine
   onSetDiscount: (patch: Partial<Pick<QuoteLine, 'discountType' | 'discountValue'>>) => void
-  onSetQty?: (qty: number) => void
   onRemove?: () => void
   tag?: string
 }) {
@@ -460,18 +451,6 @@ function QuoteLineRow({
       </div>
 
       <div className="sa-line-controls">
-        {onSetQty && (
-          <div className="sa-qty">
-            <button className="sa-qty-btn" onClick={() => onSetQty(line.qty - 1)} aria-label="Decrease quantity">
-              −
-            </button>
-            <span className="sa-qty-val">{line.qty}</span>
-            <button className="sa-qty-btn" onClick={() => onSetQty(line.qty + 1)} aria-label="Increase quantity">
-              +
-            </button>
-          </div>
-        )}
-
         <div className="sa-disc">
           <div className="sa-disc-type">
             <button
@@ -512,16 +491,16 @@ function QuoteLineRow({
 
 function ServiceRow({
   service,
-  qty,
+  inQuote,
   expanded,
   onToggle,
-  onAdd,
+  onToggleQuote,
 }: {
   service: CatalogueService
-  qty: number
+  inQuote: boolean
   expanded: boolean
   onToggle: () => void
-  onAdd: () => void
+  onToggleQuote: () => void
 }) {
   const groups = useMemo(() => groupComps(service), [service])
   // Breakdown by blood panel, matching the source catalogue's structure.
@@ -547,8 +526,12 @@ function ServiceRow({
           <button className="btn btn-secondary btn-sm" onClick={onToggle}>
             {expanded ? 'Hide' : 'Details'}
           </button>
-          <button className={`sa-addbtn ${qty > 0 ? 'active' : ''}`} onClick={onAdd} aria-label="Add to quote">
-            {qty > 0 ? `Added ${qty}` : 'Add'}
+          <button
+            className={`sa-addbtn ${inQuote ? 'active' : ''}`}
+            onClick={onToggleQuote}
+            aria-label={inQuote ? 'Remove from quote' : 'Add to quote'}
+          >
+            {inQuote ? 'Remove' : 'Add'}
           </button>
         </div>
       </div>
