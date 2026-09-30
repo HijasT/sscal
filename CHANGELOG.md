@@ -2,7 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
-## [9.4.4]
+## [9.5.0]
+
+### Added
+- **"Non-invasive" filter** — shows only packages that don't prick the patient: no blood markers, no DNA modules (DNA tests are blood-drawn) and no vaccinations (a needle). Leaves body composition, ECG, gut microbiome and plain consults.
+- **Clear (✕) button** in the package search field.
+
+### Changed
+- "Blood tests only" and "Non-invasive" are now **mutually exclusive** (checking one unchecks the other). Neither is persisted — both clear on refresh.
 
 ### Changed
 - **Selected Packages now shows what the suggestion adds by marker group, not by package.** Instead of greying out component packages (which could list e.g. Liver/Thyroid profiles whose markers are already inside a selected Premium screening), it shows only the extra markers the suggested package brings, summarised per profile (e.g. "+5 Lipid Profile", "+2 Thyroid Profile"), plus extra DNA modules and add-ons (BCA/ECG/gut microbiome).

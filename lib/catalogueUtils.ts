@@ -189,6 +189,16 @@ export function isBloodTestOnly(service: CatalogueService): boolean {
 }
 
 /**
+ * A non-invasive package: nothing that pricks the patient. It has no blood
+ * markers and no DNA modules (DNA tests are blood-drawn) and no vaccination
+ * (a needle) — e.g. body composition, ECG, gut microbiome, a plain consult.
+ */
+export function isNonInvasive(service: CatalogueService): boolean {
+  if (hasLabTests(service)) return false
+  return !service.comps.some((c) => c.group === 'DNA Modules' || c.group === 'Vaccinations')
+}
+
+/**
  * Marker (test) names present in `from` but missing from `within` — i.e. what a
  * bundled composition would leave out compared with the individual packages.
  * Empty when `within` covers every marker in `from`.

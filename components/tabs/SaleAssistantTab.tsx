@@ -32,6 +32,7 @@ import {
   excludedMarkers,
   excludedDnaModules,
   isBloodTestOnly,
+  isNonInvasive,
   formatAED,
   quoteTotals,
   lineGross,
@@ -55,7 +56,9 @@ export function SaleAssistantTab() {
   const [gender, setGender] = useState<Gender>('M')
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<string>(ALL)
-  const [bloodOnly, setBloodOnly] = useState(false)
+  // Filter is intentionally not persisted (clears on refresh); blood-only and
+  // non-invasive are mutually exclusive.
+  const [filter, setFilter] = useState<'none' | 'blood' | 'noninvasive'>('none')
   const [expandedId, setExpandedId] = useState<number | null>(null)
 
   const [lines, setLines] = useState<QuoteLine[]>([]) // Selected Packages
@@ -76,14 +79,15 @@ export function SaleAssistantTab() {
       const g = serviceGender(s)
       return g === null || g === gender
     })
-    if (bloodOnly) r = r.filter(isBloodTestOnly)
+    if (filter === 'blood') r = r.filter(isBloodTestOnly)
+    else if (filter === 'noninvasive') r = r.filter(isNonInvasive)
     const map = new Map<string, CatalogueService[]>()
     for (const s of r) {
       if (!map.has(s.category)) map.set(s.category, [])
       map.get(s.category)!.push(s)
     }
     return { list: r, groups: [...map.entries()] }
-  }, [query, category, gender, bloodOnly])
+  }, [query, category, gender, filter])
 
   const selServices = useMemo(() => lines.map((l) => l.service), [lines])
   const totalsSel = useMemo(() => quoteTotals(lines), [lines])
@@ -389,13 +393,20 @@ export function SaleAssistantTab() {
       {/* Search */}
       <div className="form-group" style={{ marginBottom: 16 }}>
         <label htmlFor="sa-search">Search packages</label>
-        <input
-          id="sa-search"
-          type="text"
-          placeholder="Search by name, category, or marker…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+        <div className="sa-search-wrap">
+          <input
+            id="sa-search"
+            type="text"
+            placeholder="Search by name, category, or marker…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          {query && (
+            <button className="sa-search-clear" onClick={() => setQuery('')} aria-label="Clear search">
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Category filter chips */}
@@ -412,10 +423,24 @@ export function SaleAssistantTab() {
       </div>
 
       <div className="sa-filter-row">
-        <label className="sa-check">
-          <input type="checkbox" checked={bloodOnly} onChange={(e) => setBloodOnly(e.target.checked)} />
-          Blood tests only
-        </label>
+        <div className="sa-checks">
+          <label className="sa-check">
+            <input
+              type="checkbox"
+              checked={filter === 'blood'}
+              onChange={(e) => setFilter(e.target.checked ? 'blood' : 'none')}
+            />
+            Blood tests only
+          </label>
+          <label className="sa-check">
+            <input
+              type="checkbox"
+              checked={filter === 'noninvasive'}
+              onChange={(e) => setFilter(e.target.checked ? 'noninvasive' : 'none')}
+            />
+            Non-invasive
+          </label>
+        </div>
         <span className="sa-count">
           Showing {grouped.list.length} of {totalCount} packages
         </span>
