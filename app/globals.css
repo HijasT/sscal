@@ -2154,3 +2154,41 @@ input[type="range"]::-moz-range-thumb {
   margin: 0 0 10px;
   font-style: italic;
 }
+
+/* Bundle component breakdown (package -> its tests) */
+.sa-comp-eq {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  line-height: 1.6;
+  padding: 8px 0 4px;
+}
+
+.sa-comp {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+}
+
+.sa-comp-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.sa-comp-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.sa-comp-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+}

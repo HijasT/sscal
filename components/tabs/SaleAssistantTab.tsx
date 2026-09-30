@@ -28,6 +28,7 @@ import {
   searchServices,
   groupComps,
   groupServiceTests,
+  getServiceTests,
   getComponentPackages,
   bundleAll,
   hasLabTests,
@@ -497,8 +498,20 @@ function ServiceRow({
   onAdd: () => void
 }) {
   const groups = useMemo(() => groupComps(service), [service])
-  const components = useMemo(() => (expanded ? getComponentPackages(service) : []), [service, expanded])
-  const testGroups = useMemo(() => (expanded ? groupServiceTests(service) : []), [service, expanded])
+  // For a bundle: its component packages, each with their own resolved tests.
+  const componentBreakdown = useMemo(
+    () =>
+      expanded
+        ? getComponentPackages(service).map((c) => ({ service: c, tests: getServiceTests(c) }))
+        : [],
+    [service, expanded]
+  )
+  const isBundle = componentBreakdown.length > 0
+  // For a plain package: the flat lab-test breakdown grouped by profile.
+  const testGroups = useMemo(
+    () => (expanded && !isBundle ? groupServiceTests(service) : []),
+    [service, expanded, isBundle]
+  )
   const testCount = useMemo(() => testGroups.reduce((n, g) => n + g.tests.length, 0), [testGroups])
 
   return (
@@ -526,23 +539,39 @@ function ServiceRow({
 
       {expanded && (
         <div className="sa-details">
-          {groups.length === 0 && testGroups.length === 0 && components.length === 0 ? (
+          {groups.length === 0 && testGroups.length === 0 && !isBundle ? (
             <p className="sa-empty">No breakdown available for this package.</p>
           ) : (
             <>
-              {/* Component packages this bundle is built from. */}
-              {components.length > 0 && (
-                <div className="sa-detail-group">
-                  <div className="sa-detail-group-title">
-                    Bundled packages <span className="sa-detail-group-count">{components.length}</span>
+              {/* Bundle: the component packages it is built from, each with its
+                  own tests nested underneath. */}
+              {isBundle && (
+                <>
+                  <div className="sa-detail-section-head">Bundled packages ({componentBreakdown.length})</div>
+                  <div className="sa-comp-eq">
+                    {componentBreakdown.map((c) => c.service.name).join('  +  ')}
                   </div>
-                  {components.map((c) => (
-                    <div key={c.id} className="sa-detail-row">
-                      <span className="sa-detail-name">{c.name}</span>
-                      <span className="sa-detail-value">{formatAED(c.price)}</span>
+                  {componentBreakdown.map(({ service: c, tests }) => (
+                    <div key={c.id} className="sa-comp">
+                      <div className="sa-comp-head">
+                        <span className="sa-comp-name">{c.name}</span>
+                        <span className="sa-comp-meta">
+                          {formatAED(c.price)}
+                          {tests.length > 0 ? ` · ${tests.length} tests` : ''}
+                        </span>
+                      </div>
+                      {tests.length > 0 && (
+                        <div className="sa-test-list">
+                          {tests.map((t, i) => (
+                            <span key={i} className="sa-test-chip">
+                              {t.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
-                </div>
+                </>
               )}
 
               {/* Service-level inclusions: doctor, vitals, DNA modules, ECG, etc. */}
@@ -558,7 +587,7 @@ function ServiceRow({
                 </div>
               ))}
 
-              {/* Full lab-test / biomarker breakdown, grouped by profile. */}
+              {/* Plain package: full lab-test breakdown grouped by profile. */}
               {testGroups.length > 0 && (
                 <>
                   <div className="sa-detail-section-head">Lab tests ({testCount})</div>

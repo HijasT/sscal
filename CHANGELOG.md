@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [9.1.1]
+
+### Changed
+- A bundle's drill-down now shows its tests **grouped under each component package** rather than as one flat list: it lists the composition (e.g. Executive Men's = Premium PLUS Men's + Cancer Risk – Men + Blood Group Test + BRCA Genetic Test), then each component package with its own resolved tests beneath it. Plain (non-bundle) packages still show their lab tests grouped by profile.
+
 ## [9.1.0]
 
 ### Changed
