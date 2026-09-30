@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [9.4.3]
+
+### Changed
+- **"Blood tests only" now shows pure blood-test packages.** It hides any package that includes non-blood add-ons — DNA modules, gut microbiome kit, BCA or ECG — so comprehensives no longer appear (a doctor consultation is still allowed).
+
+### Added
+- **Discount on the suggested package.** The Suggestions area now has its own discount input (percentage or fixed AED); the discounted suggestion price flows into the comparison bar and the Package Ladder summary.
+
 ## [9.4.2]
 
 ### Added

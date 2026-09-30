@@ -2325,3 +2325,19 @@ input[type="range"]::-moz-range-thumb {
   font-family: 'JetBrains Mono', monospace;
   white-space: nowrap;
 }
+
+/* Discount control on the suggested package */
+.sa-sugg-disc {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.sa-sugg-disc-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

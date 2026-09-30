@@ -31,7 +31,7 @@ import {
   getMissingComponents,
   excludedMarkers,
   excludedDnaModules,
-  hasLabTests,
+  isBloodTestOnly,
   formatAED,
   quoteTotals,
   lineGross,
@@ -59,6 +59,10 @@ export function SaleAssistantTab() {
   const [expandedId, setExpandedId] = useState<number | null>(null)
 
   const [lines, setLines] = useState<QuoteLine[]>([]) // Selected Packages
+  const [suggDiscount, setSuggDiscount] = useState<{ type: DiscountType; value: number }>({
+    type: 'pct',
+    value: 0,
+  })
   const [ladderOpen, setLadderOpen] = useState(false)
   const [hydrated, setHydrated] = useState(false)
 
@@ -72,7 +76,7 @@ export function SaleAssistantTab() {
       const g = serviceGender(s)
       return g === null || g === gender
     })
-    if (bloodOnly) r = r.filter(hasLabTests)
+    if (bloodOnly) r = r.filter(isBloodTestOnly)
     const map = new Map<string, CatalogueService[]>()
     for (const s of r) {
       if (!map.has(s.category)) map.set(s.category, [])
@@ -84,6 +88,11 @@ export function SaleAssistantTab() {
   const selServices = useMemo(() => lines.map((l) => l.service), [lines])
   const totalsSel = useMemo(() => quoteTotals(lines), [lines])
   const suggestion = useMemo(() => suggestPackage(selServices, gender), [selServices, gender])
+  const suggestionLine: QuoteLine | null = suggestion
+    ? { service: suggestion, qty: 1, discountType: suggDiscount.type, discountValue: suggDiscount.value }
+    : null
+  const suggestedNet = suggestionLine ? lineNet(suggestionLine) : 0
+  const suggestedDiscount = suggestionLine ? lineDiscountAmount(suggestionLine) : 0
   const missing = useMemo(
     () => (suggestion ? getMissingComponents(suggestion, selServices) : []),
     [suggestion, selServices]
@@ -214,7 +223,7 @@ export function SaleAssistantTab() {
             {suggestion && (
               <>
                 {' '}
-                · Suggested <b>{formatAED(suggestion.price)}</b>
+                · Suggested <b>{formatAED(suggestedNet)}</b>
               </>
             )}
           </span>
@@ -290,7 +299,45 @@ export function SaleAssistantTab() {
                           {missing.length > 0 ? ` + ${missing.length} more` : ''}
                         </span>
                       </div>
-                      <span className="sa-suggestion-price">{formatAED(suggestion.price)}</span>
+                      <span className="sa-suggestion-price">
+                        {suggestedDiscount > 0 && (
+                          <span className="sa-line-gross">{formatAED(suggestion.price)}</span>
+                        )}{' '}
+                        {formatAED(suggestedNet)}
+                      </span>
+                    </div>
+
+                    {/* Try a discount on the suggested package */}
+                    <div className="sa-sugg-disc">
+                      <span className="sa-sugg-disc-label">Discount</span>
+                      <div className="sa-disc-type">
+                        <button
+                          className={`sa-disc-btn ${suggDiscount.type === 'pct' ? 'active' : ''}`}
+                          onClick={() => setSuggDiscount((d) => ({ ...d, type: 'pct' }))}
+                          aria-label="Discount as percent"
+                        >
+                          %
+                        </button>
+                        <button
+                          className={`sa-disc-btn ${suggDiscount.type === 'amt' ? 'active' : ''}`}
+                          onClick={() => setSuggDiscount((d) => ({ ...d, type: 'amt' }))}
+                          aria-label="Discount as AED amount"
+                        >
+                          AED
+                        </button>
+                      </div>
+                      <input
+                        className="sa-disc-val"
+                        type="number"
+                        min={0}
+                        max={suggDiscount.type === 'pct' ? 100 : undefined}
+                        placeholder="0"
+                        value={suggDiscount.value === 0 ? '' : suggDiscount.value}
+                        onChange={(e) =>
+                          setSuggDiscount((d) => ({ ...d, value: Number(e.target.value) || 0 }))
+                        }
+                        aria-label="Suggestion discount value"
+                      />
                     </div>
                     {excluded.length > 0 && (
                       <div className="sa-excluded">
@@ -333,7 +380,7 @@ export function SaleAssistantTab() {
             </div>
 
             {suggestion && !empty && (
-              <ComparisonSummary selected={totalsSel.total} suggested={suggestion.price ?? 0} />
+              <ComparisonSummary selected={totalsSel.total} suggested={suggestedNet} />
             )}
           </div>
         )}

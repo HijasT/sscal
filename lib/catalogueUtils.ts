@@ -175,6 +175,19 @@ export function hasLabTests(service: CatalogueService): boolean {
   return serviceTestIds(service).size > 0
 }
 
+/** Comp groups that make a package more than "just blood tests". */
+const NON_BLOOD_GROUPS = new Set(['DNA Modules', 'Microbiome', 'BCA / ECG'])
+
+/**
+ * A pure blood-test package: it has lab tests and carries none of the non-blood
+ * add-ons (DNA modules, gut microbiome kit, BCA or ECG). Used by the "Blood
+ * tests only" filter. A doctor consultation is still allowed.
+ */
+export function isBloodTestOnly(service: CatalogueService): boolean {
+  if (!hasLabTests(service)) return false
+  return !service.comps.some((c) => NON_BLOOD_GROUPS.has(c.group))
+}
+
 /**
  * Marker (test) names present in `from` but missing from `within` — i.e. what a
  * bundled composition would leave out compared with the individual packages.
