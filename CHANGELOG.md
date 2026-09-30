@@ -2,7 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
-## [9.2.2]
+## [9.3.0]
+
+### Changed
+- **Bundle suggestions now use an explicit package-composition graph.** Quote B suggests the cheapest package that *includes* the selected individual packages (based on how packages are actually built from one another), rather than the largest one that merely contains their markers. Examples: Premium + Cancer Risk – Men + Cortisol → **Premium PLUS Men's** (AED 1,695, cheaper than buying them separately); Blood Group + BRCA → **Executive** (not Dubai It); Premium PLUS Men's + Longevity + food tests → **Ultimate Men's Longevity + Food Allergy & Intolerance Bundle**. Coverage is transitive (e.g. Dubai It includes Executive, which includes All of You, which includes Premium PLUS…).
+
+### Added
+- **HEALTHMAXXING package** (AED 19,150) — an unofficial package that covers everything on offer (Dubai It + DNA Hair Loss + DNA Acne + Gut Microbiome + Respiratory Allergy). It is added to the catalogue (synthesised from its components' panels and inclusions) and participates in search, the quote, and suggestions like any other package.
 
 ### Changed
 - The catalogue package button now **toggles** the package in and out of Quote A (Add ↔ Remove) instead of incrementing a quantity — packages are one-per-quote. Removed the per-line quantity stepper from Quote A accordingly (people don't buy the same package twice).

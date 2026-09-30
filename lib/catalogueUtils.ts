@@ -68,7 +68,9 @@ export interface Catalogue {
   tests: Record<string, CatalogueTest>
 }
 
-const data = catalogue as Catalogue
+// Clone the services array so we can inject the synthetic HEALTHMAXXING package
+// below without mutating the imported (possibly frozen) JSON module.
+const data: Catalogue = { ...(catalogue as Catalogue), services: [...(catalogue as Catalogue).services] }
 
 // ---------- reads ----------
 
@@ -168,11 +170,6 @@ function serviceTestIds(service: CatalogueService): Set<number> {
   return ids
 }
 
-/** Set of a service's component keys ("group::name") from its `comps`. */
-function serviceCompKeys(service: CatalogueService): Set<string> {
-  return new Set(service.comps.map((c) => `${c.group}::${c.name}`))
-}
-
 /** Whether a service includes at least one resolved lab/blood test. */
 export function hasLabTests(service: CatalogueService): boolean {
   return serviceTestIds(service).size > 0
@@ -201,119 +198,145 @@ export function excludedMarkers(from: CatalogueService[], within: CatalogueServi
   return out
 }
 
-/**
- * The individual packages a bundle/comprehensive package is built from. Each of
- * a service's panels maps to the standalone single-panel package that offers
- * exactly that panel (e.g. the "Longevity Panel" → "Longevity Profile"), so a
- * comprehensive resolves to the building-block packages it combines. Returns an
- * empty list for a plain single-panel package (nothing to decompose).
- */
-export function getComponentPackages(service: CatalogueService): CatalogueService[] {
-  const components: CatalogueService[] = []
-  const seen = new Set<number>()
-  for (const panelName of service.panels) {
-    // The atomic base package that offers exactly this panel — a plain package,
-    // not another comprehensive/bundle (several comprehensives can be built on
-    // the same single panel, e.g. Food Bundle and Ultimate Gut both use the
-    // Food Allergy & Intolerance panel). Prefer the cheapest such provider.
-    const provider = data.services
-      .filter(
-        (s) =>
-          s.id !== service.id &&
-          s.panels.length === 1 &&
-          s.panels[0] === panelName &&
-          s.category !== COMPREHENSIVE_CATEGORY
-      )
-      .sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity))[0]
-    if (provider && !seen.has(provider.id)) {
-      seen.add(provider.id)
-      components.push(provider)
-    }
-  }
-  // DNA package component: if this package's DNA modules exactly match a
-  // standalone DNA package's modules, surface that DNA package too (e.g. the
-  // "All of You Men's" package's 12 DNA modules → "DNA - All of You").
-  const dna = dnaModuleSet(service)
-  if (dna.size > 0) {
-    const dnaPkg = data.services.find(
-      (s) => s.id !== service.id && /^DNA -/.test(s.name) && setsEqual(dnaModuleSet(s), dna)
-    )
-    if (dnaPkg && !seen.has(dnaPkg.id)) components.push(dnaPkg)
-  }
-  return components
-}
-
-/** The set of DNA-module names a service includes (empty for non-DNA packages). */
-function dnaModuleSet(service: CatalogueService): Set<string> {
-  return new Set(service.comps.filter((c) => c.group === 'DNA Modules').map((c) => c.name))
-}
-
-function setsEqual(a: Set<string>, b: Set<string>): boolean {
-  if (a.size !== b.size) return false
-  for (const x of a) if (!b.has(x)) return false
-  return true
-}
-
-/**
- * The individual items that make up a package, as display labels: its lab test
- * names when it has lab tests, otherwise its service components (e.g. a DNA
- * package's module names). Used to show what's inside a bundle's component.
- */
-export function getServiceItems(service: CatalogueService): string[] {
-  const tests = getServiceTests(service)
-  if (tests.length > 0) return tests.map((t) => t.name)
-  return service.comps.map((c) => c.name)
-}
-
-/** True when `containerTests`/`containerComps` fully include every test and component of `p`. */
-function packageContains(
-  containerTests: Set<number>,
-  containerComps: Set<string>,
-  p: CatalogueService
-): boolean {
-  for (const id of serviceTestIds(p)) if (!containerTests.has(id)) return false
-  for (const k of serviceCompKeys(p)) if (!containerComps.has(k)) return false
-  return true
-}
-
 /** Category that holds the comprehensive/bundle packages. */
 const COMPREHENSIVE_CATEGORY = 'Comprehensive Packages / Bundles'
 
-/** Candidate bundle/comprehensive packages that can replace a group of packages. */
+/**
+ * Business composition of packages: which other purchasable packages each
+ * package is made up of (direct components; transitive relationships are
+ * resolved by includesClosure). This drives package suggestions — the cheapest
+ * package that includes a set of selected individual packages is offered.
+ * Names must match catalogue service names exactly.
+ */
+const COMPOSITION: Record<string, string[]> = {
+  'Fasted Glucose & Insulin Test': ['Fasted Glucose Test'],
+  'Diabetes Screening': ['Fasted Glucose Test'],
+  'Advanced Diabetes Screening': ['Diabetes Screening', 'Fasted Glucose & Insulin Test'],
+  'Food Allergy & Intolerance Bundle': ['Food Allergy Test', 'Food Intolerance Test'],
+  'DNA - All of You': ['DNA - Essentials', 'DNA - Ancestry'],
+  "Premium PLUS Men's Health Screening": [
+    'Premium Health Screening',
+    'Cancer Risk Profile - Men',
+    'Cortisol Test',
+    'Liver Profile',
+    'Thyroid, Hormone & Vitamin Profile',
+  ],
+  "Premium PLUS Women's Health Screening": [
+    'Premium Health Screening',
+    "Cancer Risk Profile - Women's",
+    'Cortisol Test',
+    'Liver Profile',
+    'Thyroid, Hormone & Vitamin Profile',
+  ],
+  'Healthy Heart Package': ['Body Composition Analysis', 'ECG & Consult'],
+  "Women's Clarity Package": ["Premium PLUS Women's Health Screening", 'Body Composition Analysis'],
+  "Essentials Men's Package": ['Body Composition Analysis', 'DNA - Essentials', "Premium PLUS Men's Health Screening"],
+  "Essentials Women's Package": ['Body Composition Analysis', 'DNA - Essentials', "Premium PLUS Women's Health Screening"],
+  "All of You Men's Package": ['Body Composition Analysis', 'DNA - All of You', "Premium PLUS Men's Health Screening"],
+  "All of You Women's Package": ['Body Composition Analysis', 'DNA - All of You', "Premium PLUS Women's Health Screening"],
+  "Ultimate Men's Longevity Package": ["All of You Men's Package", 'Longevity Profile'],
+  "Ultimate Women's Longevity Package": ["All of You Women's Package", 'Longevity Profile'],
+  "Executive Men's Health Package": [
+    "All of You Men's Package",
+    'ECG & Consult',
+    'Cancer Risk Profile - Men',
+    'Blood Group Test',
+    'Cancer Risk - BRCA Genetic Test',
+  ],
+  "Executive Women's Health Package": [
+    "All of You Women's Package",
+    'ECG & Consult',
+    "Cancer Risk Profile - Women's",
+    'Blood Group Test',
+    'Cancer Risk - BRCA Genetic Test',
+  ],
+  'Ultimate Gut Health Package': ['Gut Microbiome Test', 'Food Allergy & Intolerance Bundle'],
+  "Dubai It Men's Package": ["Executive Men's Health Package", 'Longevity Profile', 'Food Allergy & Intolerance Bundle'],
+  "Dubai It Women's Package": ["Executive Women's Health Package", 'Longevity Profile', 'Food Allergy & Intolerance Bundle'],
+  HEALTHMAXXING: [
+    "Dubai It Men's Package",
+    'DNA - Hair Loss Package',
+    'DNA - Acne Package',
+    'Gut Microbiome Test',
+    'Respiratory Allergy Test',
+  ],
+}
+
+/** Price of the unofficial HEALTHMAXXING package (sum of its components). */
+const HEALTHMAXXING_PRICE = 19150
+
+// Inject HEALTHMAXXING — an unofficial package that covers everything on offer —
+// synthesised from the union of its component packages' panels and comps so the
+// catalogue view and suggestions treat it like any other package.
+;(function injectHealthmaxxing() {
+  if (data.services.some((s) => s.name === 'HEALTHMAXXING')) return
+  const byName = new Map(data.services.map((s) => [s.name, s]))
+  const panels: string[] = []
+  const comps: CatalogueComp[] = []
+  const compKeys = new Set<string>()
+  for (const name of COMPOSITION.HEALTHMAXXING) {
+    const c = byName.get(name)
+    if (!c) continue
+    for (const p of c.panels) if (!panels.includes(p)) panels.push(p)
+    for (const row of c.comps) {
+      const k = `${row.group}::${row.name}`
+      if (!compKeys.has(k)) {
+        compKeys.add(k)
+        comps.push(row)
+      }
+    }
+  }
+  const testIds = new Set<number>()
+  for (const p of panels) {
+    const panel = data.panels[p]
+    if (panel) for (const id of panel.tests) testIds.add(id)
+  }
+  data.services.push({
+    id: Math.max(...data.services.map((s) => s.id)) + 1,
+    category: COMPREHENSIVE_CATEGORY,
+    sub: 'Healthmaxxing',
+    name: 'HEALTHMAXXING',
+    price: HEALTHMAXXING_PRICE,
+    currency: 'AED',
+    biomarkers: testIds.size,
+    doctor: '60 min + 15 min',
+    panels,
+    comps,
+  })
+})()
+
+/** Transitive set of packages (by name) a package is composed of. */
+const includesCache = new Map<string, Set<string>>()
+function includesClosure(name: string): Set<string> {
+  const cached = includesCache.get(name)
+  if (cached) return cached
+  const set = new Set<string>()
+  for (const c of COMPOSITION[name] || []) {
+    set.add(c)
+    for (const x of includesClosure(c)) set.add(x)
+  }
+  includesCache.set(name, set)
+  return set
+}
+
+/** Candidate packages that are composed of other packages (can bundle a group). */
 function bundleCandidates(): CatalogueService[] {
-  return data.services.filter(
-    (s) => s.price != null && (s.category === COMPREHENSIVE_CATEGORY || /\bbundle\b/i.test(s.name))
-  )
+  return data.services.filter((s) => s.price != null && includesClosure(s.name).size > 0)
 }
 
 /**
- * The selected packages a bundle would collapse, or null if it does not apply.
- *
- * A bundle applies only when the customer has selected the packages that make
- * it up — either all of its own component packages (2+), or, for a bundle with
- * no panel-derived components (e.g. the Food Allergy & Intolerance Bundle), 2+
- * selected packages whose combined tests exactly equal the bundle's (a tight
- * fit, so it adds no unrelated lab content). This prevents a large
- * comprehensive from swallowing a couple of unrelated packages.
+ * The selected packages a candidate would collapse, or null if it does not
+ * apply. A candidate applies when it includes (via its business composition) at
+ * least two of the still-selected packages — so the cheapest package that
+ * includes the selection gets suggested (e.g. Premium + Cancer + Cortisol →
+ * Premium PLUS; Blood Group + BRCA → Executive), rather than the most expensive
+ * one that merely contains them.
  */
 function coveredSelection(bundle: CatalogueService, pool: CatalogueService[]): CatalogueService[] | null {
-  const comps = getComponentPackages(bundle)
-  if (comps.length >= 1) {
-    if (comps.length < 2) return null
-    const poolIds = new Set(pool.map((p) => p.id))
-    if (!comps.every((c) => poolIds.has(c.id))) return null
-    const compIds = new Set(comps.map((c) => c.id))
-    return pool.filter((p) => compIds.has(p.id))
-  }
-  // Component-less bundle: fall back to a tight content match.
-  const bt = serviceTestIds(bundle)
-  const bc = serviceCompKeys(bundle)
-  const covered = pool.filter((p) => bundle.id !== p.id && packageContains(bt, bc, p))
-  if (covered.length < 2) return null
-  const union = new Set<number>()
-  for (const p of covered) for (const id of serviceTestIds(p)) union.add(id)
-  if (union.size !== bt.size) return null // bundle adds unrelated lab tests → not a tight fit
-  return covered
+  const inc = includesClosure(bundle.name)
+  if (inc.size === 0) return null
+  const covered = pool.filter((p) => p.id !== bundle.id && inc.has(p.name))
+  return covered.length >= 2 ? covered : null
 }
 
 /**
