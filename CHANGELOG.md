@@ -2,7 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
-## [9.1.1]
+## [9.1.2]
+
+### Fixed
+- **Quote B no longer over-bundles into the most expensive package.** A bundle is now used only when the selection contains all of that bundle's own component packages (or, for a bundle with no panel-derived components like the Food Allergy & Intolerance Bundle, packages whose tests exactly make it up) — so, for example, Blood Group + BRCA Genetic Test now stay as individual lines instead of collapsing into the Dubai It package. Also fixed a circular component match where the Food Allergy & Intolerance Bundle and Ultimate Gut package each treated the other as their component (a bundle's component package is now the cheapest non-comprehensive package for that panel).
+
+### Added
+- **DNA package as a bundle component.** Where a bundle's DNA-module set exactly matches a standalone DNA package (e.g. "All of You Men's" / Dubai It → DNA - All of You, "Essentials Men's" → DNA - Essentials), that DNA package is now shown as a component in the drill-down, with its modules listed. Bundles carrying a custom DNA-module set that matches no package keep those modules under the "DNA Modules" inclusions section.
 
 ### Changed
 - A bundle's drill-down now shows its tests **grouped under each component package** rather than as one flat list: it lists the composition (e.g. Executive Men's = Premium PLUS Men's + Cancer Risk – Men + Blood Group Test + BRCA Genetic Test), then each component package with its own resolved tests beneath it. Plain (non-bundle) packages still show their lab tests grouped by profile.

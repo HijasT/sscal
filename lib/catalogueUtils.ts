@@ -187,15 +187,57 @@ export function getComponentPackages(service: CatalogueService): CatalogueServic
   const components: CatalogueService[] = []
   const seen = new Set<number>()
   for (const panelName of service.panels) {
-    const provider = data.services.find(
-      (s) => s.id !== service.id && s.panels.length === 1 && s.panels[0] === panelName
-    )
+    // The atomic base package that offers exactly this panel — a plain package,
+    // not another comprehensive/bundle (several comprehensives can be built on
+    // the same single panel, e.g. Food Bundle and Ultimate Gut both use the
+    // Food Allergy & Intolerance panel). Prefer the cheapest such provider.
+    const provider = data.services
+      .filter(
+        (s) =>
+          s.id !== service.id &&
+          s.panels.length === 1 &&
+          s.panels[0] === panelName &&
+          s.category !== COMPREHENSIVE_CATEGORY
+      )
+      .sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity))[0]
     if (provider && !seen.has(provider.id)) {
       seen.add(provider.id)
       components.push(provider)
     }
   }
+  // DNA package component: if this package's DNA modules exactly match a
+  // standalone DNA package's modules, surface that DNA package too (e.g. the
+  // "All of You Men's" package's 12 DNA modules → "DNA - All of You").
+  const dna = dnaModuleSet(service)
+  if (dna.size > 0) {
+    const dnaPkg = data.services.find(
+      (s) => s.id !== service.id && /^DNA -/.test(s.name) && setsEqual(dnaModuleSet(s), dna)
+    )
+    if (dnaPkg && !seen.has(dnaPkg.id)) components.push(dnaPkg)
+  }
   return components
+}
+
+/** The set of DNA-module names a service includes (empty for non-DNA packages). */
+function dnaModuleSet(service: CatalogueService): Set<string> {
+  return new Set(service.comps.filter((c) => c.group === 'DNA Modules').map((c) => c.name))
+}
+
+function setsEqual(a: Set<string>, b: Set<string>): boolean {
+  if (a.size !== b.size) return false
+  for (const x of a) if (!b.has(x)) return false
+  return true
+}
+
+/**
+ * The individual items that make up a package, as display labels: its lab test
+ * names when it has lab tests, otherwise its service components (e.g. a DNA
+ * package's module names). Used to show what's inside a bundle's component.
+ */
+export function getServiceItems(service: CatalogueService): string[] {
+  const tests = getServiceTests(service)
+  if (tests.length > 0) return tests.map((t) => t.name)
+  return service.comps.map((c) => c.name)
 }
 
 /** True when `containerTests`/`containerComps` fully include every test and component of `p`. */
@@ -220,9 +262,40 @@ function bundleCandidates(): CatalogueService[] {
 }
 
 /**
+ * The selected packages a bundle would collapse, or null if it does not apply.
+ *
+ * A bundle applies only when the customer has selected the packages that make
+ * it up — either all of its own component packages (2+), or, for a bundle with
+ * no panel-derived components (e.g. the Food Allergy & Intolerance Bundle), 2+
+ * selected packages whose combined tests exactly equal the bundle's (a tight
+ * fit, so it adds no unrelated lab content). This prevents a large
+ * comprehensive from swallowing a couple of unrelated packages.
+ */
+function coveredSelection(bundle: CatalogueService, pool: CatalogueService[]): CatalogueService[] | null {
+  const comps = getComponentPackages(bundle)
+  if (comps.length >= 1) {
+    if (comps.length < 2) return null
+    const poolIds = new Set(pool.map((p) => p.id))
+    if (!comps.every((c) => poolIds.has(c.id))) return null
+    const compIds = new Set(comps.map((c) => c.id))
+    return pool.filter((p) => compIds.has(p.id))
+  }
+  // Component-less bundle: fall back to a tight content match.
+  const bt = serviceTestIds(bundle)
+  const bc = serviceCompKeys(bundle)
+  const covered = pool.filter((p) => bundle.id !== p.id && packageContains(bt, bc, p))
+  if (covered.length < 2) return null
+  const union = new Set<number>()
+  for (const p of covered) for (const id of serviceTestIds(p)) union.add(id)
+  if (union.size !== bt.size) return null // bundle adds unrelated lab tests → not a tight fit
+  return covered
+}
+
+/**
  * Greedily cover a selection with bundles under a given "pick the best next
- * bundle" rule. Each chosen bundle must cover 2+ still-uncovered packages, and
- * covered packages are removed before the next pick, so bundles never overlap.
+ * bundle" rule. Each chosen bundle must apply (see coveredSelection) and cover
+ * 2+ still-uncovered packages; covered packages are removed before the next
+ * pick, so bundles never overlap.
  */
 function greedyCover(
   selected: CatalogueService[],
@@ -235,10 +308,8 @@ function greedyCover(
   while (true) {
     let best: { covered: CatalogueService[]; cand: CatalogueService } | null = null
     for (const cand of candidates) {
-      const ct = serviceTestIds(cand)
-      const cc = serviceCompKeys(cand)
-      const covered = remaining.filter((p) => cand.id !== p.id && packageContains(ct, cc, p))
-      if (covered.length < 2) continue
+      const covered = coveredSelection(cand, remaining)
+      if (!covered || covered.length < 2) continue
       const option = { covered, cand }
       if (!best || better(option, best)) best = option
     }
@@ -301,8 +372,11 @@ export function bundleAll(selected: CatalogueService[]): BundledQuote {
     priceOf(r.bundles) + priceOf(r.leftovers)
   const best = totalOf(byPrice) < totalOf(byCoverage) ? byPrice : byCoverage
 
-  const services = [...best.bundles, ...best.leftovers]
-  return { bundles: best.bundles, leftovers: best.leftovers, services, total: priceOf(services) }
+  // A chosen bundle could coincide with a leftover package — keep it once.
+  const bundleIds = new Set(best.bundles.map((b) => b.id))
+  const leftovers = best.leftovers.filter((l) => !bundleIds.has(l.id))
+  const services = [...best.bundles, ...leftovers]
+  return { bundles: best.bundles, leftovers, services, total: priceOf(services) }
 }
 
 /** Group a service's curated "what's included" rows by their `group` label. */

@@ -28,7 +28,7 @@ import {
   searchServices,
   groupComps,
   groupServiceTests,
-  getServiceTests,
+  getServiceItems,
   getComponentPackages,
   bundleAll,
   hasLabTests,
@@ -502,7 +502,7 @@ function ServiceRow({
   const componentBreakdown = useMemo(
     () =>
       expanded
-        ? getComponentPackages(service).map((c) => ({ service: c, tests: getServiceTests(c) }))
+        ? getComponentPackages(service).map((c) => ({ service: c, items: getServiceItems(c) }))
         : [],
     [service, expanded]
   )
@@ -551,20 +551,20 @@ function ServiceRow({
                   <div className="sa-comp-eq">
                     {componentBreakdown.map((c) => c.service.name).join('  +  ')}
                   </div>
-                  {componentBreakdown.map(({ service: c, tests }) => (
+                  {componentBreakdown.map(({ service: c, items }) => (
                     <div key={c.id} className="sa-comp">
                       <div className="sa-comp-head">
                         <span className="sa-comp-name">{c.name}</span>
                         <span className="sa-comp-meta">
                           {formatAED(c.price)}
-                          {tests.length > 0 ? ` · ${tests.length} tests` : ''}
+                          {items.length > 0 ? ` · ${items.length} items` : ''}
                         </span>
                       </div>
-                      {tests.length > 0 && (
+                      {items.length > 0 && (
                         <div className="sa-test-list">
-                          {tests.map((t, i) => (
+                          {items.map((label, i) => (
                             <span key={i} className="sa-test-chip">
-                              {t.name}
+                              {label}
                             </span>
                           ))}
                         </div>
