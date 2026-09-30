@@ -2,7 +2,10 @@
 
 All notable changes to this project are documented in this file.
 
-## [9.2.0]
+## [9.2.1]
+
+### Fixed
+- **Package search is now word-based.** A query matches when every typed word appears in the package name, category, or a marker name, regardless of order — so "dubai men" finds the Dubai It Men's Package and marker searches like "vitamin d" work. Previously the whole query had to be one contiguous substring.
 
 ### Changed
 - **Package drill-down now mirrors the source catalogue's structure.** A package's details are shown as "What's included" groups (Consultation, BCA/ECG, DNA Modules, Microbiome, Vaccinations) followed by **Blood panels** — each panel listed with its marker count and markers — instead of the previous derived "component packages" / profile-grouped view. This applies to every package; a comprehensive simply lists its several panels (e.g. Dubai It → Premium PLUS Men's 80, Cancer Risk – Men 6, Longevity 22, Blood Group 2, BRCA 2, Food Allergy & Intolerance 292).

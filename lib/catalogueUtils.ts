@@ -90,23 +90,25 @@ export function getServiceById(id: number): CatalogueService | undefined {
 }
 
 /**
- * Filter services by free-text query and/or an exact category.
- * Query matches package name, sub-label, category, and — so packages can be
- * found by what they test for — the name of any lab test/marker they include
- * (case-insensitive). The marker match is only evaluated when the cheaper
- * name/category checks miss, so typing stays responsive.
+ * Filter services by free-text query and/or an exact category. The query is
+ * split into words and a service matches only if EVERY word appears somewhere
+ * in its name, sub-label, category, or one of its lab-test/marker names — so
+ * "dubai men" and marker searches like "vitamin d" both work regardless of word
+ * order. Marker names are only joined when a word misses the cheaper fields, so
+ * typing stays responsive.
  */
 export function searchServices(query: string, category?: string): CatalogueService[] {
-  const q = query.trim().toLowerCase()
+  const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean)
   return data.services.filter((s) => {
     if (category && s.category !== category) return false
-    if (!q) return true
-    return (
-      s.name.toLowerCase().includes(q) ||
-      (s.sub || '').toLowerCase().includes(q) ||
-      s.category.toLowerCase().includes(q) ||
-      getServiceTests(s).some((t) => t.name.toLowerCase().includes(q))
-    )
+    if (tokens.length === 0) return true
+    const base = `${s.name} ${s.sub || ''} ${s.category}`.toLowerCase()
+    let markers: string | null = null
+    return tokens.every((tok) => {
+      if (base.includes(tok)) return true
+      if (markers === null) markers = getServiceTests(s).map((t) => t.name).join(' ').toLowerCase()
+      return markers.includes(tok)
+    })
   })
 }
 
