@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [9.4.2]
+
+### Added
+- **DNA-module exclusion notice on suggestions.** When a suggested package carries fewer DNA modules than a selected package includes, the missing modules are flagged ("DNA modules not in this package") — e.g. suggesting Ultimate/Executive (11 modules) for a selection with DNA - All of You (12) now shows that Biocertica DNA - Ancestry is not included.
+
 ## [9.4.1]
 
 ### Fixed

@@ -30,6 +30,7 @@ import {
   suggestPackage,
   getMissingComponents,
   excludedMarkers,
+  excludedDnaModules,
   hasLabTests,
   formatAED,
   quoteTotals,
@@ -89,6 +90,10 @@ export function SaleAssistantTab() {
   )
   const excluded = useMemo(
     () => (suggestion ? excludedMarkers(selServices, [suggestion]) : []),
+    [suggestion, selServices]
+  )
+  const excludedDna = useMemo(
+    () => (suggestion ? excludedDnaModules(selServices, [suggestion]) : []),
     [suggestion, selServices]
   )
 
@@ -294,6 +299,20 @@ export function SaleAssistantTab() {
                         </div>
                         <div className="sa-test-list">
                           {excluded.map((m, i) => (
+                            <span key={i} className="sa-test-chip sa-test-chip-warn">
+                              {m}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {excludedDna.length > 0 && (
+                      <div className="sa-excluded">
+                        <div className="sa-excluded-title">
+                          ⚠️ DNA modules not in this package ({excludedDna.length})
+                        </div>
+                        <div className="sa-test-list">
+                          {excludedDna.map((m, i) => (
                             <span key={i} className="sa-test-chip sa-test-chip-warn">
                               {m}
                             </span>

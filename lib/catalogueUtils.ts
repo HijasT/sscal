@@ -198,6 +198,27 @@ export function excludedMarkers(from: CatalogueService[], within: CatalogueServi
   return out
 }
 
+/**
+ * DNA-module names present in `from` but missing from `within`. Used to flag when
+ * a suggested package's business composition claims a DNA package but the actual
+ * package carries fewer modules (e.g. Ultimate/Executive have 11 of DNA - All of
+ * You's 12, missing Ancestry).
+ */
+export function excludedDnaModules(from: CatalogueService[], within: CatalogueService[]): string[] {
+  const covered = new Set<string>()
+  for (const s of within) for (const c of s.comps) if (c.group === 'DNA Modules') covered.add(c.name)
+  const out: string[] = []
+  const seen = new Set<string>()
+  for (const s of from) {
+    for (const c of s.comps) {
+      if (c.group !== 'DNA Modules' || covered.has(c.name) || seen.has(c.name)) continue
+      seen.add(c.name)
+      out.push(c.name)
+    }
+  }
+  return out
+}
+
 /** Category that holds the comprehensive/bundle packages. */
 const COMPREHENSIVE_CATEGORY = 'Comprehensive Packages / Bundles'
 
