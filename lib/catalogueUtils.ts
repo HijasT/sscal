@@ -466,7 +466,7 @@ export function getSuggestionExtras(
   }
   for (const g of order.sort((a, b) => groups.get(b)!.length - groups.get(a)!.length)) {
     const ids = groups.get(g)!
-    items.push({ label: `+${ids.length} ${g}`, complete: false, markers: ids.map(nameOf) })
+    items.push({ label: `${ids.length} more ${g} marker${ids.length === 1 ? '' : 's'}`, complete: false, markers: ids.map(nameOf) })
   }
 
   // DNA modules — complete DNA package name, or a partial count.
@@ -491,7 +491,7 @@ export function getSuggestionExtras(
       }
     }
     if (remainingDna.size > 0) {
-      items.push({ label: `+${remainingDna.size} DNA modules`, complete: false, markers: [...remainingDna] })
+      items.push({ label: `${remainingDna.size} more DNA module${remainingDna.size === 1 ? '' : 's'}`, complete: false, markers: [...remainingDna] })
     }
   }
 
@@ -511,7 +511,7 @@ export function getSuggestionExtras(
     if (addGroups.has(c.group) && !selAdd.has(c.name) && !seenAdd.has(c.name)) {
       seenAdd.add(c.name)
       const pkg = addonPackage(c)
-      items.push({ label: `+${c.name}`, complete: true, markers: [], serviceId: pkg?.id })
+      items.push({ label: c.name, complete: true, markers: [], serviceId: pkg?.id })
     }
   }
 

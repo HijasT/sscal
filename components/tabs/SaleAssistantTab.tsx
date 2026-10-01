@@ -9,16 +9,16 @@
  *   Each package's drill-down shows its "what's included" groups and blood
  *   panels (marker-level), mirroring the source catalogue.
  * - Selected Packages: the individual packages picked (each with its own
- *   discount). When a suggestion exists, the packages it would still add are
- *   shown greyed with an "Add" button so the set can be built up.
- * - Suggestions: the cheapest package that includes everything selected (via the
- *   business composition), e.g. Blood Group + BRCA → Executive. "Move to
- *   Selected" swaps the whole selection for that one package.
+ *   discount, revealed on demand).
+ * - Suggestion: the cheapest package that includes everything selected (via the
+ *   business composition), e.g. Blood Group + BRCA → Executive, with "What it
+ *   adds" (whole packages get an Add button, partial ones list their markers).
+ *   "Replace selection" swaps the whole selection for that one package (undoable).
  *
  * All data is bundled with the app (no network calls). The selection and gender
  * are kept in sessionStorage for the session.
  */
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   getServices,
   getCategories,
@@ -39,10 +39,11 @@ import {
   lineNet,
   lineDiscountAmount,
   type CatalogueService,
+  type ExtraItem,
   type QuoteLine,
   type DiscountType,
 } from '@/lib/catalogueUtils'
-import { getFresh, setFresh } from '@/lib/storage'
+import { getFresh, setFresh, clearFresh } from '@/lib/storage'
 
 const ALL = 'All'
 const QUOTE_KEY = 'sic_sale_quote'
@@ -67,10 +68,11 @@ export function SaleAssistantTab() {
     type: 'pct',
     value: 0,
   })
-  // What "Move to Selected (replace)" overwrote, so it can be undone. Cleared by
+  // What "Replace selection" overwrote, so it can be undone. Cleared by
   // any other edit to the selection, so Undo only ever restores that exact state.
   const [undo, setUndo] = useState<{ lines: QuoteLine[]; name: string } | null>(null)
   const [ladderOpen, setLadderOpen] = useState(false)
+  const [suggDiscOpen, setSuggDiscOpen] = useState(false)
   const [openExtra, setOpenExtra] = useState<number | null>(null)
   const [hydrated, setHydrated] = useState(false)
 
@@ -148,6 +150,7 @@ export function SaleAssistantTab() {
   // Persist selection + gender.
   useEffect(() => {
     if (!hydrated) return
+    if (lines.length === 0) return clearFresh('session', QUOTE_KEY)
     try {
       const payload = {
         gender,
@@ -213,343 +216,445 @@ export function SaleAssistantTab() {
 
   const empty = lines.length === 0
 
+  const selectedCountText = (n: number) =>
+    n === 1 ? 'the selected package' : n === 2 ? 'both selected packages' : `all ${n} selected packages`
+  const difference = suggestedNet - totalsSel.total
+
   return (
     <div className="card">
       <div className="card-header">
         <h2 className="card-title">Sale Assistant</h2>
       </div>
 
-      <div className="privacy-notice">
-        <span className="privacy-icon">🔒</span>
-        100% local · catalogue bundled with the app · no data shared
-      </div>
+      <div className="sa">
+        <p className="sa-notice">
+          <Icon name="lock" />
+          <span>100% local · catalogue bundled with the app · no data shared</span>
+        </p>
 
-      {/* Gender toggle */}
-      <div className="sa-gender">
-        <button
-          className={`sa-gender-btn ${gender === 'M' ? 'active' : ''}`}
-          onClick={() => setGender('M')}
+        <div className="sa-seg" role="group" aria-label="Show packages for">
+          <button type="button" aria-pressed={gender === 'M'} onClick={() => setGender('M')}>
+            Men
+          </button>
+          <button type="button" aria-pressed={gender === 'W'} onClick={() => setGender('W')}>
+            Women
+          </button>
+        </div>
+
+        {/* Package Ladder */}
+        <details
+          className="sa-ladder"
+          open={ladderOpen}
+          onToggle={(e) => setLadderOpen((e.currentTarget as HTMLDetailsElement).open)}
         >
-          Men
-        </button>
-        <button
-          className={`sa-gender-btn ${gender === 'W' ? 'active' : ''}`}
-          onClick={() => setGender('W')}
-        >
-          Women
-        </button>
-      </div>
-
-      {/* Package Ladder */}
-      <div className="sa-quote">
-        <button className="sa-quote-bar" onClick={() => setLadderOpen((o) => !o)} aria-expanded={ladderOpen}>
-          <span className="sa-quote-title">Package Ladder</span>
-          <span className="sa-quote-compare-mini">
-            Selected <b>{formatAED(totalsSel.total)}</b>
-            {suggestion && (
-              <>
-                {' '}
-                · Suggested <b>{formatAED(suggestedNet)}</b>
-              </>
-            )}
-          </span>
-          <span className="sa-quote-chevron">{ladderOpen ? '▲' : '▼'}</span>
-        </button>
-
-        {ladderOpen && (
-          <div className="sa-quote-body">
-            {undo && (
-              <div className="sa-undo" role="status">
+          <summary className="sa-disclosure">
+            <span className="sa-ladder-sum">
+              <strong>Package Ladder</strong>
+              <span>
+                Selected <span className="sa-fig sa-strong">{formatAED(totalsSel.total)}</span>
+              </span>
+              {suggestion && (
                 <span>
-                  Replaced {undo.lines.length} selected package{undo.lines.length === 1 ? '' : 's'} with{' '}
-                  <strong>{undo.name}</strong>.
+                  Suggested <span className="sa-fig sa-strong">{formatAED(suggestedNet)}</span>
                 </span>
-                <button className="btn btn-secondary btn-sm" onClick={undoReplace}>
-                  Undo
-                </button>
-              </div>
-            )}
-            <div className="sa-columns">
-              {/* Selected Packages */}
-              <div className="sa-col">
-                <div className="sa-col-head">
-                  <span className="sa-col-badge">Selected Packages</span>
-                  {!empty && (
-                    <button className="sa-col-clear" onClick={clearSelected}>
-                      Clear
-                    </button>
-                  )}
-                </div>
+              )}
+            </span>
+            <Icon name="chevron" className="sa-chev" />
+          </summary>
 
-                {empty ? (
-                  <p className="sa-empty" style={{ padding: '8px 0' }}>
-                    No packages yet. Use “Add” on any package below.
-                  </p>
-                ) : (
-                  <>
-                    <div className="sa-col-lines">
-                      {lines.map((l) => (
-                        <QuoteLineRow
-                          key={l.service.id}
-                          line={l}
-                          onSetDiscount={(patch) => setLineDiscount(l.service.id, patch)}
-                          onRemove={() => removeLine(l.service.id)}
-                        />
-                      ))}
-                    </div>
-                    <QuoteTotalsRows
-                      gross={totalsSel.gross}
-                      discount={totalsSel.discount}
-                      total={totalsSel.total}
-                    />
-                    {/* What the suggested package adds on top — complete packages by
-                        name, the rest summarised by profile; click a chip for markers. */}
-                    {extras && extras.length > 0 && (
-                      <div className="sa-extras">
-                        <div className="sa-extras-title">Suggested package adds</div>
-                        <div className="sa-test-list">
-                          {extras.map((it, i) =>
-                            it.complete ? (
-                              // A complete package — offer to add it, no bubble.
-                              <span key={i} className="sa-extra-complete">
-                                <span className="sa-extra-chip complete">{it.label}</span>
-                                {it.serviceId != null && (
-                                  <button
-                                    className="sa-addbtn"
-                                    onClick={() => addServiceById(it.serviceId)}
-                                  >
-                                    Add
-                                  </button>
-                                )}
-                              </span>
-                            ) : (
-                              // A partial addition — click to reveal the extra markers.
-                              <span key={i} className="sa-extra-wrap">
-                                <button
-                                  className="sa-extra-chip clickable"
-                                  onClick={() => setOpenExtra(openExtra === i ? null : i)}
-                                >
-                                  {it.label}
-                                </button>
-                                {openExtra === i && it.markers.length > 0 && (
-                                  <div className="sa-extra-bubble">
-                                    {it.markers.map((m, j) => (
-                                      <span key={j} className="sa-test-chip">
-                                        {m}
-                                      </span>
-                                    ))}
-                                  </div>
-                                )}
-                              </span>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </>
+          {undo && (
+            <div className="sa-undo" role="status">
+              <span>
+                Replaced {undo.lines.length} selected package{undo.lines.length === 1 ? '' : 's'} with{' '}
+                <strong>{undo.name}</strong>.
+              </span>
+              <button type="button" className="sa-btn sa-btn-secondary" onClick={undoReplace}>
+                <Icon name="undo" small />
+                Undo
+              </button>
+            </div>
+          )}
+
+          <div className="sa-ladder-body">
+            {/* Selected Packages */}
+            <section className="sa-col" aria-labelledby="sa-h-sel">
+              <div className="sa-row-between">
+                <h3 id="sa-h-sel">
+                  Selected Packages <span className="sa-muted">({lines.length})</span>
+                </h3>
+                {!empty && (
+                  <button type="button" className="sa-btn sa-btn-quiet" onClick={clearSelected}>
+                    Clear
+                  </button>
                 )}
               </div>
 
-              {/* Suggestions */}
-              <div className="sa-col">
-                <div className="sa-col-head">
-                  <span className="sa-col-badge">Suggestions</span>
-                </div>
-                {suggestion ? (
-                  <>
-                    <div className="sa-suggestion">
-                      <div className="sa-suggestion-info">
-                        <span className="sa-suggestion-name">
-                          {suggestion.name}
-                          <span className="sa-bline-tag">Bundle</span>
-                        </span>
-                        <span className="sa-suggestion-meta">
-                          Includes your {lines.length} selected package{lines.length === 1 ? '' : 's'}
-                        </span>
-                      </div>
-                      <span className="sa-suggestion-price">
-                        {suggestedDiscount > 0 && (
-                          <span className="sa-line-gross">{formatAED(suggestion.price)}</span>
-                        )}{' '}
+              {empty ? (
+                <p className="sa-muted">No packages yet. Use “Add” on any package below.</p>
+              ) : (
+                <>
+                  {lines.map((l) => (
+                    <QuoteLineRow
+                      key={l.service.id}
+                      line={l}
+                      onSetDiscount={(patch) => setLineDiscount(l.service.id, patch)}
+                      onRemove={() => removeLine(l.service.id)}
+                    />
+                  ))}
+                  <QuoteTotalsRows
+                    gross={totalsSel.gross}
+                    discount={totalsSel.discount}
+                    total={totalsSel.total}
+                  />
+                </>
+              )}
+            </section>
+
+            {/* Suggestion */}
+            <section className="sa-col sa-col-suggest" aria-labelledby="sa-h-sug">
+              <h3 id="sa-h-sug">Suggestion</h3>
+              {suggestion ? (
+                <>
+                  <div className="sa-suggest">
+                    <div className="sa-suggest-top">
+                      <span className="sa-suggest-name">{suggestion.name}</span>
+                      <span className="sa-fig sa-suggest-price">
+                        {suggestedDiscount > 0 && <s>{formatAED(suggestion.price)}</s>}
                         {formatAED(suggestedNet)}
                       </span>
                     </div>
+                    <p className="sa-suggest-delta">
+                      {difference === 0 ? (
+                        <>Same price as your selection.</>
+                      ) : (
+                        <>
+                          <strong className="sa-fig">{formatAED(Math.abs(difference))}</strong>{' '}
+                          {difference > 0 ? 'more' : 'less'} than your selection.
+                        </>
+                      )}{' '}
+                      It includes {selectedCountText(lines.length)}.
+                    </p>
+                  </div>
 
-                    {/* Try a discount on the suggested package */}
-                    <div className="sa-sugg-disc">
-                      <span className="sa-sugg-disc-label">Discount</span>
-                      <div className="sa-disc-type">
-                        <button
-                          className={`sa-disc-btn ${suggDiscount.type === 'pct' ? 'active' : ''}`}
-                          onClick={() => setSuggDiscount((d) => ({ ...d, type: 'pct' }))}
-                          aria-label="Discount as percent"
-                        >
-                          %
-                        </button>
-                        <button
-                          className={`sa-disc-btn ${suggDiscount.type === 'amt' ? 'active' : ''}`}
-                          onClick={() => setSuggDiscount((d) => ({ ...d, type: 'amt' }))}
-                          aria-label="Discount as AED amount"
-                        >
-                          AED
-                        </button>
-                      </div>
-                      <input
-                        className="sa-disc-val"
-                        type="number"
-                        min={0}
-                        max={suggDiscount.type === 'pct' ? 100 : undefined}
-                        placeholder="0"
-                        value={suggDiscount.value === 0 ? '' : suggDiscount.value}
-                        onChange={(e) =>
-                          setSuggDiscount((d) => ({ ...d, value: Number(e.target.value) || 0 }))
-                        }
-                        aria-label="Suggestion discount value"
-                      />
-                    </div>
-                    {excluded.length > 0 && (
-                      <div className="sa-excluded">
-                        <div className="sa-excluded-title">
-                          ⚠️ Not in this package ({excluded.length} marker{excluded.length === 1 ? '' : 's'})
-                        </div>
-                        <div className="sa-test-list">
-                          {excluded.map((m, i) => (
-                            <span key={i} className="sa-test-chip sa-test-chip-warn">
-                              {m}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {excludedDna.length > 0 && (
-                      <div className="sa-excluded">
-                        <div className="sa-excluded-title">
-                          ⚠️ DNA modules not in this package ({excludedDna.length})
-                        </div>
-                        <div className="sa-test-list">
-                          {excludedDna.map((m, i) => (
-                            <span key={i} className="sa-test-chip sa-test-chip-warn">
-                              {m}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    <button className="btn btn-primary btn-sm btn-block" onClick={moveSuggestionToSelected}>
-                      Move to Selected (replace)
+                  {suggDiscOpen || suggDiscount.value > 0 ? (
+                    <DiscountControls
+                      id="sa-dv-suggestion"
+                      label={suggestion.name}
+                      type={suggDiscount.type}
+                      value={suggDiscount.value}
+                      applied={suggestedDiscount}
+                      onChange={(patch) =>
+                        setSuggDiscount((d) => ({
+                          type: patch.discountType ?? d.type,
+                          value: patch.discountValue ?? d.value,
+                        }))
+                      }
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      className="sa-btn sa-btn-quiet sa-btn-flush"
+                      onClick={() => setSuggDiscOpen(true)}
+                    >
+                      <Icon name="tag" small />
+                      Try a discount on the suggestion
                     </button>
-                  </>
-                ) : (
-                  <p className="sa-empty" style={{ padding: '8px 0' }}>
-                    Add two or more packages and the cheapest package that includes them appears here.
-                  </p>
-                )}
-              </div>
-            </div>
+                  )}
 
-            {suggestion && !empty && (
-              <ComparisonSummary selected={totalsSel.total} suggested={suggestedNet} />
-            )}
+                  {extras && extras.length > 0 && (
+                    <div>
+                      <h4 className="sa-subhead">What it adds</h4>
+                      <ul className="sa-adds">
+                        {extras.map((it, i) => {
+                          if (it.complete) {
+                            const svc = it.serviceId != null ? getServiceById(it.serviceId) : undefined
+                            const detail = [extraDetail(it), svc ? formatAED(svc.price) : null]
+                              .filter(Boolean)
+                              .join(' · ')
+                            return (
+                              <li key={i} className="sa-add-row">
+                                <span className="sa-what">
+                                  {it.label}
+                                  <small>{detail}</small>
+                                </span>
+                                {it.serviceId != null && (
+                                  <button
+                                    type="button"
+                                    className="sa-btn sa-btn-secondary sa-btn-add"
+                                    aria-label={`Add ${it.label} to selection`}
+                                    onClick={() => addServiceById(it.serviceId)}
+                                  >
+                                    <Icon name="plus" />
+                                    Add
+                                  </button>
+                                )}
+                              </li>
+                            )
+                          }
+                          const open = openExtra === i
+                          return (
+                            <li key={i} className="sa-add-item">
+                              <button
+                                type="button"
+                                className="sa-add-row sa-add-toggle"
+                                aria-expanded={open}
+                                aria-controls={`sa-m-${i}`}
+                                onClick={() => setOpenExtra(open ? null : i)}
+                              >
+                                <span className="sa-what">
+                                  {it.label}
+                                  <small>Included in the suggestion</small>
+                                </span>
+                                <span className="sa-btn-look">
+                                  {open ? 'Hide' : 'Show'}
+                                  <Icon name="chevron" small className="sa-chev" />
+                                </span>
+                              </button>
+                              {open && (
+                                <div id={`sa-m-${i}`} className="sa-markers">
+                                  {it.markers.map((m, j) => (
+                                    <span key={j} className="sa-marker">
+                                      {m}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    </div>
+                  )}
+
+                  {excluded.length > 0 && (
+                    <div className="sa-warn" role="note">
+                      <div className="sa-warn-title">
+                        <Icon name="alert" small />
+                        Not in this package ({excluded.length} marker{excluded.length === 1 ? '' : 's'})
+                      </div>
+                      <div className="sa-markers">
+                        {excluded.map((m, i) => (
+                          <span key={i} className="sa-marker">
+                            {m}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {excludedDna.length > 0 && (
+                    <div className="sa-warn" role="note">
+                      <div className="sa-warn-title">
+                        <Icon name="alert" small />
+                        DNA modules not in this package ({excludedDna.length})
+                      </div>
+                      <div className="sa-markers">
+                        {excludedDna.map((m, i) => (
+                          <span key={i} className="sa-marker">
+                            {m}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    className="sa-btn sa-btn-primary sa-btn-block"
+                    onClick={moveSuggestionToSelected}
+                  >
+                    Replace selection with {suggestion.name}
+                  </button>
+                  <p className="sa-hint">
+                    Replaces {selectedCountText(lines.length)}. You can undo this straight afterwards.
+                  </p>
+                </>
+              ) : (
+                <p className="sa-muted">
+                  Add two or more packages and the cheapest package that includes them appears here.
+                </p>
+              )}
+            </section>
+          </div>
+
+          {suggestion && !empty && (
+            <div className="sa-compare">
+              <span>
+                Selected <span className="sa-fig sa-strong">{formatAED(totalsSel.total)}</span>
+              </span>
+              <span>
+                Suggested <span className="sa-fig sa-strong">{formatAED(suggestedNet)}</span>
+              </span>
+              <span>
+                Difference{' '}
+                <span className="sa-fig sa-strong">
+                  {difference < 0 ? '−' : '+'}
+                  {formatAED(Math.abs(difference))}
+                </span>
+              </span>
+            </div>
+          )}
+        </details>
+
+        {/* Find packages */}
+        <section className="sa-find" aria-label="Find packages">
+          <div className="sa-field">
+            <label htmlFor="sa-search">Search packages</label>
+            <div className="sa-input-wrap">
+              <input
+                id="sa-search"
+                className="sa-input"
+                type="text"
+                placeholder="Name, category or marker, for example vitamin d"
+                autoComplete="off"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              {query && (
+                <button
+                  type="button"
+                  className="sa-icon-btn"
+                  onClick={() => setQuery('')}
+                  aria-label="Clear search"
+                >
+                  <Icon name="x" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="sa-chips" role="group" aria-label="Category">
+            {categories.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className="sa-chip"
+                aria-pressed={category === c}
+                onClick={() => setCategory(c)}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+
+          <div className="sa-filters">
+            <div className="sa-checks">
+              <label className="sa-check">
+                <input
+                  type="checkbox"
+                  checked={filter === 'blood'}
+                  onChange={(e) => setFilter(e.target.checked ? 'blood' : 'none')}
+                />
+                Blood tests only
+              </label>
+              <label className="sa-check">
+                <input
+                  type="checkbox"
+                  checked={filter === 'noninvasive'}
+                  onChange={(e) => setFilter(e.target.checked ? 'noninvasive' : 'none')}
+                />
+                Non-invasive
+              </label>
+            </div>
+            <p className="sa-muted" aria-live="polite">
+              Showing {grouped.list.length} of {totalCount} packages
+            </p>
+          </div>
+        </section>
+
+        {/* Results grouped by category */}
+        {grouped.list.length === 0 ? (
+          <p className="sa-muted">No packages match your search.</p>
+        ) : (
+          <div className="sa-cats">
+            {grouped.groups.map(([cat, items], idx) => (
+              <section key={cat} className="sa-cat" aria-labelledby={`sa-c-${idx}`}>
+                <h3 id={`sa-c-${idx}`}>
+                  {cat}
+                  <span>{items.length}</span>
+                </h3>
+                {items.map((s) => (
+                  <ServiceRow
+                    key={s.id}
+                    service={s}
+                    inQuote={inQuote(s.id)}
+                    expanded={expandedId === s.id}
+                    onToggle={() => setExpandedId(expandedId === s.id ? null : s.id)}
+                    onToggleQuote={() => toggleInQuote(s)}
+                  />
+                ))}
+              </section>
+            ))}
           </div>
         )}
       </div>
-
-      {/* Search */}
-      <div className="form-group" style={{ marginBottom: 16 }}>
-        <label htmlFor="sa-search">Search packages</label>
-        <div className="sa-search-wrap">
-          <input
-            id="sa-search"
-            type="text"
-            placeholder="Search by name, category, or marker…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          {query && (
-            <button className="sa-search-clear" onClick={() => setQuery('')} aria-label="Clear search">
-              ✕
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Category filter chips */}
-      <div className="sa-chips">
-        {categories.map((c) => (
-          <button
-            key={c}
-            className={`sa-chip ${category === c ? 'active' : ''}`}
-            onClick={() => setCategory(c)}
-          >
-            {c}
-          </button>
-        ))}
-      </div>
-
-      <div className="sa-filter-row">
-        <div className="sa-checks">
-          <label className="sa-check">
-            <input
-              type="checkbox"
-              checked={filter === 'blood'}
-              onChange={(e) => setFilter(e.target.checked ? 'blood' : 'none')}
-            />
-            Blood tests only
-          </label>
-          <label className="sa-check">
-            <input
-              type="checkbox"
-              checked={filter === 'noninvasive'}
-              onChange={(e) => setFilter(e.target.checked ? 'noninvasive' : 'none')}
-            />
-            Non-invasive
-          </label>
-        </div>
-        <span className="sa-count">
-          Showing {grouped.list.length} of {totalCount} packages
-        </span>
-      </div>
-
-      {/* Results grouped by category */}
-      {grouped.list.length === 0 ? (
-        <p className="sa-empty">No packages match your search.</p>
-      ) : (
-        grouped.groups.map(([cat, items]) => (
-          <div key={cat} className="sa-cat">
-            <div className="sa-cat-head">{cat}</div>
-            <div className="sa-list">
-              {items.map((s) => (
-                <ServiceRow
-                  key={s.id}
-                  service={s}
-                  inQuote={inQuote(s.id)}
-                  expanded={expandedId === s.id}
-                  onToggle={() => setExpandedId(expandedId === s.id ? null : s.id)}
-                  onToggleQuote={() => toggleInQuote(s)}
-                />
-              ))}
-            </div>
-          </div>
-        ))
-      )}
     </div>
   )
 }
 
+const ICON_SHAPES: Record<string, ReactNode> = {
+  lock: (
+    <>
+      <rect x="5" y="11" width="14" height="9" rx="2" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </>
+  ),
+  x: <path d="M6 6l12 12M18 6 6 18" />,
+  plus: <path d="M12 5v14M5 12h14" />,
+  chevron: <path d="m6 9 6 6 6-6" />,
+  undo: (
+    <>
+      <path d="M4 4v6h6" />
+      <path d="M5.5 15a7 7 0 1 0 1.2-7.3L4 10" />
+    </>
+  ),
+  tag: (
+    <>
+      <path d="M3 12V4h8l9 9-8 8z" />
+      <circle cx="7.5" cy="8.5" r="1.2" />
+    </>
+  ),
+  alert: (
+    <>
+      <path d="M12 3 2 20h20z" />
+      <path d="M12 10v4M12 17h.01" />
+    </>
+  ),
+}
+
+function Icon({ name, small, className }: { name: string; small?: boolean; className?: string }) {
+  return (
+    <svg
+      className={`sa-icon${small ? ' sa-icon-sm' : ''}${className ? ` ${className}` : ''}`}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {ICON_SHAPES[name]}
+    </svg>
+  )
+}
+
+/** Secondary line for a "what it adds" row: how much the package brings. */
+function extraDetail(it: ExtraItem): string {
+  if (it.markers.length === 0) return 'Included in the suggestion'
+  const n = it.markers.length
+  return /^DNA -/.test(it.label) ? `${n} DNA module${n === 1 ? '' : 's'}` : `${n} marker${n === 1 ? '' : 's'}`
+}
+
 function QuoteTotalsRows({ gross, discount, total }: { gross: number; discount: number; total: number }) {
   return (
-    <div className="sa-quote-totals">
-      <div className="sa-quote-total-row">
+    <div className="sa-totals">
+      <div>
         <span>Subtotal</span>
         <span>{formatAED(gross)}</span>
       </div>
       {discount > 0 && (
-        <div className="sa-quote-total-row sa-quote-discount">
+        <div className="sa-totals-discount">
           <span>Discounts</span>
           <span>− {formatAED(discount)}</span>
         </div>
       )}
-      <div className="sa-quote-total-row sa-quote-grand">
+      <div className="sa-totals-grand">
         <span>Total</span>
         <span>{formatAED(total)}</span>
       </div>
@@ -557,28 +662,46 @@ function QuoteTotalsRows({ gross, discount, total }: { gross: number; discount: 
   )
 }
 
-function ComparisonSummary({ selected, suggested }: { selected: number; suggested: number }) {
-  const diff = Math.abs(selected - suggested)
-  const cheaper = selected < suggested ? 'Selected' : suggested < selected ? 'Suggested' : null
+/** Discount value + % / AED switch, shared by selected lines and the suggestion. */
+function DiscountControls({
+  id,
+  label,
+  type,
+  value,
+  applied,
+  onChange,
+}: {
+  id: string
+  label: string
+  type: DiscountType
+  value: number
+  applied: number
+  onChange: (patch: Partial<Pick<QuoteLine, 'discountType' | 'discountValue'>>) => void
+}) {
   return (
-    <div className="sa-compare">
-      <div className="sa-compare-cell">
-        <span className="sa-compare-label">Selected</span>
-        <span className="sa-compare-val">{formatAED(selected)}</span>
+    <div className="sa-disc">
+      <label className="sa-sr" htmlFor={id}>
+        Discount value for {label}
+      </label>
+      <input
+        id={id}
+        className="sa-input sa-num"
+        type="number"
+        min={0}
+        max={type === 'pct' ? 100 : undefined}
+        placeholder="0"
+        value={value === 0 ? '' : value}
+        onChange={(e) => onChange({ discountValue: Number(e.target.value) || 0 })}
+      />
+      <div className="sa-unit" role="group" aria-label="Discount type">
+        <button type="button" aria-pressed={type === 'pct'} onClick={() => onChange({ discountType: 'pct' })}>
+          %
+        </button>
+        <button type="button" aria-pressed={type === 'amt'} onClick={() => onChange({ discountType: 'amt' })}>
+          AED
+        </button>
       </div>
-      <div className="sa-compare-verdict">
-        {cheaper === null ? (
-          <>Both totals are equal</>
-        ) : (
-          <>
-            <b>{cheaper}</b> is lower by <b>{formatAED(diff)}</b>
-          </>
-        )}
-      </div>
-      <div className="sa-compare-cell">
-        <span className="sa-compare-label">Suggested</span>
-        <span className="sa-compare-val">{formatAED(suggested)}</span>
-      </div>
+      {applied > 0 && <span className="sa-muted sa-fig sa-small">− {formatAED(applied)}</span>}
     </div>
   )
 }
@@ -587,64 +710,51 @@ function QuoteLineRow({
   line,
   onSetDiscount,
   onRemove,
-  tag,
 }: {
   line: QuoteLine
   onSetDiscount: (patch: Partial<Pick<QuoteLine, 'discountType' | 'discountValue'>>) => void
-  onRemove?: () => void
-  tag?: string
+  onRemove: () => void
 }) {
+  const [discountOpen, setDiscountOpen] = useState(false)
   const discount = lineDiscountAmount(line)
+  const showDiscount = discountOpen || line.discountValue > 0
 
   return (
     <div className="sa-line">
       <div className="sa-line-top">
-        <span className="sa-line-name">
-          {line.service.name}
-          {tag && <span className="sa-bline-tag">{tag}</span>}
-        </span>
-        {onRemove && (
-          <button className="sa-quote-line-remove" onClick={onRemove} aria-label="Remove from quote">
-            ✕
+        <span className="sa-line-name">{line.service.name}</span>
+        <span className="sa-line-side">
+          <span className="sa-fig sa-line-price">
+            {discount > 0 && <s>{formatAED(lineGross(line))}</s>}
+            {formatAED(lineNet(line))}
+          </span>
+          <button
+            type="button"
+            className="sa-icon-btn sa-danger"
+            onClick={onRemove}
+            aria-label={`Remove ${line.service.name} from selection`}
+          >
+            <Icon name="x" />
           </button>
-        )}
+        </span>
       </div>
-
-      <div className="sa-line-controls">
-        <div className="sa-disc">
-          <div className="sa-disc-type">
-            <button
-              className={`sa-disc-btn ${line.discountType === 'pct' ? 'active' : ''}`}
-              onClick={() => onSetDiscount({ discountType: 'pct' })}
-              aria-label="Discount as percent"
-            >
-              %
-            </button>
-            <button
-              className={`sa-disc-btn ${line.discountType === 'amt' ? 'active' : ''}`}
-              onClick={() => onSetDiscount({ discountType: 'amt' })}
-              aria-label="Discount as AED amount"
-            >
-              AED
-            </button>
-          </div>
-          <input
-            className="sa-disc-val"
-            type="number"
-            min={0}
-            max={line.discountType === 'pct' ? 100 : undefined}
-            placeholder="0"
-            value={line.discountValue === 0 ? '' : line.discountValue}
-            onChange={(e) => onSetDiscount({ discountValue: Number(e.target.value) || 0 })}
-            aria-label="Discount value"
-          />
+      {showDiscount ? (
+        <DiscountControls
+          id={`sa-dv-${line.service.id}`}
+          label={line.service.name}
+          type={line.discountType}
+          value={line.discountValue}
+          applied={discount}
+          onChange={onSetDiscount}
+        />
+      ) : (
+        <div>
+          <button type="button" className="sa-btn sa-btn-quiet sa-btn-flush" onClick={() => setDiscountOpen(true)}>
+            <Icon name="tag" small />
+            Add discount
+          </button>
         </div>
-
-        <div className="sa-line-amounts">
-          {discount > 0 && <span className="sa-line-gross">{formatAED(lineGross(line))}</span>}
-          <span className="sa-line-net">{formatAED(lineNet(line))}</span>
-        </div>
-      </div>
+      )}
     </div>
   )
 }
@@ -667,78 +777,88 @@ function ServiceRow({
     () => (expanded ? service.panels.map((pn) => ({ name: pn, tests: getPanelTests(pn) })) : []),
     [service, expanded]
   )
+  const detailId = `sa-d-${service.id}`
 
   return (
-    <div className={`sa-item ${expanded ? 'expanded' : ''}`}>
-      <div className="sa-item-main">
-        <div className="sa-item-info">
-          <span className="sa-item-cat">{service.category}</span>
-          <span className="sa-item-name">{service.name}</span>
-          <span className="sa-item-meta">
+    <article className={`sa-pkg${expanded ? ' open' : ''}`}>
+      <div className="sa-pkg-head">
+        <div>
+          <div className="sa-pkg-name">{service.name}</div>
+          <div className="sa-pkg-meta">
             {service.sub ? `${service.sub} · ` : ''}
             {service.biomarkers} biomarkers
             {service.doctor ? ` · ${service.doctor} doctor` : ''}
-          </span>
+          </div>
         </div>
-        <div className="sa-item-actions">
-          <span className="sa-price">{formatAED(service.price)}</span>
-          <button className="btn btn-secondary btn-sm" onClick={onToggle}>
-            {expanded ? 'Hide' : 'Details'}
+        <div className="sa-pkg-side">
+          <span className="sa-fig sa-pkg-price">{formatAED(service.price)}</span>
+          <button
+            type="button"
+            className="sa-btn sa-btn-quiet"
+            aria-expanded={expanded}
+            aria-controls={detailId}
+            onClick={onToggle}
+          >
+            {expanded ? 'Hide details' : 'Details'}
           </button>
           <button
-            className={`sa-addbtn ${inQuote ? 'active' : ''}`}
+            type="button"
+            className={`sa-btn sa-btn-secondary sa-btn-add${inQuote ? ' is-on' : ''}`}
+            aria-label={`${inQuote ? 'Remove' : 'Add'} ${service.name} ${inQuote ? 'from' : 'to'} selection`}
             onClick={onToggleQuote}
-            aria-label={inQuote ? 'Remove from quote' : 'Add to quote'}
           >
+            <Icon name={inQuote ? 'x' : 'plus'} />
             {inQuote ? 'Remove' : 'Add'}
           </button>
         </div>
       </div>
 
       {expanded && (
-        <div className="sa-details">
+        <div id={detailId} className="sa-pkg-detail">
           {groups.length === 0 && panelBreakdown.length === 0 ? (
-            <p className="sa-empty">No breakdown available for this package.</p>
+            <p className="sa-muted">No breakdown available for this package.</p>
           ) : (
             <>
               {groups.map((g) => (
-                <div key={g.group} className="sa-detail-group">
-                  <div className="sa-detail-group-title">{compGroupLabel(g.group)}</div>
-                  {g.rows.map((r, i) => (
-                    <div key={i} className="sa-detail-row">
-                      <span className="sa-detail-name">{r.name}</span>
-                      {/* The catalogue marks "included" with a bare "X"; show only real values (e.g. "30 min"). */}
-                      {r.value.trim().toUpperCase() !== 'X' && (
-                        <span className="sa-detail-value">{r.value}</span>
-                      )}
-                    </div>
-                  ))}
+                <div key={g.group}>
+                  <h4>{compGroupLabel(g.group)}</h4>
+                  <div className="sa-kv">
+                    {g.rows.map((r, i) => (
+                      <div key={i}>
+                        <span>{r.name}</span>
+                        {/* The catalogue marks "included" with a bare "X"; show only real values (e.g. "30 min"). */}
+                        {r.value.trim().toUpperCase() !== 'X' && <span className="sa-fig">{r.value}</span>}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
 
               {panelBreakdown.length > 0 && (
-                <>
-                  <div className="sa-detail-section-head">Blood panels ({panelBreakdown.length})</div>
-                  {panelBreakdown.map((p) => (
-                    <div key={p.name} className="sa-detail-group">
-                      <div className="sa-detail-group-title">
-                        {p.name} <span className="sa-detail-group-count">{p.tests.length}</span>
+                <div>
+                  <h4 className="sa-subhead">Blood panels ({panelBreakdown.length})</h4>
+                  <div className="sa-stack">
+                    {panelBreakdown.map((p) => (
+                      <div key={p.name}>
+                        <h4>
+                          {p.name} <span className="sa-muted sa-fig">{p.tests.length}</span>
+                        </h4>
+                        <div className="sa-markers">
+                          {p.tests.map((t, i) => (
+                            <span key={i} className="sa-marker">
+                              {t.name}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                      <div className="sa-test-list">
-                        {p.tests.map((t, i) => (
-                          <span key={i} className="sa-test-chip">
-                            {t.name}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </>
+                    ))}
+                  </div>
+                </div>
               )}
             </>
           )}
         </div>
       )}
-    </div>
+    </article>
   )
 }

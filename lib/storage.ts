@@ -74,3 +74,31 @@ export function purgeExpiredData(): boolean {
   }
   return removed
 }
+
+/** Removes an entry and its retention timestamp. */
+export function clearFresh(kind: Kind, key: string): void {
+  try {
+    const store = area(kind)
+    store.removeItem(key)
+    store.removeItem(key + STAMP)
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Milliseconds until the soonest-expiring stored entry is deleted; null if none is stored. */
+export function msUntilNextExpiry(): number | null {
+  let soonest: number | null = null
+  for (const { kind, key } of EXPIRING_KEYS) {
+    try {
+      const store = area(kind)
+      if (store.getItem(key) === null) continue
+      const left = Number(store.getItem(key + STAMP)) + DATA_RETENTION_MS - Date.now()
+      const clamped = Number.isFinite(left) ? Math.max(0, left) : 0
+      if (soonest === null || clamped < soonest) soonest = clamped
+    } catch {
+      /* ignore */
+    }
+  }
+  return soonest
+}

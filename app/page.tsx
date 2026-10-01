@@ -8,6 +8,7 @@ import { SettingsTab } from '@/components/tabs/SettingsTab'
 import { AboutTab } from '@/components/tabs/AboutTab'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Kitty } from '@/components/Kitty'
+import { DataExpiryTimer } from '@/components/DataExpiryTimer'
 import { purgeExpiredData } from '@/lib/storage'
 import { APP_VERSION, DEFAULT_THEME, DEFAULT_KITTY_ENABLED } from '@/lib/config'
 
@@ -33,15 +34,10 @@ export default function Home() {
     if (savedKitty !== null) setKittyEnabled(savedKitty === 'true')
   }, [])
 
-  // Delete entered/uploaded data once it is older than the retention period
-  // (lib/config.ts). Checked on load and every minute; if an open session
-  // goes stale, reload so nothing expired stays on screen.
+  // Delete entered/uploaded data that is already past the retention period
+  // (lib/config.ts). While the page is open, DataExpiryTimer enforces it.
   useEffect(() => {
     purgeExpiredData()
-    const timer = setInterval(() => {
-      if (purgeExpiredData()) window.location.reload()
-    }, 60_000)
-    return () => clearInterval(timer)
   }, [])
 
   const toggleTheme = () => {
@@ -66,6 +62,7 @@ export default function Home() {
         </button>
         <h1>Smart Incentive Calculator</h1>
         <p className="subtitle">v{APP_VERSION}</p>
+        <DataExpiryTimer />
       </header>
 
       <nav className="nav-tabs">

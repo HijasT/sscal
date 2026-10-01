@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.2.0]
+
+### Added
+- **Countdown to deletion.** The header shows "Saved data clears in mm:ss" whenever entered or uploaded data is stored. It counts down to the soonest expiry; at zero the data is deleted and the page reloads. Hidden when nothing is stored.
+
+### Changed
+- **Sale Assistant redesigned** to the "Clinic Counter" mockup (`mockups/sale-assistant.html`); all other tabs are unchanged. The suggestion and what it adds now sit together, with the suggestion first on phones; per-package discounts are revealed on demand ("Add discount", "Try a discount on the suggestion"); whole packages in "What it adds" have an Add button and partial ones say "N more … markers" / "N more DNA modules" (no more ambiguous `+N`); "Move to Selected (replace)" is now "Replace selection with …" and says it can be undone; category headings are real headings with counts; the catalogue rows no longer repeat the category; icons are drawn SVGs instead of emoji and glyphs; contrast, 44px targets, keyboard focus and `aria-pressed`/`aria-expanded` state follow the mockup. The old `.sa-*` styles were replaced by a scoped `.sa` block in `app/globals.css`.
+- Empty state is no longer stored (no Excel upload, no calculation, no Individual inputs, no selected packages), so the timer only runs when there is real data. The Men/Women choice is therefore remembered only while packages are selected.
+
 ## [10.1.0]
 
 ### Added

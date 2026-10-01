@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { parseExcelFile, pickDefaultMonth, type ExcelData } from '@/lib/excelUtils'
 import { BulkResultsView } from './BulkResultsView'
 import { BarChartIcon, UploadIcon } from '@/components/icons'
-import { getFresh, setFresh } from '@/lib/storage'
+import { getFresh, setFresh, clearFresh } from '@/lib/storage'
 
 type ViewMode = 'monthly' | 'q1' | 'q2' | 'q3' | 'q4' | 'h1' | 'h2' | 'yearly' | 'alltime'
 
@@ -61,6 +61,7 @@ export function BulkTab() {
   // data with the SSR-safe defaults before they've been applied.
   useEffect(() => {
     if (!hasHydrated || typeof window === 'undefined') return
+    if (excelData.length === 0) return clearFresh('local', STORAGE_KEY)
     setFresh('local', STORAGE_KEY, JSON.stringify({ excelData, viewMode, selectedMonth, selectedYear }))
   }, [hasHydrated, excelData, viewMode, selectedMonth, selectedYear])
 

@@ -4,7 +4,7 @@ import { aggregateSheets, extractEmployeeCode, type ExcelData, type StaffData } 
 import { calculateIncentive, formatCurrency, getTier, loadTiers, loadStaffCenters } from '@/lib/utils'
 import { exportBulkToPDF } from '@/lib/pdfUtils'
 import { DEFAULT_P1_SPLIT, CENTERS } from '@/lib/config'
-import { getFresh, setFresh } from '@/lib/storage'
+import { getFresh, setFresh, clearFresh } from '@/lib/storage'
 import { DownloadIcon } from '@/components/icons'
 import { CenterBadge } from '@/components/CenterBadge'
 
@@ -96,6 +96,8 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   // Persist the last calculation so it survives a tab switch/remount.
   useEffect(() => {
     if (typeof window === 'undefined') return
+    // Nothing calculated yet: store nothing (and drop any older copy).
+    if (results.length === 0 && calculatedData === null) return clearFresh('local', STORAGE_KEY)
     setFresh('local', STORAGE_KEY, JSON.stringify({
       target, autoTarget, staffCount, p1Split, results, calculatedData,
       excludedStaff: Array.from(excludedStaff),
