@@ -252,7 +252,7 @@ export function SettingsTab({ kittyEnabled, onToggleKitty }: SettingsTabProps) {
               ))}
             </div>
             <div style={{padding: '12px', background: 'var(--accent-soft)', borderRadius: 'var(--radius-sm)', fontSize: '12px', color: 'var(--text-secondary)'}}>
-              Your current tier configuration. Click "Reset to Defaults" to restore original colors (Orange · Blue · Purple · Green).
+              Your current tier configuration. Click "Reset to Defaults" to restore original colors (Blue · Purple · Green).
             </div>
           </div>
         )}

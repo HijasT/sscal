@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.2.1]
+
+### Fixed
+- The light/dark toggle icon is now centred in its button (the shared `.icon` margin pushed it left).
+- About now says "Next.js 14, React 18" (it said 15 and 19) and credits Claude in "Built with".
+- Settings now lists the real default tier colours: Blue · Purple · Green (it also named Orange).
+
+### Changed
+- **Fonts are self-hosted.** IBM Plex Sans and JetBrains Mono (SIL OFL) are served from `public/fonts` instead of Google Fonts, so the app makes no external request at all, matching the "100% local" notice, and works offline.
+
 ## [10.2.0]
 
 ### Added
