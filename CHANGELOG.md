@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.3.0]
+
+### Added
+- **One-minute warning with an extension option.** When the saved-data countdown reaches 1 minute, a dialog shows the remaining time and offers "Keep for 1 more hour" (restarts the clock for all stored data) or "Dismiss". Closing it, pressing Esc or ignoring it changes nothing: the countdown keeps running and at zero the data is deleted and the page reloads.
+
+### Changed
+- At zero the page reload is documented as the refresh: browsers do not let a page force a cache-bypassing "hard" reload, but all in-memory state is lost on reload, so nothing expired stays on screen.
+
 ## [10.2.1]
 
 ### Fixed

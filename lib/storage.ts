@@ -102,3 +102,15 @@ export function msUntilNextExpiry(): number | null {
   }
   return soonest
 }
+
+/** Restarts the retention clock (another full period) for every entry currently stored. */
+export function extendExpiry(): void {
+  for (const { kind, key } of EXPIRING_KEYS) {
+    try {
+      const store = area(kind)
+      if (store.getItem(key) !== null) store.setItem(key + STAMP, String(Date.now()))
+    } catch {
+      /* ignore */
+    }
+  }
+}

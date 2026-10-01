@@ -1519,3 +1519,19 @@ body.light-mode .sa {
   font-weight: 600;
   color: var(--text-secondary);
 }
+
+/* One-minute warning dialog (components/DataExpiryTimer.tsx) */
+.expiry-dialog {
+  margin: auto;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 24px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+}
+.expiry-dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
+.expiry-dialog h2 { font-size: 18px; margin-bottom: 8px; }
+.expiry-dialog p { color: var(--text-secondary); margin-bottom: 20px; }
+.expiry-actions { display: flex; flex-wrap: wrap; gap: 12px; }
