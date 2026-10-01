@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## [9.6.0]
+
+Targeted fixes from the design audit; no layout or styling overhaul.
+
+### Added
+- **Undo for "Move to Selected (replace)".** Replacing the selection with a suggested package now shows a "Replaced N selected packages with … Undo" notice inside the ladder. Undo restores the exact previous selection (including per-line discounts). Any other change to the selection dismisses it.
+
+### Fixed
+- **Light-theme brand gradient.** `--brand-gradient` was resolved once on `:root` with the dark theme's colours, so in light mode (the default) the primary buttons, title and active-tab underline used the pale dark-theme violets and white button text was only 3.3:1. The gradient is now declared per theme. In the dark theme it now starts at `--accent-secondary`, so white button text stays at 5.4:1 or better.
+- **Keyboard focus is visible.** Every button, link, input, select and summary now shows a 2px accent ring on `:focus-visible` (previously inputs suppressed their outline, some inline, and buttons relied on the browser default).
+- **Touch targets in the Sale Assistant reach 44px:** Add/Remove, Details, Men/Women, discount %/AED toggle and value field, remove ✕, Clear, ladder bar and the filter checkboxes' rows. Filter chips, the search clear and the partial-add chips keep their look but get an enlarged hit area.
+- **Phone header and tabs.** The title no longer runs under the theme toggle (which also stays 44px), and the five tabs are one horizontally scrolling strip instead of a 240px stack that pushed content down.
+- **Dark flash on load.** The page painted in the dark palette and switched to light after hydration. A small script at the start of `<body>` now applies the saved or default theme before first paint.
+
 ## [9.5.5]
 
 ### Changed

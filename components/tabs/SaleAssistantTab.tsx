@@ -66,6 +66,9 @@ export function SaleAssistantTab() {
     type: 'pct',
     value: 0,
   })
+  // What "Move to Selected (replace)" overwrote, so it can be undone. Cleared by
+  // any other edit to the selection, so Undo only ever restores that exact state.
+  const [undo, setUndo] = useState<{ lines: QuoteLine[]; name: string } | null>(null)
   const [ladderOpen, setLadderOpen] = useState(false)
   const [openExtra, setOpenExtra] = useState<number | null>(null)
   const [hydrated, setHydrated] = useState(false)
@@ -160,11 +163,17 @@ export function SaleAssistantTab() {
     }
   }, [lines, gender, hydrated])
 
+  // Every ordinary edit goes through here so it also invalidates a pending undo.
+  const edit = (fn: (prev: QuoteLine[]) => QuoteLine[]) => {
+    setUndo(null)
+    setLines(fn)
+  }
+
   const addServiceById = (id?: number) => {
     if (id == null) return
     const service = getServiceById(id)
     if (!service) return
-    setLines((prev) =>
+    edit((prev) =>
       prev.some((l) => l.service.id === id)
         ? prev
         : [...prev, { service, qty: 1, discountType: 'pct' as DiscountType, discountValue: 0 }]
@@ -173,7 +182,7 @@ export function SaleAssistantTab() {
   }
 
   const toggleInQuote = (service: CatalogueService) => {
-    setLines((prev) =>
+    edit((prev) =>
       prev.some((l) => l.service.id === service.id)
         ? prev.filter((l) => l.service.id !== service.id)
         : [...prev, { service, qty: 1, discountType: 'pct' as DiscountType, discountValue: 0 }]
@@ -182,16 +191,23 @@ export function SaleAssistantTab() {
   }
 
   const setLineDiscount = (id: number, patch: Partial<Pick<QuoteLine, 'discountType' | 'discountValue'>>) =>
-    setLines((prev) => prev.map((l) => (l.service.id === id ? { ...l, ...patch } : l)))
+    edit((prev) => prev.map((l) => (l.service.id === id ? { ...l, ...patch } : l)))
 
-  const removeLine = (id: number) => setLines((prev) => prev.filter((l) => l.service.id !== id))
-  const clearSelected = () => setLines([])
+  const removeLine = (id: number) => edit((prev) => prev.filter((l) => l.service.id !== id))
+  const clearSelected = () => edit(() => [])
   const inQuote = (id: number) => lines.some((l) => l.service.id === id)
 
-  // Replace the whole selection with the single suggested package.
+  // Replace the whole selection with the single suggested package (undoable).
   const moveSuggestionToSelected = () => {
     if (!suggestion) return
+    setUndo({ lines, name: suggestion.name })
     setLines([{ service: suggestion, qty: 1, discountType: 'pct', discountValue: 0 }])
+  }
+
+  const undoReplace = () => {
+    if (!undo) return
+    setLines(undo.lines)
+    setUndo(null)
   }
 
   const empty = lines.length === 0
@@ -241,6 +257,17 @@ export function SaleAssistantTab() {
 
         {ladderOpen && (
           <div className="sa-quote-body">
+            {undo && (
+              <div className="sa-undo" role="status">
+                <span>
+                  Replaced {undo.lines.length} selected package{undo.lines.length === 1 ? '' : 's'} with{' '}
+                  <strong>{undo.name}</strong>.
+                </span>
+                <button className="btn btn-secondary btn-sm" onClick={undoReplace}>
+                  Undo
+                </button>
+              </div>
+            )}
             <div className="sa-columns">
               {/* Selected Packages */}
               <div className="sa-col">
