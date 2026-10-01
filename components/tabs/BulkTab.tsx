@@ -2,10 +2,8 @@
 import { useState, useEffect } from 'react'
 import { parseExcelFile, pickDefaultMonth, type ExcelData } from '@/lib/excelUtils'
 import { BulkResultsView } from './BulkResultsView'
-import { AnalyticsDashboardView } from './AnalyticsDashboardView'
-import { BarChartIcon, TrendIcon, UploadIcon } from '@/components/icons'
+import { BarChartIcon, UploadIcon } from '@/components/icons'
 
-type SubView = 'bulk' | 'analytics'
 type ViewMode = 'monthly' | 'q1' | 'q2' | 'q3' | 'q4' | 'h1' | 'h2' | 'yearly' | 'alltime'
 
 const SHORT_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -33,8 +31,7 @@ function loadPersistedUpload(): Partial<PersistedUpload> {
   }
 }
 
-export function BulkAnalyticsTab() {
-  const [subView, setSubView] = useState<SubView>('bulk')
+export function BulkTab() {
   // SSR-safe defaults — localStorage isn't available during the server
   // render, so starting from it here would make the client's first render
   // diverge from the server's and trigger a hydration mismatch. The actual
@@ -117,8 +114,8 @@ export function BulkAnalyticsTab() {
       </div>
 
       <div className="card-header">
-        <h2 className="card-title"><BarChartIcon className="icon-lg" />Bulk Calculations & Advanced Analytics</h2>
-        <div className="card-description">Upload your Excel file to calculate bulk incentives and view comprehensive performance analytics</div>
+        <h2 className="card-title"><BarChartIcon className="icon-lg" />Bulk Calculations</h2>
+        <div className="card-description">Upload your Excel file to calculate bulk incentives for the whole team</div>
       </div>
 
       {/* Shared Upload Section */}
@@ -148,7 +145,7 @@ export function BulkAnalyticsTab() {
           }}
         />
         <p style={{fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px'}}>
-          {isProcessing ? 'Processing...' : 'Upload once — use for both Bulk Results and Analytics'}
+          {isProcessing ? 'Processing...' : 'Upload the monthly Excel workbook to calculate team incentives'}
         </p>
       </div>
 
@@ -303,25 +300,12 @@ export function BulkAnalyticsTab() {
             )}
           </div>
 
-          {/* Analytics Dashboard sub-view is temporarily hidden (not removed) —
-              the sub-view toggle is disabled here so subView stays 'bulk'. */}
-
-          {/* Conditional View Rendering */}
-          {subView === 'bulk' ? (
-            <BulkResultsView 
-              excelData={excelData} 
-              viewMode={viewMode}
-              selectedMonth={selectedMonth}
-              selectedYear={selectedYear}
-            />
-          ) : (
-            <AnalyticsDashboardView 
-              excelData={excelData} 
-              viewMode={viewMode}
-              selectedMonth={selectedMonth}
-              selectedYear={selectedYear}
-            />
-          )}
+          <BulkResultsView
+            excelData={excelData}
+            viewMode={viewMode}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+          />
         </>
       )}
 
@@ -341,7 +325,7 @@ export function BulkAnalyticsTab() {
             Upload Excel to Get Started
           </h3>
           <p style={{color: 'var(--text-muted)', fontSize: '15px'}}>
-            Upload once to unlock both Bulk Results and Analytics Dashboard
+            Upload the monthly workbook to calculate team incentives
           </p>
         </div>
       )}

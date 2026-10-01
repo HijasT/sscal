@@ -15,12 +15,12 @@ interface StaffCenterEntry {
   center: string
 }
 
-// Mirrors BulkAnalyticsTab's persistence key — read-only here, just to
+// Mirrors BulkTab's persistence key — read-only here, just to
 // resolve employee codes to the human names last seen in an uploaded sheet.
 const BULK_UPLOAD_KEY = 'sic_bulk_upload'
 
 // Employee code -> display name, built from whatever workbook was last
-// uploaded in Bulk & Analytics. The code itself stays the stored identifier
+// uploaded in the Bulk tab. The code itself stays the stored identifier
 // (names can change between uploads); this is purely a display convenience,
 // and is empty (falls back to showing the code) until something is uploaded.
 function loadCodeToName(): Record<string, string> {
@@ -446,7 +446,6 @@ export function SettingsTab({ kittyEnabled, onToggleKitty }: SettingsTabProps) {
           <li>Tiers are automatically sorted by minimum achievement %</li>
           <li>Max values are calculated from the next tier's min (highest tier = ∞)</li>
           <li>Changes apply immediately to all new calculations</li>
-          <li>Historical analytics data remains unchanged</li>
           <li>At least one tier is required</li>
         </ul>
       </div>
@@ -581,7 +580,7 @@ export function SettingsTab({ kittyEnabled, onToggleKitty }: SettingsTabProps) {
         <strong style={{color: 'var(--text-primary)'}}>How it works:</strong>
         <ul style={{marginTop: '8px', marginLeft: '20px'}}>
           <li>Matched against the employee code (e.g. "AE01-227") embedded in each staff name in the uploaded Excel — the code is the stored identifier, since staff names can change between uploads</li>
-          <li>Shows the staff member's name above the code once a workbook has been uploaded in Bulk & Analytics; shows the raw code until then</li>
+          <li>Shows the staff member's name above the code once a workbook has been uploaded in the Bulk tab; shows the raw code until then</li>
           <li>Staff with no code, or a code not listed here, show as "Unassigned" in Center-wise Stats</li>
           <li>Changes apply immediately to Bulk Results' Center-wise Stats section</li>
         </ul>

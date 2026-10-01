@@ -8,13 +8,11 @@ this folder, nothing imports it, and it is not deployed.
 | Page | Mirrors |
 |---|---|
 | `index.html` | Launcher |
-| `bulk.html` | Bulk & Analytics (upload, view selectors, results, tier ladder, center stats, staff table, exports) |
+| `bulk.html` | Bulk (upload, view selectors, results, tier ladder, center stats, staff table, exports) |
 | `individual.html` | Individual |
 | `sale-assistant.html` | Sale Assistant (Men/Women, Package Ladder, search, filters, full catalogue) |
 | `settings.html` | Settings (tiers, staff center allocation, preferences) |
 | `about.html` | About |
-
-The Analytics Dashboard sub-view is hidden in the app today, so it is not mocked up.
 
 ## Viewing
 

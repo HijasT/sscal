@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { IndividualTab } from '@/components/tabs/IndividualTab'
 import { MoonIcon, SunIcon } from '@/components/icons'
-import { BulkAnalyticsTab } from '@/components/tabs/BulkAnalyticsTab'
+import { BulkTab } from '@/components/tabs/BulkTab'
 import { SaleAssistantTab } from '@/components/tabs/SaleAssistantTab'
 import { SettingsTab } from '@/components/tabs/SettingsTab'
 import { AboutTab } from '@/components/tabs/AboutTab'
@@ -11,7 +11,7 @@ import { Kitty } from '@/components/Kitty'
 import { APP_VERSION, DEFAULT_THEME, DEFAULT_KITTY_ENABLED } from '@/lib/config'
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('bulk-analytics')
+  const [activeTab, setActiveTab] = useState('bulk')
   const [theme, setTheme] = useState<'light' | 'dark'>(DEFAULT_THEME)
   const [kittyEnabled, setKittyEnabled] = useState(DEFAULT_KITTY_ENABLED)
 
@@ -58,10 +58,10 @@ export default function Home() {
 
       <nav className="nav-tabs">
         <button
-          className={`nav-tab ${activeTab === 'bulk-analytics' ? 'active' : ''}`}
-          onClick={() => setActiveTab('bulk-analytics')}
+          className={`nav-tab ${activeTab === 'bulk' ? 'active' : ''}`}
+          onClick={() => setActiveTab('bulk')}
         >
-          Bulk & Analytics
+          Bulk
         </button>
         <button
           className={`nav-tab ${activeTab === 'individual' ? 'active' : ''}`}
@@ -95,9 +95,9 @@ export default function Home() {
           <SaleAssistantTab />
         </ErrorBoundary>
       )}
-      {activeTab === 'bulk-analytics' && (
-        <ErrorBoundary label="Bulk & Analytics tab">
-          <BulkAnalyticsTab />
+      {activeTab === 'bulk' && (
+        <ErrorBoundary label="Bulk tab">
+          <BulkTab />
         </ErrorBoundary>
       )}
       {activeTab === 'settings'       && (

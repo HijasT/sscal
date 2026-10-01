@@ -14,7 +14,7 @@
  */
 
 /** Displayed in the header, About tab, and page title. */
-export const APP_VERSION = '9.7.0'
+export const APP_VERSION = '10.0.0'
 
 export interface Tier {
   id: string
@@ -81,23 +81,6 @@ export const CENTERS: Record<string, string> = {
  * point — a few people work across centers regardless of their code
  * prefix, so double check and reassign those manually below.
  */
-/** Expected converted clients per working day per staff */
-export const BENCHMARK_CLIENTS_PER_DAY = 1
-
-/** Expected packages sold per working day per staff */
-export const BENCHMARK_PACKAGES_PER_DAY = 1.25
-
-/** Standard working days in a full month */
-export const BENCHMARK_WORKING_DAYS = 26
-
-/** Performance score component weights — must sum to 1.0 */
-export const SCORE_WEIGHTS = {
-  sales:    0.50,
-  clients:  0.20,
-  packages: 0.20,
-  pace:     0.10,
-}
-
 export const STAFF_CENTERS: Record<string, string> = {
   // C (AE01)
   'AE01-227': 'C',

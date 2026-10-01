@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.0.0]
+
+### Removed
+- **The Analytics feature is gone, in code and in wording.** This removes the Analytics Dashboard (which was already hidden), the saved monthly team history and per-person achievement badges that every Bulk calculation used to write, the analytics PDF export, and everything that supported them: `AnalyticsDashboardView`, `lib/analyticsUtils.ts`, `exportAnalyticsToPDF`, the dashboard's CSS and icons, the performance-score constants (`SCORE_WEIGHTS`, `BENCHMARK_*`), the `getPersonId` helper, and the `recharts` dependency (and its `optimizePackageImports` entry).
+- About no longer lists "Performance Analytics" or the "Performance Score (Standards-Based)" section, and the privacy text, credits and Settings notes no longer mention analytics.
+
+### Changed
+- The first tab is now **Bulk** (was "Bulk & Analytics"), titled "Bulk Calculations"; its component is renamed `BulkAnalyticsTab` → `BulkTab`, with all related wording updated.
+- Sales Kitty's before/after-100% comment pools now read the team achievement from the last Bulk calculation instead of the removed analytics history; the behaviour is unchanged.
+
+### Notes
+- Data already saved in a browser under `smart_incentive_analytics` is left untouched (nothing reads it any more); clearing site data removes it.
+
 ## [9.7.0]
 
 ### Added

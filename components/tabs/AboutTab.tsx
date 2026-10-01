@@ -23,7 +23,6 @@ export function AboutTab() {
           {[
             { title: 'Individual Calculator', desc: 'Calculate personal incentives with P1/P2 splits' },
             { title: 'Bulk Processing', desc: 'Upload Excel and process entire team at once' },
-            { title: 'Performance Analytics', desc: 'Track trends, achievements, and milestones' },
             { title: 'Customizable Tiers', desc: 'Configure achievement thresholds and rates' },
             { title: 'Tier Ladder', desc: 'See requirements to reach next tier level' },
             { title: '100% Private', desc: 'All calculations happen in your browser' },
@@ -140,105 +139,7 @@ export function AboutTab() {
         <div style={{padding: '16px', background: 'var(--accent-soft)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', marginBottom: '24px'}}>
           <div style={{fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.8'}}>
             All data is stored locally in your browser. No server or database required. 
-            Your calculations, settings, and analytics never leave your device.
-          </div>
-        </div>
-
-        <h4 style={{color: 'var(--text-primary)', marginBottom: '12px', marginTop: '28px', fontSize: '16px'}}>
-          Performance Score (Standards-Based)
-        </h4>
-        <div style={{padding: '20px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', marginBottom: '24px'}}>
-          <div style={{fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.8'}}>
-            <p style={{marginBottom: '16px', color: 'var(--text-primary)', fontWeight: '600'}}>
-              The Analytics Dashboard scores each person against a standard instead of ranking staff against each other — a score of 100 means the standard was met exactly. Sales and Pace are measured against your personal share of the team target; Clients and Packages are measured against fixed daily benchmarks (1 client/day, 1.25 packages/day). Scores aren't capped — they run as high as actual performance warrants, so someone who clearly outperforms the benchmark stays visibly ahead of someone who just cleared it, instead of both showing the same 100:
-            </p>
-
-            <div style={{
-              padding: '16px',
-              background: 'var(--accent-primary)',
-              borderRadius: 'var(--radius-md)',
-              marginBottom: '20px',
-              color: 'white',
-              fontWeight: '600',
-              fontSize: '15px',
-              textAlign: 'center',
-              fontFamily: "'JetBrains Mono', monospace"
-            }}>
-              Performance Score = (Sales × 50%) + (Clients × 20%) + (Packages × 20%) + (Pace × 10%)
-            </div>
-
-            <p style={{marginBottom: '16px', color: 'var(--text-primary)', fontWeight: '600'}}>Component Breakdown:</p>
-
-            <div style={{marginBottom: '20px'}}>
-              <p style={{color: 'var(--text-primary)', fontWeight: '600', marginBottom: '8px'}}>
-                1. Sales (50% weight)
-              </p>
-              <div style={{marginLeft: '12px', marginBottom: '16px'}}>
-                <code style={{background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '4px', fontSize: '13px', display: 'block', marginBottom: '6px'}}>
-                  Personal Target = Team Target ÷ Active Staff
-                </code>
-                <code style={{background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '4px', fontSize: '13px', display: 'block'}}>
-                  Score = (My Sales ÷ Personal Target) × 100
-                </code>
-                <div style={{marginTop: '10px', fontSize: '13px', padding: '10px', background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)', borderRadius: '6px'}}>
-                  Example: Personal target AED 24,138, sold AED 22,414<br/>
-                  → <strong style={{color: 'var(--accent-primary)'}}>Score: 93/100</strong>
-                </div>
-              </div>
-
-              <p style={{color: 'var(--text-primary)', fontWeight: '600', marginBottom: '8px'}}>
-                2. Clients (20% weight)
-              </p>
-              <div style={{marginLeft: '12px', marginBottom: '16px'}}>
-                <code style={{background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '4px', fontSize: '13px', display: 'block', marginBottom: '6px'}}>
-                  Avg Clients/Day = Total Clients ÷ Working Days
-                </code>
-                <code style={{background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '4px', fontSize: '13px', display: 'block'}}>
-                  Score = (Avg Clients/Day ÷ 1) × 100
-                </code>
-                <div style={{marginTop: '10px', fontSize: '13px', padding: '10px', background: 'color-mix(in srgb, var(--warning) 10%, transparent)', borderRadius: '6px'}}>
-                  No client data on the sheet? Scores a neutral 50 — neither rewarded nor penalised.
-                </div>
-              </div>
-
-              <p style={{color: 'var(--text-primary)', fontWeight: '600', marginBottom: '8px'}}>
-                3. Packages (20% weight)
-              </p>
-              <div style={{marginLeft: '12px', marginBottom: '16px'}}>
-                <code style={{background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '4px', fontSize: '13px', display: 'block', marginBottom: '6px'}}>
-                  Avg Packages/Day = Total Packages ÷ Working Days
-                </code>
-                <code style={{background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '4px', fontSize: '13px', display: 'block'}}>
-                  Score = (Avg Packages/Day ÷ 1.25) × 100
-                </code>
-              </div>
-
-              <p style={{color: 'var(--text-primary)', fontWeight: '600', marginBottom: '8px'}}>
-                4. Pace (10% weight)
-              </p>
-              <div style={{marginLeft: '12px', marginBottom: '12px'}}>
-                <code style={{background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '4px', fontSize: '13px', display: 'block', marginBottom: '6px'}}>
-                  Expected Daily Rate = Personal Target ÷ Standard Working Days
-                </code>
-                <code style={{background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '4px', fontSize: '13px', display: 'block'}}>
-                  Score = (Actual Daily Rate ÷ Expected Daily Rate) × 100
-                </code>
-                <div style={{marginTop: '10px', fontSize: '13px', padding: '10px', background: 'color-mix(in srgb, var(--success) 10%, transparent)', borderRadius: '6px'}}>
-                  Rewards hitting your target in fewer working days.
-                </div>
-              </div>
-            </div>
-
-            <div style={{
-              marginTop: '16px',
-              padding: '12px',
-              background: 'color-mix(in srgb, var(--success) 10%, transparent)',
-              borderLeft: '3px solid var(--success)',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '13px'
-            }}>
-              <strong style={{color: 'var(--success)'}}>Why standards-based?</strong> Clearing the standard scores 100, and there's no ceiling above it — everyone is measured against the same fixed benchmarks, not against each other, and genuine over-achievement keeps showing up as a higher number instead of flattening out. A top seller who moves fewer than 1.25 packages or serves fewer than 1 client per day will score below 100 on those components regardless of how high their Sales score is — the categories are independent, so strong Sales performance doesn't paper over weak Packages or Clients performance.
-            </div>
+            Your calculations and settings never leave your device.
           </div>
         </div>
 
@@ -248,7 +149,7 @@ export function AboutTab() {
         <div style={{padding: '16px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6'}}>
           <p><strong style={{color: 'var(--text-primary)'}}>Version:</strong> {APP_VERSION}</p>
           <p><strong style={{color: 'var(--text-primary)'}}>Built by:</strong> HT under the Keep Alive Project</p>
-          <p><strong style={{color: 'var(--text-primary)'}}>Built with:</strong> Next.js 15, React 19, TypeScript 5, and Claude (for Analytics)</p>
+          <p><strong style={{color: 'var(--text-primary)'}}>Built with:</strong> Next.js 15, React 19, and TypeScript 5</p>
           <p><strong style={{color: 'var(--text-primary)'}}>Theme:</strong> Flat • Dark/Light Mode</p>
         </div>
 

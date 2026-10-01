@@ -13,11 +13,11 @@
   <header class="app-header">
     <div>
       <h1 class="app-title">Smart Incentive Calculator</h1>
-      <p class="app-version">v9.5.5</p>
+      <p class="app-version">v9.7.0</p>
     </div>
     <button id="theme-toggle" class="icon-btn theme-toggle" type="button" aria-label="Switch to dark theme" aria-pressed="false"><svg class="icon i-moon" aria-hidden="true" focusable="false"><use href="#i-moon"/></svg><svg class="icon i-sun" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg></button>
   </header>
-  <nav class="nav" aria-label="Main"><a href="bulk.html">Bulk &amp; Analytics</a><a href="individual.html">Individual</a><a href="sale-assistant.html">Sale Assistant</a><a href="settings.html">Settings</a><a href="about.html" aria-current="page">About</a></nav>
+  <nav class="nav" aria-label="Main"><a href="bulk.html">Bulk</a><a href="individual.html">Individual</a><a href="sale-assistant.html">Sale Assistant</a><a href="settings.html">Settings</a><a href="about.html" aria-current="page">About</a></nav>
   <main id="main">
 
 <div class="page">
@@ -25,13 +25,13 @@
     <h2 id="h-about">About Smart Incentive Calculator</h2>
 
     <section>
-      <h3>Smart Incentive Calculator v9.5.5</h3>
+      <h3>Smart Incentive Calculator v9.7.0</h3>
       <p class="prose soft">A comprehensive tool for calculating sales incentives based on team performance and achievement tiers. Built with Next.js, React, and TypeScript for optimal performance and reliability.</p>
     </section>
 
     <section>
       <h3>Core Features</h3>
-      <dl class="terms"><div><dt>Individual Calculator</dt><dd>Calculate personal incentives with P1/P2 splits</dd></div><div><dt>Bulk Processing</dt><dd>Upload Excel and process entire team at once</dd></div><div><dt>Performance Analytics</dt><dd>Track trends, achievements, and milestones</dd></div><div><dt>Customizable Tiers</dt><dd>Configure achievement thresholds and rates</dd></div><div><dt>Tier Ladder</dt><dd>See requirements to reach next tier level</dd></div><div><dt>100% Private</dt><dd>All calculations happen in your browser</dd></div></dl>
+      <dl class="terms"><div><dt>Individual Calculator</dt><dd>Calculate personal incentives with P1/P2 splits</dd></div><div><dt>Bulk Processing</dt><dd>Upload Excel and process entire team at once</dd></div><div><dt>Customizable Tiers</dt><dd>Configure achievement thresholds and rates</dd></div><div><dt>Tier Ladder</dt><dd>See requirements to reach next tier level</dd></div><div><dt>100% Private</dt><dd>All calculations happen in your browser</dd></div></dl>
     </section>
 
     <section class="prose">
@@ -74,39 +74,15 @@
 
     <section class="prose">
       <h3>Privacy &amp; Data</h3>
-      <p class="info">All data is stored locally in your browser. No server or database required. Your calculations, settings, and analytics never leave your device.</p>
-    </section>
-
-    <section class="stack">
-      <h3>Performance Score (Standards-Based)</h3>
-      <div class="prose soft">
-        <p>The Analytics Dashboard scores each person against a standard instead of ranking staff against each other — a score of 100 means the standard was met exactly. Sales and Pace are measured against your personal share of the team target; Clients and Packages are measured against fixed daily benchmarks (1 client/day, 1.25 packages/day). Scores aren't capped — they run as high as actual performance warrants, so someone who clearly outperforms the benchmark stays visibly ahead of someone who just cleared it, instead of both showing the same 100:</p>
-      </div>
-      <p class="calc" style="color:var(--ink);font-weight:600">Performance Score = (Sales × 50%) + (Clients × 20%) + (Packages × 20%) + (Pace × 10%)</p>
-
-      <h4 style="font-size:1rem">Component Breakdown</h4>
-      <div class="stack prose">
-        <div class="stack"><p><strong>1. Sales (50% weight)</strong></p>
-          <p class="calc">Personal Target = Team Target ÷ Active Staff<br>Score = (My Sales ÷ Personal Target) × 100</p>
-          <p class="info">Example: Personal target AED 24,138, sold AED 22,414 → <strong>Score: 93/100</strong></p></div>
-        <div class="stack"><p><strong>2. Clients (20% weight)</strong></p>
-          <p class="calc">Avg Clients/Day = Total Clients ÷ Working Days<br>Score = (Avg Clients/Day ÷ 1) × 100</p>
-          <p class="notice notice-warn"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-info"/></svg><span>No client data on the sheet? Scores a neutral 50 — neither rewarded nor penalised.</span></p></div>
-        <div class="stack"><p><strong>3. Packages (20% weight)</strong></p>
-          <p class="calc">Avg Packages/Day = Total Packages ÷ Working Days<br>Score = (Avg Packages/Day ÷ 1.25) × 100</p></div>
-        <div class="stack"><p><strong>4. Pace (10% weight)</strong></p>
-          <p class="calc">Expected Daily Rate = Personal Target ÷ Standard Working Days<br>Score = (Actual Daily Rate ÷ Expected Daily Rate) × 100</p>
-          <p class="notice notice-good"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span>Rewards hitting your target in fewer working days.</span></p></div>
-      </div>
-      <div class="info prose"><strong>Why standards-based?</strong> Clearing the standard scores 100, and there's no ceiling above it — everyone is measured against the same fixed benchmarks, not against each other, and genuine over-achievement keeps showing up as a higher number instead of flattening out. A top seller who moves fewer than 1.25 packages or serves fewer than 1 client per day will score below 100 on those components regardless of how high their Sales score is — the categories are independent, so strong Sales performance doesn't paper over weak Packages or Clients performance.</div>
+      <p class="info">All data is stored locally in your browser. No server or database required. Your calculations and settings never leave your device.</p>
     </section>
 
     <section class="stack">
       <h3>Version &amp; Credits</h3>
       <dl class="terms">
-        <div><dt>Version</dt><dd>9.5.5</dd></div>
+        <div><dt>Version</dt><dd>9.7.0</dd></div>
         <div><dt>Built by</dt><dd>HT under the Keep Alive Project</dd></div>
-        <div><dt>Built with</dt><dd>Next.js 15, React 19, TypeScript 5, and Claude (for Analytics)</dd></div>
+        <div><dt>Built with</dt><dd>Next.js 15, React 19, and TypeScript 5</dd></div>
         <div><dt>Theme</dt><dd>Flat • Dark/Light Mode</dd></div>
       </dl>
       <aside class="notice notice-bad" aria-labelledby="disc-h"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-alert"/></svg><div><p id="disc-h" style="font-weight:700">Disclaimer</p><p style="margin-top:4px">This is a demonstration/prototype only. Not authorized for Smart Salem or any organization. Provided "as is" without warranty. Not for production, payroll, or financial decisions. Personal/educational use only.</p></div></aside>

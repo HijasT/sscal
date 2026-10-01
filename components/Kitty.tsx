@@ -78,7 +78,7 @@ const BUBBLE_MS = 5000
 // Rectangular UI elements the cat treats as "furniture" — it walks along the
 // top edge of one, then hops to another rather than roaming free over the
 // whole viewport.
-const BOX_SELECTOR = '.card, .result-card, .stat-card, .slider-section, .privacy-notice, .card-description, .realtime-stat, .btn, input, select'
+const BOX_SELECTOR = '.card, .result-card, .stat-card, .slider-section, .privacy-notice, .card-description, .btn, input, select'
 const BOX_MIN_WIDTH = 60
 const BOX_MIN_HEIGHT = 20
 // A landing point whose y differs from the current one by more than this is
@@ -152,7 +152,7 @@ function pickRandom<T>(list: T[], exclude?: T): T {
 }
 
 // Reads whatever staff names are already sitting in the last Excel upload
-// (Bulk & Analytics persists it to localStorage) so the cat can call someone
+// (the Bulk tab persists it to localStorage) so the cat can call someone
 // out by name. Read-only, no props/state coupling to the calculator.
 function getRandomStaffFirstName(): string | null {
   if (typeof window === 'undefined') return null
@@ -178,20 +178,17 @@ function getRandomStaffFirstName(): string | null {
   }
 }
 
-// Reads the most recently saved monthly team achievement % from Bulk &
-// Analytics' history (localStorage, read-only) so the cat knows whether to
-// use the before/after-100% comment pool. Null if nothing's been calculated
-// yet this session — the cat falls back to the before-100% pool then.
+// Reads the team achievement % from the last Bulk calculation (localStorage,
+// read-only) so the cat knows whether to use the before/after-100% comment
+// pool. Null if nothing's been calculated yet — the cat falls back to the
+// before-100% pool then.
 function getLatestTeamAchievement(): number | null {
   if (typeof window === 'undefined') return null
   try {
-    const stored = localStorage.getItem('smart_incentive_analytics')
+    const stored = localStorage.getItem('sic_bulk_results')
     if (!stored) return null
-    const months = Object.values(JSON.parse(stored)?.teamHistory ?? {}) as { monthKey?: string; teamAchievement?: number }[]
-    if (months.length === 0) return null
-
-    const latest = months.reduce((best, m) => ((m.monthKey ?? '') > (best.monthKey ?? '') ? m : best))
-    return typeof latest.teamAchievement === 'number' ? latest.teamAchievement : null
+    const achievement = JSON.parse(stored)?.calculatedData?.teamAchievement
+    return typeof achievement === 'number' ? achievement : null
   } catch {
     return null
   }

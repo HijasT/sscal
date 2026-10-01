@@ -34,16 +34,6 @@ export function stripEmployeeCode(staffName: string): string {
   return staffName.replace(EMPLOYEE_CODE_PATTERN, '').replace(/\s+/g, ' ').trim()
 }
 
-// The canonical unique identifier for a staff member: their employee code
-// when the name has one embedded, otherwise the raw name as a best-effort
-// fallback (older sheets without a code). Names can change between uploads
-// (typo fixes, married names); the code doesn't, so anything that persists
-// per-person data across uploads (analytics history, badges) should key on
-// this instead of the raw name.
-export function getPersonId(staffName: string): string {
-  return extractEmployeeCode(staffName) ?? staffName
-}
-
 export async function parseExcelFile(file: File): Promise<ExcelData[]> {
   // Bundled import — no CDN, no (window as any), no polling needed
   const XLSX = await import('xlsx')

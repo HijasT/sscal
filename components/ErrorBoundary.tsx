@@ -3,7 +3,7 @@ import { Component, type ReactNode } from 'react'
 
 interface Props {
   children: ReactNode
-  /** Label shown in the fallback message, e.g. "Bulk & Analytics tab". */
+  /** Label shown in the fallback message, e.g. "Bulk tab". */
   label: string
 }
 
