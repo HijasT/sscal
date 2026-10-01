@@ -224,6 +224,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
       excludedCount: excludedStaff.size,
       sheets: sheets.map(s => s.sheetName),
       viewMode,
+      p1Split,
     })
     setSortCol('sales')
     setSortDir('desc')
@@ -527,7 +528,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
           {/* Export */}
           <div style={{display:'flex',gap:'12px'}}>
             <button className="btn btn-secondary" onClick={handleExportCSV}><><DownloadIcon />Download CSV</></button>
-            <button className="btn btn-secondary" onClick={()=>exportBulkToPDF(calculatedData,results)}><><DownloadIcon />Download PDF</></button>
+            <button className="btn btn-secondary" onClick={()=>exportBulkToPDF({ ...calculatedData, p1Split: calculatedData.p1Split ?? p1Split },results)}><><DownloadIcon />Download PDF</></button>
           </div>
         </div>
       )}

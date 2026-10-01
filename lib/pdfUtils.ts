@@ -27,10 +27,18 @@ export async function exportBulkToPDF(calculatedData: any, results: any[]) {
   doc.setTextColor(0, 0, 0)
   doc.text('Summary', 15, 45)
 
+  // Same split as calculateIncentive(): P1 gets p1Split% of the pool, P2 the rest.
+  const p1Split = calculatedData.p1Split
+  const p1Pool = (p1Split / 100) * calculatedData.totalPool
+  const p2Pool = ((100 - p1Split) / 100) * calculatedData.totalPool
+
   const summaryData = [
     ['Team Achievement', `${calculatedData.teamAchievement.toFixed(2)}%`],
     ['Current Tier',    `${calculatedData.tier.name} (${calculatedData.tier.rate}% rate)`],
     ['Total Pool',      `AED ${formatCurrency(calculatedData.totalPool)}`],
+    ['Pool Split (P1 / P2)', `${p1Split}% / ${100 - p1Split}%`],
+    ['P1 Pool (Equal Share)',       `AED ${formatCurrency(p1Pool)}`],
+    ['P2 Pool (Performance Share)', `AED ${formatCurrency(p2Pool)}`],
     ['Staff Count',     `${calculatedData.staffCount}`],
     ['Team Target',     `AED ${formatCurrency(calculatedData.target)}`],
     ['Team Sales',      `AED ${formatCurrency(calculatedData.teamSales)}`],

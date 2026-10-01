@@ -46,7 +46,8 @@ export default function Home() {
 
   return (
     <div className="container">
-      {kittyEnabled && <Kitty />}
+      {/* No cat on the Sale Assistant tab: it may be in front of a customer. */}
+      {kittyEnabled && activeTab !== 'sale-assistant' && <Kitty />}
       <header className="header">
         <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
           {theme === 'dark' ? <MoonIcon large /> : <SunIcon large />}

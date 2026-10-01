@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [9.7.0]
+
+### Added
+- **Bulk PDF export now shows the pool split.** The summary lists the P1/P2 split percentage, the total P1 pool (equal share) and the total P2 pool (performance share), calculated the same way as the on-screen incentives.
+
+### Changed
+- **Sales Kitty is on by default again** (`DEFAULT_KITTY_ENABLED = true` in `lib/config.ts`). The constant is the single place to change the default; a user's own choice in Settings is saved in their browser and takes precedence.
+- **No Sales Kitty on the Sale Assistant tab**, since that screen may be shown to a customer. The cat returns on the other tabs.
+
 ## [9.6.0]
 
 Targeted fixes from the design audit; no layout or styling overhaul.

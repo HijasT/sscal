@@ -14,7 +14,7 @@
  */
 
 /** Displayed in the header, About tab, and page title. */
-export const APP_VERSION = '9.6.0'
+export const APP_VERSION = '9.7.0'
 
 export interface Tier {
   id: string
@@ -48,8 +48,13 @@ export const DEFAULT_STAFF_COUNT = 29
  */
 export const DEFAULT_THEME: 'light' | 'dark' = 'light'
 
-/** Whether the Sales Kitty easter egg wanders the app by default. */
-export const DEFAULT_KITTY_ENABLED = false
+/**
+ * Whether the Sales Kitty easter egg wanders the app by default (change this
+ * constant to flip it). Only applies until a user toggles it in Settings; that
+ * choice is saved in their browser and wins over this default. The cat is
+ * never shown on the Sale Assistant tab regardless (see app/page.tsx).
+ */
+export const DEFAULT_KITTY_ENABLED = true
 
 /**
  * Center names shown in the Bulk Results "Center-wise Stats" section.
