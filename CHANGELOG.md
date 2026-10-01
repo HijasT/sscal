@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.5.0]
+
+### Added
+- **Kleon dresses for the occasion.** When the latest team achievement is 100% or more, Kleon wears a party hat and a little confetti floats around it (drawn in SVG rather than an emoji, to match the flat design). In December it wears a Santa hat and a white beard instead, with the confetti too if the team is at 100%+. Both are automatic: the achievement is read from the last Bulk calculation and the month from the clock.
+
 ## [10.4.0]
 
 ### Changed

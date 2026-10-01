@@ -145,12 +145,28 @@ export function Robot() {
   const [looking, setLooking] = useState(false)
   const [bubble, setBubble] = useState<string | null>(null)
   const [poked, setPoked] = useState(false)
+  const [celebrating, setCelebrating] = useState(false)
+  const [santa, setSanta] = useState(false)
   const [pokeComment, setPokeComment] = useState<string | null>(null)
   const lastCommentTextRef = useRef<string | undefined>(undefined)
   const lastCommentAtRef = useRef<number>(0)
   const lastPersonalCommentAtRef = useRef<number>(0)
   const bubbleTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
   const pokeTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
+
+  // Party hat (and confetti) while the team is at or above 100% of target, and a
+  // Santa hat and beard all December. Polled because the Bulk tab can recalculate
+  // while Kleon is on screen; set after mount so it matches the server render.
+  useEffect(() => {
+    const check = () => {
+      const achievement = getLatestTeamAchievement()
+      setCelebrating(achievement !== null && achievement >= 100)
+      setSanta(new Date().getMonth() === 11)
+    }
+    check()
+    const timer = setInterval(check, 5000)
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -283,7 +299,31 @@ export function Robot() {
               <ellipse className={`robot-halo robot-halo-inner ${isFloating ? 'on' : ''}`} cx="24" cy="51" rx="5.5" ry="1.4" />
               <g className={`robot-head ${looking ? 'looking' : ''}`}>
                 <rect className="robot-shell" x="9" y="5" width="30" height="40" rx="15" />
-                <path className="robot-band" d="M9.7 34 H38.3 A15 15 0 0 1 24 45 A15 15 0 0 1 9.7 34 Z" />
+                <path className={`robot-band ${santa ? 'beard' : ''}`} d="M9.7 34 H38.3 A15 15 0 0 1 24 45 A15 15 0 0 1 9.7 34 Z" />
+                {(celebrating || santa) && (
+                  <g className="robot-party">
+                    {santa ? (
+                      <g transform="rotate(-6 24 6)">
+                        <path className="robot-santa-hat" d="M15.5 7 C16 -3 22 -9 31.5 -6.5 C27.5 -3 29.5 3 32.5 7 Z" />
+                        <rect className="robot-santa-trim" x="14.2" y="4.6" width="19.6" height="4" rx="2" />
+                        <circle className="robot-santa-pom" cx="31.5" cy="-6.5" r="2.5" />
+                      </g>
+                    ) : (
+                      <g transform="rotate(-10 24 6)">
+                        <path className="robot-hat" d="M16.5 7 L24 -8 L31.5 7 Z" />
+                        <path className="robot-hat-stripe" d="M19.4 1.2 L28.6 1.2 M17.9 4.2 L30.1 4.2" />
+                        <circle className="robot-pom" cx="24" cy="-8" r="2.1" />
+                      </g>
+                    )}
+                    {celebrating && (
+                      <>
+                        <circle className="robot-confetti c1" cx="6" cy="2" r="1.3" />
+                        <circle className="robot-confetti c2" cx="42" cy="-2" r="1.3" />
+                        <rect className="robot-confetti c3" x="40" y="10" width="2.4" height="2.4" rx="0.6" />
+                      </>
+                    )}
+                  </g>
+                )}
                 <rect className="robot-plate" x="5.5" y="19" width="3" height="11" rx="1.5" />
                 <rect className="robot-plate" x="39.5" y="19" width="3" height="11" rx="1.5" />
                 <rect className="robot-visor" x="13.5" y="12" width="21" height="14" rx="7" />

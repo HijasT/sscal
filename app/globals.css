@@ -897,6 +897,25 @@ input[type="range"]::-moz-range-thumb {
   fill: #d4d0e6;
 }
 
+.robot-band.beard {
+  fill: #ffffff;
+  stroke: #d4d0e6;
+  stroke-width: 0.8;
+}
+
+.robot-santa-hat {
+  fill: #c93a3a;
+  stroke: #6f61a3;
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+.robot-santa-trim,
+.robot-santa-pom {
+  fill: #ffffff;
+  stroke: #d4d0e6;
+  stroke-width: 0.8;
+}
+
 .robot-plate {
   fill: #6f61a3;
 }
@@ -949,6 +968,38 @@ input[type="range"]::-moz-range-thumb {
   animation: robot-halo 1.8s ease-in-out infinite;
 }
 .robot-halo-inner.on { animation-delay: -0.9s; }
+
+/* Party hat + confetti while the team is at or above 100% of target. */
+.robot-hat {
+  fill: #f2b24c;
+  stroke: #6f61a3;
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+.robot-hat-stripe {
+  fill: none;
+  stroke: #ffffff;
+  stroke-opacity: 0.7;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+}
+.robot-pom {
+  fill: #ecebf3;
+  stroke: #6f61a3;
+  stroke-width: 1;
+}
+.robot-confetti {
+  opacity: 0.9;
+  animation: robot-confetti 2.4s ease-in-out infinite;
+}
+.robot-confetti.c1 { fill: #ff7a8a; }
+.robot-confetti.c2 { fill: #8ff0d6; animation-delay: -0.8s; }
+.robot-confetti.c3 { fill: #f2b24c; animation-delay: -1.6s; }
+
+@keyframes robot-confetti {
+  0%, 100% { transform: translateY(0); opacity: 0.9; }
+  50% { transform: translateY(-4px); opacity: 0.4; }
+}
 
 .robot-head {
   transform-box: fill-box;
@@ -1033,7 +1084,7 @@ input[type="range"]::-moz-range-thumb {
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
   .robot-bob, .robot-eye.normal, .robot-eye-glow.normal, .robot-halo.on,
-  .robot-head.looking, .robot.poked {
+  .robot-head.looking, .robot.poked, .robot-confetti {
     animation: none !important;
   }
 }
