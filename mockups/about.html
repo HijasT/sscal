@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About · Smart Incentive Calculator (mockup)</title>
+<script>try{var t=localStorage.getItem('mockup_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light')}catch(e){}</script>
+<link rel="stylesheet" href="assets/mockup.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol><symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol><symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol><symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></symbol><symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol><symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol><symbol id="i-save" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></symbol><symbol id="i-undo" viewBox="0 0 24 24"><path d="M4 4v6h6"/><path d="M5.5 15a7 7 0 1 0 1.2-7.3L4 10"/></symbol><symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l9 9-8 8z"/><circle cx="7.5" cy="8.5" r="1.2"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol><symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></symbol></svg>
+<div class="shell">
+  <header class="app-header">
+    <div>
+      <h1 class="app-title">Smart Incentive Calculator</h1>
+      <p class="app-version">v9.5.5</p>
+    </div>
+    <button id="theme-toggle" class="icon-btn theme-toggle" type="button" aria-label="Switch to dark theme" aria-pressed="false"><svg class="icon i-moon" aria-hidden="true" focusable="false"><use href="#i-moon"/></svg><svg class="icon i-sun" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg></button>
+  </header>
+  <nav class="nav" aria-label="Main"><a href="bulk.html">Bulk &amp; Analytics</a><a href="individual.html">Individual</a><a href="sale-assistant.html">Sale Assistant</a><a href="settings.html">Settings</a><a href="about.html" aria-current="page">About</a></nav>
+  <main id="main">
+
+<div class="page">
+  <article class="card about" aria-labelledby="h-about">
+    <h2 id="h-about">About Smart Incentive Calculator</h2>
+
+    <section>
+      <h3>Smart Incentive Calculator v9.5.5</h3>
+      <p class="prose soft">A comprehensive tool for calculating sales incentives based on team performance and achievement tiers. Built with Next.js, React, and TypeScript for optimal performance and reliability.</p>
+    </section>
+
+    <section>
+      <h3>Core Features</h3>
+      <dl class="terms"><div><dt>Individual Calculator</dt><dd>Calculate personal incentives with P1/P2 splits</dd></div><div><dt>Bulk Processing</dt><dd>Upload Excel and process entire team at once</dd></div><div><dt>Performance Analytics</dt><dd>Track trends, achievements, and milestones</dd></div><div><dt>Customizable Tiers</dt><dd>Configure achievement thresholds and rates</dd></div><div><dt>Tier Ladder</dt><dd>See requirements to reach next tier level</dd></div><div><dt>100% Private</dt><dd>All calculations happen in your browser</dd></div></dl>
+    </section>
+
+    <section class="prose">
+      <h3>How It Works</h3>
+      <p><strong>Tier System:</strong><br>Your team's achievement percentage determines the incentive tier. The lower value is <strong>inclusive</strong> (≥) and the upper value is <strong>exclusive</strong> (&lt;):</p>
+      <ul class="bullets" style="margin:10px 0 18px">
+        <li><strong>Tier 1</strong> (≥85% and &lt;101%): 2.5% incentive rate</li>
+        <li><strong>Tier 2</strong> (≥101% and &lt;111%): 3.0% incentive rate</li>
+        <li><strong>Tier 3</strong> (≥111%): 3.5% incentive rate</li>
+      </ul>
+      <p><strong>Pool Distribution:</strong><br>The incentive pool is split between:</p>
+      <ul class="bullets" style="margin-top:10px">
+        <li><strong>P1 (Equal Share)</strong>: Divided equally among all staff</li>
+        <li><strong>P2 (Performance Share)</strong>: Distributed based on individual contribution</li>
+      </ul>
+    </section>
+
+    <section class="stack">
+      <h3>Calculation Example</h3>
+      <div class="calc">
+        <strong>Given:</strong><br>
+        &nbsp;&nbsp;Team Target: AED 700,000<br>&nbsp;&nbsp;Team Sales: AED 735,000<br>&nbsp;&nbsp;Your Sales: AED 73,500<br>&nbsp;&nbsp;Staff Count: 29 members<br>&nbsp;&nbsp;P1/P2 Split: 60% / 40%<br><br>
+        <strong>Step 1: Calculate Team Achievement</strong><br>
+        &nbsp;&nbsp;Achievement = (Team Sales ÷ Team Target) × 100<br>&nbsp;&nbsp;Achievement = (735,000 ÷ 700,000) × 100<br>&nbsp;&nbsp;Achievement = <strong>105%</strong><br><br>
+        <strong>Step 2: Determine Tier</strong><br>
+        &nbsp;&nbsp;105% falls in range: ≥101% and &lt;111%<br>&nbsp;&nbsp;Tier = <strong>Tier 2</strong> (3.0% rate)<br><br>
+        <strong>Step 3: Calculate Total Incentive Pool</strong><br>
+        &nbsp;&nbsp;Total Pool = Team Sales × Tier Rate<br>&nbsp;&nbsp;Total Pool = 735,000 × 3.0%<br>&nbsp;&nbsp;Total Pool = <strong>AED 22,050</strong><br><br>
+        <strong>Step 4: Split Pool (60/40)</strong><br>
+        &nbsp;&nbsp;P1 Pool = 22,050 × 60% = <span class="p1">AED 13,230</span><br>&nbsp;&nbsp;P2 Pool = 22,050 × 40% = <span class="p2">AED 8,820</span><br><br>
+        <strong>Step 5: Calculate Your Share</strong><br>
+        &nbsp;&nbsp;<span class="p1">P1 (Equal Share):</span><br>
+        &nbsp;&nbsp;Your P1 = P1 Pool ÷ Staff Count<br>&nbsp;&nbsp;Your P1 = 13,230 ÷ 29<br>&nbsp;&nbsp;Your P1 = <span class="p1">AED 456.21</span><br><br>
+        &nbsp;&nbsp;<span class="p2">P2 (Performance Share):</span><br>
+        &nbsp;&nbsp;Your Contribution = (Your Sales ÷ Team Sales) × 100<br>&nbsp;&nbsp;Your Contribution = (73,500 ÷ 735,000) × 100 = 10%<br>&nbsp;&nbsp;Your P2 = P2 Pool × Your Contribution<br>&nbsp;&nbsp;Your P2 = 8,820 × 10%<br>&nbsp;&nbsp;Your P2 = <span class="p2">AED 882.00</span><br><br>
+        <strong>Final Result:</strong><br>
+        &nbsp;&nbsp;Total Incentive = P1 + P2<br>&nbsp;&nbsp;Total Incentive = 456.21 + 882.00<br>&nbsp;&nbsp;<strong>Total Incentive = AED 1,338.21</strong>
+      </div>
+    </section>
+
+    <section class="prose">
+      <h3>Privacy &amp; Data</h3>
+      <p class="info">All data is stored locally in your browser. No server or database required. Your calculations, settings, and analytics never leave your device.</p>
+    </section>
+
+    <section class="stack">
+      <h3>Performance Score (Standards-Based)</h3>
+      <div class="prose soft">
+        <p>The Analytics Dashboard scores each person against a standard instead of ranking staff against each other — a score of 100 means the standard was met exactly. Sales and Pace are measured against your personal share of the team target; Clients and Packages are measured against fixed daily benchmarks (1 client/day, 1.25 packages/day). Scores aren't capped — they run as high as actual performance warrants, so someone who clearly outperforms the benchmark stays visibly ahead of someone who just cleared it, instead of both showing the same 100:</p>
+      </div>
+      <p class="calc" style="color:var(--ink);font-weight:600">Performance Score = (Sales × 50%) + (Clients × 20%) + (Packages × 20%) + (Pace × 10%)</p>
+
+      <h4 style="font-size:1rem">Component Breakdown</h4>
+      <div class="stack prose">
+        <div class="stack"><p><strong>1. Sales (50% weight)</strong></p>
+          <p class="calc">Personal Target = Team Target ÷ Active Staff<br>Score = (My Sales ÷ Personal Target) × 100</p>
+          <p class="info">Example: Personal target AED 24,138, sold AED 22,414 → <strong>Score: 93/100</strong></p></div>
+        <div class="stack"><p><strong>2. Clients (20% weight)</strong></p>
+          <p class="calc">Avg Clients/Day = Total Clients ÷ Working Days<br>Score = (Avg Clients/Day ÷ 1) × 100</p>
+          <p class="notice notice-warn"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-info"/></svg><span>No client data on the sheet? Scores a neutral 50 — neither rewarded nor penalised.</span></p></div>
+        <div class="stack"><p><strong>3. Packages (20% weight)</strong></p>
+          <p class="calc">Avg Packages/Day = Total Packages ÷ Working Days<br>Score = (Avg Packages/Day ÷ 1.25) × 100</p></div>
+        <div class="stack"><p><strong>4. Pace (10% weight)</strong></p>
+          <p class="calc">Expected Daily Rate = Personal Target ÷ Standard Working Days<br>Score = (Actual Daily Rate ÷ Expected Daily Rate) × 100</p>
+          <p class="notice notice-good"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span>Rewards hitting your target in fewer working days.</span></p></div>
+      </div>
+      <div class="info prose"><strong>Why standards-based?</strong> Clearing the standard scores 100, and there's no ceiling above it — everyone is measured against the same fixed benchmarks, not against each other, and genuine over-achievement keeps showing up as a higher number instead of flattening out. A top seller who moves fewer than 1.25 packages or serves fewer than 1 client per day will score below 100 on those components regardless of how high their Sales score is — the categories are independent, so strong Sales performance doesn't paper over weak Packages or Clients performance.</div>
+    </section>
+
+    <section class="stack">
+      <h3>Version &amp; Credits</h3>
+      <dl class="terms">
+        <div><dt>Version</dt><dd>9.5.5</dd></div>
+        <div><dt>Built by</dt><dd>HT under the Keep Alive Project</dd></div>
+        <div><dt>Built with</dt><dd>Next.js 15, React 19, TypeScript 5, and Claude (for Analytics)</dd></div>
+        <div><dt>Theme</dt><dd>Flat • Dark/Light Mode</dd></div>
+      </dl>
+      <aside class="notice notice-bad" aria-labelledby="disc-h"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-alert"/></svg><div><p id="disc-h" style="font-weight:700">Disclaimer</p><p style="margin-top:4px">This is a demonstration/prototype only. Not authorized for Smart Salem or any organization. Provided "as is" without warranty. Not for production, payroll, or financial decisions. Personal/educational use only.</p></div></aside>
+    </section>
+  </article>
+</div>
+  </main>
+  <p class="mock-note">Design mockup: static markup with sample data, not connected to the app.</p>
+</div>
+<script src="assets/mockup.js"></script>
+</body>
+</html>

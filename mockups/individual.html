@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Individual · Smart Incentive Calculator (mockup)</title>
+<script>try{var t=localStorage.getItem('mockup_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light')}catch(e){}</script>
+<link rel="stylesheet" href="assets/mockup.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol><symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol><symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol><symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></symbol><symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol><symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol><symbol id="i-save" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></symbol><symbol id="i-undo" viewBox="0 0 24 24"><path d="M4 4v6h6"/><path d="M5.5 15a7 7 0 1 0 1.2-7.3L4 10"/></symbol><symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l9 9-8 8z"/><circle cx="7.5" cy="8.5" r="1.2"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol><symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></symbol></svg>
+<div class="shell">
+  <header class="app-header">
+    <div>
+      <h1 class="app-title">Smart Incentive Calculator</h1>
+      <p class="app-version">v9.5.5</p>
+    </div>
+    <button id="theme-toggle" class="icon-btn theme-toggle" type="button" aria-label="Switch to dark theme" aria-pressed="false"><svg class="icon i-moon" aria-hidden="true" focusable="false"><use href="#i-moon"/></svg><svg class="icon i-sun" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg></button>
+  </header>
+  <nav class="nav" aria-label="Main"><a href="bulk.html">Bulk &amp; Analytics</a><a href="individual.html" aria-current="page">Individual</a><a href="sale-assistant.html">Sale Assistant</a><a href="settings.html">Settings</a><a href="about.html">About</a></nav>
+  <main id="main">
+
+<div class="page">
+  <section class="card stack-lg" aria-labelledby="h-ind" data-split-scope>
+    <p class="notice"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-lock"/></svg><span>100% local calculation · No data shared · Browser-only processing · Your data stays private</span></p>
+    <div><h2 id="h-ind">Calculate Your Incentive</h2></div>
+
+    <div class="form-grid">
+      <div class="field"><label for="f-target">Team Target (AED)</label><input id="f-target" class="input num" type="number" inputmode="decimal" value="700000" placeholder="700000" min="0"></div>
+      <div class="field"><label for="f-sales">Team Sales (AED)</label><input id="f-sales" class="input num" type="number" inputmode="decimal" value="735000" placeholder="735000" min="0"></div>
+      <div class="field"><label for="f-my">My Sales (AED)</label><input id="f-my" class="input num" type="number" inputmode="decimal" value="73500" placeholder="73500" min="0"></div>
+      <div class="field"><label for="f-staff">Staff Count</label><input id="f-staff" class="input num" type="number" inputmode="numeric" value="29" placeholder="29" min="1"></div>
+    </div>
+
+    <div class="stack">
+      <div class="row-between">
+        <label class="label" for="f-split">Pool Split Distribution</label>
+        <div class="row" aria-live="polite"><span class="tag tag-p1" data-p1>P1 60%</span><span class="tag tag-p2" data-p2>P2 40%</span></div>
+      </div>
+      <input id="f-split" type="range" min="0" max="100" step="5" value="60" data-split aria-describedby="split-help">
+      <div class="row-between muted fig" id="split-help" style="font-size:.8125rem"><span>0/100</span><span>25/75</span><span>50/50</span><span>75/25</span><span>100/0</span></div>
+    </div>
+
+    <button class="btn btn-primary btn-block" type="button">Calculate Incentive <svg class="icon " aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg></button>
+
+    <section class="stack" aria-labelledby="h-res">
+      <h3 id="h-res">Your Incentive Breakdown</h3>
+      <dl class="result">
+        <div><dt>Team Achievement</dt><dd>105.00%</dd></div>
+        <div><dt>Tier</dt><dd>Tier 2 <span class="tag tag-neutral">3% rate</span></dd></div>
+        <div><dt>Total Pool</dt><dd>AED 22,050.00</dd></div>
+        <div><dt>My Contribution</dt><dd>10.00%</dd></div>
+        <div><dt><span class="tag tag-p1">P1</span> Equal Share</dt><dd>AED 456.21</dd></div>
+        <div><dt><span class="tag tag-p2">P2</span> Personal Share</dt><dd>AED 882.00</dd></div>
+        <div class="total"><dt>Total Incentive</dt><dd>AED 1,338.21</dd></div>
+      </dl>
+      <p class="calc" style="text-align:center">P1 Pool: 13,230.00 ÷ 29 staff | P2 Pool: 8,820.00 × 10.00%</p>
+
+      <div class="info">
+        <h3 style="font-size:1rem;margin-bottom:6px">Tier Ladder</h3>
+        <p class="fig" style="font-size:1.25rem;font-weight:700;color:var(--ink);margin-bottom:6px">AED 42,000.00</p>
+        <p>Team needs an additional <strong>AED 42,000.00</strong> in sales to reach <strong>AED 777,000.00</strong> (111% of target) and qualify for Tier 3 incentive (3.5% rate).</p>
+      </div>
+    </section>
+
+    <details class="stack">
+      <summary class="disclosure"><span>Other states</span><svg class="icon chev" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg></summary>
+      <div class="stack" style="margin-top:12px">
+        <div class="info">
+          <h3 style="font-size:1rem;margin-bottom:6px">Tier Ladder (maximum tier)</h3>
+          <p class="fig" style="font-size:1.25rem;font-weight:700;color:var(--green);margin-bottom:6px">+ AED 980.00</p>
+          <p>Maximum tier achieved! Your team is at <strong>115.00%</strong> achievement, earning an additional <strong>AED 980.00</strong> compared to the 111% threshold.</p>
+        </div>
+        <p class="notice notice-bad" role="alert"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-alert"/></svg><span>Team target must be greater than zero. Enter your team's monthly target to see the breakdown.</span></p>
+      </div>
+    </details>
+  </section>
+</div>
+  </main>
+  <p class="mock-note">Design mockup: static markup with sample data, not connected to the app.</p>
+</div>
+<script src="assets/mockup.js"></script>
+</body>
+</html>
