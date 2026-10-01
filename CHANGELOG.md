@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.4.0]
+
+### Changed
+- **The app is now called K’Nomics** (header, browser title, install name, About, README). The internal storage keys keep their `sic_` prefix, so nothing saved is lost.
+- **Kleon, a floating robot, replaces the Sales Kitty.** A flat, original SVG robot (a smooth two-tone capsule with a dark glass visor, slim mint eyes and a soft halo underneath) that drifts slowly around the page, then stays in one place for 15-35 seconds, sometimes powering down for 20. Its eyes turn red when you poke it. It keeps the same personality: staff-name callouts, before/after 100% target comments (rewritten in robot voice) and wobbles when poked. Still never shown on the Sale Assistant tab; still switchable in Settings (now labelled Kleon). The setting is stored as `sic_robot_enabled`; the old `sic_kitty_enabled` is read as a fallback, so anyone who turned the cat off keeps Kleon off. In `lib/config.ts`, `DEFAULT_KITTY_ENABLED` is now `DEFAULT_ROBOT_ENABLED`.
+- About no longer starts with a redundant "About Smart Incentive Calculator" title; the section heading below it carries the name and version.
+
 ## [10.3.0]
 
 ### Added

@@ -1,6 +1,6 @@
 {
-  "name": "Smart Incentive Calculator",
-  "short_name": "SIC",
+  "name": "K’Nomics",
+  "short_name": "K’Nomics",
   "description": "Calculate sales incentives and track performance",
   "start_url": "/",
   "display": "standalone",

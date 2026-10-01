@@ -56,11 +56,11 @@ function toMapping(entries: StaffCenterEntry[]): Record<string, string> {
 }
 
 interface SettingsTabProps {
-  kittyEnabled: boolean
-  onToggleKitty: (enabled: boolean) => void
+  robotEnabled: boolean
+  onToggleRobot: (enabled: boolean) => void
 }
 
-export function SettingsTab({ kittyEnabled, onToggleKitty }: SettingsTabProps) {
+export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
   const [tiers, setTiers] = useState<Tier[]>(DEFAULT_TIERS)
   const [showDefaults, setShowDefaults] = useState(true)
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
@@ -598,16 +598,16 @@ export function SettingsTab({ kittyEnabled, onToggleKitty }: SettingsTabProps) {
 
       <div className="settings-toggle-row">
         <div>
-          <div className="settings-toggle-label">Sales Kitty</div>
-          <div className="settings-toggle-desc">The cat that wanders the app and comments on your numbers</div>
+          <div className="settings-toggle-label">Kleon</div>
+          <div className="settings-toggle-desc">The little robot that floats around the app and comments on your numbers</div>
         </div>
         <button
           type="button"
-          className={`switch ${kittyEnabled ? 'on' : ''}`}
+          className={`switch ${robotEnabled ? 'on' : ''}`}
           role="switch"
-          aria-checked={kittyEnabled}
-          aria-label="Toggle Sales Kitty"
-          onClick={() => onToggleKitty(!kittyEnabled)}
+          aria-checked={robotEnabled}
+          aria-label="Toggle Kleon"
+          onClick={() => onToggleRobot(!robotEnabled)}
         >
           <span className="switch-thumb" />
         </button>

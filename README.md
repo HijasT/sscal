@@ -1,4 +1,4 @@
-# Smart Incentive Calculator - Next.js Version
+# K’Nomics - Next.js Version
 
 ## 🎯 Direct Conversion from HTML
 

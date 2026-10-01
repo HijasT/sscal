@@ -7,7 +7,7 @@
  *   - Default staff:  change DEFAULT_STAFF_COUNT
  *   - Default theme:  change DEFAULT_THEME ('light' | 'dark')
  *   - Default tiers:  change DEFAULT_TIERS (lower bound inclusive, upper bound exclusive)
- *   - Kitty on/off:   change DEFAULT_KITTY_ENABLED
+ *   - Kleon on/off:   change DEFAULT_ROBOT_ENABLED
  *   - Data retention: change DATA_RETENTION_MS (default 1 hour)
  *
  * Every component that needs these values imports from here — no more
@@ -15,7 +15,7 @@
  */
 
 /** Displayed in the header, About tab, and page title. */
-export const APP_VERSION = '10.3.0'
+export const APP_VERSION = '10.4.0'
 
 export interface Tier {
   id: string
@@ -57,12 +57,12 @@ export const DEFAULT_THEME: 'light' | 'dark' = 'light'
 export const DATA_RETENTION_MS = 60 * 60 * 1000
 
 /**
- * Whether the Sales Kitty easter egg wanders the app by default (change this
+ * Whether Kleon, the floating robot easter egg, roams the app by default (change this
  * constant to flip it). Only applies until a user toggles it in Settings; that
- * choice is saved in their browser and wins over this default. The cat is
+ * choice is saved in their browser and wins over this default. Kleon is
  * never shown on the Sale Assistant tab regardless (see app/page.tsx).
  */
-export const DEFAULT_KITTY_ENABLED = true
+export const DEFAULT_ROBOT_ENABLED = true
 
 /**
  * Center names shown in the Bulk Results "Center-wise Stats" section.

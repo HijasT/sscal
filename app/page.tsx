@@ -7,15 +7,15 @@ import { SaleAssistantTab } from '@/components/tabs/SaleAssistantTab'
 import { SettingsTab } from '@/components/tabs/SettingsTab'
 import { AboutTab } from '@/components/tabs/AboutTab'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
-import { Kitty } from '@/components/Kitty'
+import { Robot } from '@/components/Robot'
 import { DataExpiryTimer } from '@/components/DataExpiryTimer'
 import { purgeExpiredData } from '@/lib/storage'
-import { APP_VERSION, DEFAULT_THEME, DEFAULT_KITTY_ENABLED } from '@/lib/config'
+import { APP_VERSION, DEFAULT_THEME, DEFAULT_ROBOT_ENABLED } from '@/lib/config'
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('bulk')
   const [theme, setTheme] = useState<'light' | 'dark'>(DEFAULT_THEME)
-  const [kittyEnabled, setKittyEnabled] = useState(DEFAULT_KITTY_ENABLED)
+  const [robotEnabled, setRobotEnabled] = useState(DEFAULT_ROBOT_ENABLED)
 
   useEffect(() => {
     const saved = localStorage.getItem('sic_theme') as 'light' | 'dark' | null
@@ -30,8 +30,9 @@ export default function Home() {
       document.body.classList.remove('light-mode')
     }
 
-    const savedKitty = localStorage.getItem('sic_kitty_enabled')
-    if (savedKitty !== null) setKittyEnabled(savedKitty === 'true')
+    // 'sic_kitty_enabled' is the pre-10.4 name of this setting.
+    const savedRobot = localStorage.getItem('sic_robot_enabled') ?? localStorage.getItem('sic_kitty_enabled')
+    if (savedRobot !== null) setRobotEnabled(savedRobot === 'true')
   }, [])
 
   // Delete entered/uploaded data that is already past the retention period
@@ -47,20 +48,20 @@ export default function Home() {
     localStorage.setItem('sic_theme', next)
   }
 
-  const toggleKitty = (enabled: boolean) => {
-    setKittyEnabled(enabled)
-    localStorage.setItem('sic_kitty_enabled', String(enabled))
+  const toggleRobot = (enabled: boolean) => {
+    setRobotEnabled(enabled)
+    localStorage.setItem('sic_robot_enabled', String(enabled))
   }
 
   return (
     <div className="container">
-      {/* No cat on the Sale Assistant tab: it may be in front of a customer. */}
-      {kittyEnabled && activeTab !== 'sale-assistant' && <Kitty />}
+      {/* No robot on the Sale Assistant tab: it may be in front of a customer. */}
+      {robotEnabled && activeTab !== 'sale-assistant' && <Robot />}
       <header className="header">
         <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
           {theme === 'dark' ? <MoonIcon large /> : <SunIcon large />}
         </button>
-        <h1>Smart Incentive Calculator</h1>
+        <h1>K’Nomics</h1>
         <p className="subtitle">v{APP_VERSION}</p>
         <DataExpiryTimer />
       </header>
@@ -110,7 +111,7 @@ export default function Home() {
         </ErrorBoundary>
       )}
       {activeTab === 'settings'       && (
-        <SettingsTab kittyEnabled={kittyEnabled} onToggleKitty={toggleKitty} />
+        <SettingsTab robotEnabled={robotEnabled} onToggleRobot={toggleRobot} />
       )}
       {activeTab === 'about'          && <AboutTab />}
     </div>

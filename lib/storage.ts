@@ -3,7 +3,7 @@
  * uploads (Excel workbook, last calculation, Individual inputs, Sale Assistant
  * selection). Each key gets a sibling "<key>__saved_at" timestamp; anything
  * older than DATA_RETENTION_MS — or with no timestamp — is removed on read and
- * by purgeExpiredData(). Preferences (theme, tiers, staff centers, kitty) are
+ * by purgeExpiredData(). Preferences (theme, tiers, staff centers, robot) are
  * not covered: they are configuration, not user data.
  */
 import { DATA_RETENTION_MS } from './config'
