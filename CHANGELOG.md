@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.1.0]
+
+### Added
+- **Entered and uploaded data now expires after 1 hour** (privacy). This covers the Bulk Excel upload and last calculation (`sic_bulk_upload`, `sic_bulk_results`), the Individual inputs and the Sale Assistant selection. The clock restarts whenever the data changes, so active use keeps it; reloading the page does not. Expired data is deleted on read, on load and by a once-a-minute check, which reloads an open page that has gone stale. Change the period with `DATA_RETENTION_MS` in `lib/config.ts`; the logic lives in the new `lib/storage.ts`.
+
+### Changed
+- Data saved by earlier versions has no timestamp, so it is deleted the first time 10.1.0 loads. Re-upload the workbook once.
+- Preferences are not affected: theme, Kitty setting, incentive tiers and staff-center allocation are kept.
+
 ## [10.0.0]
 
 ### Removed

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { parseExcelFile, pickDefaultMonth, type ExcelData } from '@/lib/excelUtils'
 import { BulkResultsView } from './BulkResultsView'
 import { BarChartIcon, UploadIcon } from '@/components/icons'
+import { getFresh, setFresh } from '@/lib/storage'
 
 type ViewMode = 'monthly' | 'q1' | 'q2' | 'q3' | 'q4' | 'h1' | 'h2' | 'yearly' | 'alltime'
 
@@ -24,7 +25,7 @@ interface PersistedUpload {
 function loadPersistedUpload(): Partial<PersistedUpload> {
   if (typeof window === 'undefined') return {}
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    const stored = getFresh('local', STORAGE_KEY)
     return stored ? JSON.parse(stored) : {}
   } catch {
     return {}
@@ -60,7 +61,7 @@ export function BulkTab() {
   // data with the SSR-safe defaults before they've been applied.
   useEffect(() => {
     if (!hasHydrated || typeof window === 'undefined') return
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ excelData, viewMode, selectedMonth, selectedYear }))
+    setFresh('local', STORAGE_KEY, JSON.stringify({ excelData, viewMode, selectedMonth, selectedYear }))
   }, [hasHydrated, excelData, viewMode, selectedMonth, selectedYear])
 
   // Extract available years from excelData

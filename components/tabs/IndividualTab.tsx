@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { DEFAULT_P1_SPLIT, DEFAULT_STAFF_COUNT } from '@/lib/config'
+import { getFresh, setFresh } from '@/lib/storage'
 import { calculateIncentive, formatCurrency, type CalculationResult } from '@/lib/utils'
 
 // Persists in-progress form inputs so switching tabs and coming back doesn't
@@ -18,7 +19,7 @@ interface PersistedInputs {
 function loadPersistedInputs(): Partial<PersistedInputs> {
   if (typeof window === 'undefined') return {}
   try {
-    const stored = sessionStorage.getItem(STORAGE_KEY)
+    const stored = getFresh('session', STORAGE_KEY)
     return stored ? JSON.parse(stored) : {}
   } catch {
     return {}
@@ -36,7 +37,7 @@ export function IndividualTab() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ teamTarget, teamSales, mySales, staffCount, p1Split }))
+    setFresh('session', STORAGE_KEY, JSON.stringify({ teamTarget, teamSales, mySales, staffCount, p1Split }))
   }, [teamTarget, teamSales, mySales, staffCount, p1Split])
 
   const calculate = () => {

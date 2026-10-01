@@ -42,6 +42,7 @@ import {
   type QuoteLine,
   type DiscountType,
 } from '@/lib/catalogueUtils'
+import { getFresh, setFresh } from '@/lib/storage'
 
 const ALL = 'All'
 const QUOTE_KEY = 'sic_sale_quote'
@@ -118,7 +119,7 @@ export function SaleAssistantTab() {
   // Rehydrate the selection + gender from sessionStorage on mount.
   useEffect(() => {
     try {
-      const raw = sessionStorage.getItem(QUOTE_KEY)
+      const raw = getFresh('session', QUOTE_KEY)
       if (raw) {
         const stored = JSON.parse(raw)
         if (stored?.gender === 'W' || stored?.gender === 'M') setGender(stored.gender)
@@ -157,7 +158,7 @@ export function SaleAssistantTab() {
           discountValue: l.discountValue,
         })),
       }
-      sessionStorage.setItem(QUOTE_KEY, JSON.stringify(payload))
+      setFresh('session', QUOTE_KEY, JSON.stringify(payload))
     } catch {
       /* ignore */
     }

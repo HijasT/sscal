@@ -7,6 +7,7 @@ import {
   backupStaffCenters, loadStaffCentersBackup, clearStaffCentersBackup,
 } from '@/lib/utils'
 import { CENTERS, STAFF_CENTERS, DEFAULT_TIERS, type Tier } from '@/lib/config'
+import { getFresh } from '@/lib/storage'
 import { extractEmployeeCode, stripEmployeeCode, type ExcelData } from '@/lib/excelUtils'
 import { SlidersIcon, SaveIcon, BarChartIcon } from '@/components/icons'
 
@@ -26,7 +27,7 @@ const BULK_UPLOAD_KEY = 'sic_bulk_upload'
 function loadCodeToName(): Record<string, string> {
   if (typeof window === 'undefined') return {}
   try {
-    const stored = localStorage.getItem(BULK_UPLOAD_KEY)
+    const stored = getFresh('local', BULK_UPLOAD_KEY)
     if (!stored) return {}
     const excelData: ExcelData[] = JSON.parse(stored).excelData ?? []
     const map: Record<string, string> = {}

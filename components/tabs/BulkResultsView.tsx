@@ -4,6 +4,7 @@ import { aggregateSheets, extractEmployeeCode, type ExcelData, type StaffData } 
 import { calculateIncentive, formatCurrency, getTier, loadTiers, loadStaffCenters } from '@/lib/utils'
 import { exportBulkToPDF } from '@/lib/pdfUtils'
 import { DEFAULT_P1_SPLIT, CENTERS } from '@/lib/config'
+import { getFresh, setFresh } from '@/lib/storage'
 import { DownloadIcon } from '@/components/icons'
 import { CenterBadge } from '@/components/CenterBadge'
 
@@ -73,7 +74,7 @@ interface PersistedResults {
 function loadPersistedResults(): Partial<PersistedResults> {
   if (typeof window === 'undefined') return {}
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    const stored = getFresh('local', STORAGE_KEY)
     return stored ? JSON.parse(stored) : {}
   } catch {
     return {}
@@ -95,7 +96,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   // Persist the last calculation so it survives a tab switch/remount.
   useEffect(() => {
     if (typeof window === 'undefined') return
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    setFresh('local', STORAGE_KEY, JSON.stringify({
       target, autoTarget, staffCount, p1Split, results, calculatedData,
       excludedStaff: Array.from(excludedStaff),
     }))

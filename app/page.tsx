@@ -8,6 +8,7 @@ import { SettingsTab } from '@/components/tabs/SettingsTab'
 import { AboutTab } from '@/components/tabs/AboutTab'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Kitty } from '@/components/Kitty'
+import { purgeExpiredData } from '@/lib/storage'
 import { APP_VERSION, DEFAULT_THEME, DEFAULT_KITTY_ENABLED } from '@/lib/config'
 
 export default function Home() {
@@ -30,6 +31,17 @@ export default function Home() {
 
     const savedKitty = localStorage.getItem('sic_kitty_enabled')
     if (savedKitty !== null) setKittyEnabled(savedKitty === 'true')
+  }, [])
+
+  // Delete entered/uploaded data once it is older than the retention period
+  // (lib/config.ts). Checked on load and every minute; if an open session
+  // goes stale, reload so nothing expired stays on screen.
+  useEffect(() => {
+    purgeExpiredData()
+    const timer = setInterval(() => {
+      if (purgeExpiredData()) window.location.reload()
+    }, 60_000)
+    return () => clearInterval(timer)
   }, [])
 
   const toggleTheme = () => {

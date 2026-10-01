@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { stripEmployeeCode } from '@/lib/excelUtils'
+import { getFresh } from '@/lib/storage'
 
 // Idle commentary while wandering, before the team has hit 100% of target.
 const BEFORE_100_COMMENTS = [
@@ -157,7 +158,7 @@ function pickRandom<T>(list: T[], exclude?: T): T {
 function getRandomStaffFirstName(): string | null {
   if (typeof window === 'undefined') return null
   try {
-    const stored = localStorage.getItem('sic_bulk_upload')
+    const stored = getFresh('local', 'sic_bulk_upload')
     if (!stored) return null
     const parsed = JSON.parse(stored)
     const sheets = parsed?.excelData
@@ -185,7 +186,7 @@ function getRandomStaffFirstName(): string | null {
 function getLatestTeamAchievement(): number | null {
   if (typeof window === 'undefined') return null
   try {
-    const stored = localStorage.getItem('sic_bulk_results')
+    const stored = getFresh('local', 'sic_bulk_results')
     if (!stored) return null
     const achievement = JSON.parse(stored)?.calculatedData?.teamAchievement
     return typeof achievement === 'number' ? achievement : null
