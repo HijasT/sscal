@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.5.1]
+
+### Changed
+- Kleon is calmer: after its first placement it stays put for 45-120 seconds (40 when powered down) and each drift covers at most about 220px at a slower speed, instead of crossing the page.
+
+### Fixed
+- Settings: the Preferences heading still showed a cat emoji; it now uses a drawn icon like the other Settings cards.
+
 ## [10.5.0]
 
 ### Added

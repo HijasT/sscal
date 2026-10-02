@@ -64,14 +64,16 @@ const MARGIN = 16
 
 // Slow, constant drift speed (px/sec); duration is derived from distance so
 // short and long moves feel equally lazy. Moves ease in and out, and the next
-// one starts only after a long stay in place, so it drifts rarely instead of constantly.
-const FLOAT_SPEED_PX_PER_S = 40
+// one starts only after a long stay in place and only travels a short way.
+const FLOAT_SPEED_PX_PER_S = 30
 const MIN_FLOAT_MS = 3000
-const MAX_FLOAT_MS = 9000
-const HOVER_MIN_MS = 15000
-const HOVER_MAX_MS = 35000
-const STANDBY_MS = 20000
+const MAX_FLOAT_MS = 8000
+const HOVER_MIN_MS = 45000
+const HOVER_MAX_MS = 120000
+const STANDBY_MS = 40000
 const STANDBY_CHANCE = 0.25
+// After the first placement each move is a short drift, not a trip across the page.
+const DRIFT_RADIUS_PX = 220
 // Comments only fire this often (or less) — anything shorter feels like nagging.
 const COMMENT_INTERVAL_MS = 20000
 const BUBBLE_MS = 5000
@@ -86,6 +88,16 @@ function randomPoint() {
     x: MARGIN + Math.random() * (maxX - MARGIN),
     y: MARGIN + Math.random() * (maxY - MARGIN),
   }
+}
+
+// A point within DRIFT_RADIUS_PX of `from`, kept on screen.
+function nearbyPoint(from: { x: number; y: number }) {
+  const target = randomPoint()
+  const dx = target.x - from.x
+  const dy = target.y - from.y
+  const dist = Math.hypot(dx, dy) || 1
+  const scale = Math.min(1, DRIFT_RADIUS_PX / dist)
+  return { x: from.x + dx * scale, y: from.y + dy * scale }
 }
 
 function pickRandom<T>(list: T[], exclude?: T): T {
@@ -228,9 +240,10 @@ export function Robot() {
       schedule(float, HOVER_MIN_MS + Math.random() * (HOVER_MAX_MS - HOVER_MIN_MS))
     }
 
+    let moves = 0
     const float = () => {
       const prev = posRef.current
-      const next = randomPoint()
+      const next = moves++ === 0 ? randomPoint() : nearbyPoint(prev)
       const distance = Math.hypot(next.x - prev.x, next.y - prev.y)
       const duration = Math.min(MAX_FLOAT_MS, Math.max(MIN_FLOAT_MS, (distance / FLOAT_SPEED_PX_PER_S) * 1000))
 

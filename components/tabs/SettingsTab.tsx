@@ -9,7 +9,7 @@ import {
 import { CENTERS, STAFF_CENTERS, DEFAULT_TIERS, type Tier } from '@/lib/config'
 import { getFresh } from '@/lib/storage'
 import { extractEmployeeCode, stripEmployeeCode, type ExcelData } from '@/lib/excelUtils'
-import { SlidersIcon, SaveIcon, BarChartIcon } from '@/components/icons'
+import { SlidersIcon, SaveIcon, BarChartIcon, SunIcon } from '@/components/icons'
 
 interface StaffCenterEntry {
   code: string
@@ -590,7 +590,7 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
 
     <section className="card" style={{marginTop: '24px'}}>
       <div className="card-header">
-        <h2 className="card-title">🐈 Preferences</h2>
+        <h2 className="card-title"><SunIcon className="icon-lg" />Preferences</h2>
         <div className="card-description">
           Small extras that don't affect any calculation
         </div>
