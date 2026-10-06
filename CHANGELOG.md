@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.6.1]
+
+### Changed
+- Package details now group blood markers by their profile/panel name (e.g. "Liver Profile" then its markers) instead of one flat list under the package's umbrella panel, for a cleaner read. Verified the five core screenings' markers against the source catalogue — they match.
+
 ## [10.6.0]
 
 ### Added

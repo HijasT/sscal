@@ -25,7 +25,7 @@ import {
   getServiceById,
   searchServices,
   groupComps,
-  getPanelTests,
+  groupServiceTests,
   serviceGender,
   suggestPackage,
   suggestPartialPackage,
@@ -965,8 +965,9 @@ function ServiceRow({
   onToggleQuote: () => void
 }) {
   const groups = useMemo(() => groupComps(service), [service])
+  // Markers grouped by their profile/panel name (Liver Profile, Thyroid Profile, …).
   const panelBreakdown = useMemo(
-    () => (expanded ? service.panels.map((pn) => ({ name: pn, tests: getPanelTests(pn) })) : []),
+    () => (expanded ? groupServiceTests(service) : []),
     [service, expanded]
   )
   const detailId = `sa-d-${service.id}`
@@ -1031,9 +1032,9 @@ function ServiceRow({
                   <h4 className="sa-subhead">Blood panels ({panelBreakdown.length})</h4>
                   <div className="sa-stack">
                     {panelBreakdown.map((p) => (
-                      <div key={p.name}>
+                      <div key={p.group}>
                         <h4>
-                          {p.name} <span className="sa-muted sa-fig">{p.tests.length}</span>
+                          {p.group} <span className="sa-muted sa-fig">{p.tests.length}</span>
                         </h4>
                         <div className="sa-markers">
                           {p.tests.map((t, i) => (
