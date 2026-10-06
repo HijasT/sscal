@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.9.1]
+
+### Changed
+- **Privacy notice is now uniform across tabs.** The Calculator's notice uses the same font size, weight, and lock-icon size as the Sale Assistant's.
+- **Even vertical rhythm.** Heading → privacy notice → pill now use the same 24px spacing in both the Calculator and Sale Assistant tabs.
+
 ## [10.9.0]
 
 ### Added

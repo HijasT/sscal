@@ -166,7 +166,7 @@ body {
 /* Bulk / Individual switch inside the Calculator tab. */
 .calc-switch {
   display: inline-flex;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   border: 1px solid var(--border-color);
   border-radius: 999px;
   overflow: hidden;
@@ -336,11 +336,11 @@ body {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   margin-bottom: 24px;
-  font-size: 13px;
+  font-size: 0.875rem;
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 400;
 }
-.privacy-notice .icon { margin: 1px 0 0; color: var(--accent-primary); }
+.privacy-notice .icon { width: 20px; height: 20px; margin: 1px 0 0; color: var(--accent-primary); }
 
 .privacy-icon {
   font-size: 18px;
