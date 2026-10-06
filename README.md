@@ -1,4 +1,4 @@
-# K’Nomics - Next.js Version
+# Kleon - Next.js Version
 
 ## 🎯 Direct Conversion from HTML
 

@@ -63,7 +63,7 @@ export default function Home() {
         <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
           {theme === 'dark' ? <MoonIcon large className="moon-glow" /> : <SunIcon large />}
         </button>
-        <h1>K’Nomics</h1>
+        <h1>Kleon</h1>
         <p className="subtitle">v{APP_VERSION}</p>
         <DataExpiryTimer />
       </header>

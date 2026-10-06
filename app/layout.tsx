@@ -9,8 +9,8 @@ import { DEFAULT_THEME } from '@/lib/config'
 const themeScript = `try{var t=localStorage.getItem('sic_theme')||'${DEFAULT_THEME}';if(t==='light')document.body.classList.add('light-mode')}catch(e){if('${DEFAULT_THEME}'==='light')document.body.classList.add('light-mode')}`
 
 export const metadata: Metadata = {
-  title: 'K’Nomics',
-  description: 'K’Nomics - Track sales performance, incentives, and achievements',
+  title: 'Kleon',
+  description: 'Kleon - Track sales performance, incentives, and achievements',
   manifest: '/manifest.json',
   icons: {
     icon: '/favicon.svg',

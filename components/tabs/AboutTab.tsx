@@ -5,7 +5,7 @@ export function AboutTab() {
     <section className="card">
       <div style={{padding: '20px'}}>
         <h2 style={{color: 'var(--accent-primary)', marginBottom: '12px', fontSize: '20px'}}>
-          {`K’Nomics v${APP_VERSION}`}
+          {`Kleon v${APP_VERSION}`}
         </h2>
         <p style={{color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: '1.8'}}>
           A comprehensive tool for calculating sales incentives based on team performance and achievement tiers,

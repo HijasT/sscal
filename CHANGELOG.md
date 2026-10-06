@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.10.0]
+
+### Changed
+- **The app is now called Kleon** (header, browser title, install name, About, README, package name) — taking the name of the floating robot mascot. The internal storage keys keep their `sic_` prefix, so nothing saved is lost.
+
 ## [10.9.1]
 
 ### Changed
