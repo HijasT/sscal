@@ -158,6 +158,82 @@ export function groupServiceTests(
   return order.map((g) => ({ group: g, tests: map.get(g)! }))
 }
 
+export interface MarkerSection {
+  /** Section heading, or null for a package shown as a single unlabelled list. */
+  label: string | null
+  groups: { group: string; tests: CatalogueTest[] }[]
+}
+
+/** Source panels used to tell a food-allergy marker from a food-intolerance one. */
+const FOOD_ALLERGY_PANEL = 'Food Allergy Panel'
+const FOOD_INTOLERANCE_PANEL = 'Food Intolerance Panel'
+
+/** Group a list of test ids by their profile group, de-duplicated by name,
+ *  in first-appearance order. */
+function groupTestIds(ids: number[]): { group: string; tests: CatalogueTest[] }[] {
+  const order: string[] = []
+  const map = new Map<string, CatalogueTest[]>()
+  const seen = new Set<string>()
+  for (const id of ids) {
+    const t = data.tests[String(id)]
+    if (!t || seen.has(t.name)) continue
+    seen.add(t.name)
+    const g = t.group || 'Other'
+    if (!map.has(g)) { map.set(g, []); order.push(g) }
+    map.get(g)!.push(t)
+  }
+  return order.map((g) => ({ group: g, tests: map.get(g)! }))
+}
+
+/** Ordered, de-duplicated test ids across a service's panels. */
+function orderedServiceTestIds(service: CatalogueService): number[] {
+  const seen = new Set<number>()
+  const out: number[] = []
+  for (const panelName of service.panels) {
+    const panel = data.panels[panelName]
+    if (!panel) continue
+    for (const id of panel.tests) if (!seen.has(id)) { seen.add(id); out.push(id) }
+  }
+  return out
+}
+
+/**
+ * A package's markers for display: usually one unlabelled section grouped by
+ * profile. But any package that includes BOTH the food-allergy and the
+ * food-intolerance panels (the bundle, and everything built on it — Ultimate
+ * Gut Health, Dubai It, HEALTHMAXXING) gets its food markers split into labelled
+ * "Food Allergy" and "Food Intolerance" sections, since those two panels share
+ * ~39 marker names (Apple, Anchovy…) that would otherwise merge into one and
+ * hide which is which. The non-food markers stay in the leading main section.
+ */
+export function markerSections(service: CatalogueService): MarkerSection[] {
+  const allergyIds = new Set(data.panels[FOOD_ALLERGY_PANEL]?.tests ?? [])
+  const intolIds = new Set(data.panels[FOOD_INTOLERANCE_PANEL]?.tests ?? [])
+
+  const allergy: number[] = []
+  const intolerance: number[] = []
+  const other: number[] = []
+  for (const id of orderedServiceTestIds(service)) {
+    if (allergyIds.has(id)) allergy.push(id)
+    else if (intolIds.has(id)) intolerance.push(id)
+    else other.push(id)
+  }
+
+  // Only split when both kinds are present; otherwise a single plain list
+  // (keeps standalone Food Allergy / Food Intolerance tests as they were).
+  if (allergy.length === 0 || intolerance.length === 0) {
+    const groups = groupServiceTests(service)
+    return groups.length ? [{ label: null, groups }] : []
+  }
+
+  const sections: MarkerSection[] = []
+  const otherGroups = groupTestIds(other)
+  if (otherGroups.length) sections.push({ label: null, groups: otherGroups })
+  sections.push({ label: 'Food Allergy', groups: groupTestIds(allergy) })
+  sections.push({ label: 'Food Intolerance', groups: groupTestIds(intolerance) })
+  return sections
+}
+
 // ---------- bundle (comprehensive-package) suggestions ----------
 
 /** Set of resolved lab-test ids a service includes (across all its panels). */

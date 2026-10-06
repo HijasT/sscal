@@ -25,7 +25,7 @@ import {
   getServiceById,
   searchServices,
   groupComps,
-  groupServiceTests,
+  markerSections,
   serviceGender,
   suggestPackage,
   suggestPartialPackage,
@@ -758,11 +758,13 @@ function ComparePanel() {
   const a = aId != null ? getServiceById(aId) : undefined
   const b = bId != null ? getServiceById(bId) : undefined
 
-  // Items in the first package that the second is missing (markers + DNA modules).
-  const missingFrom = (from?: CatalogueService, within?: CatalogueService) =>
-    from && within ? [...excludedMarkers([from], [within]), ...excludedDnaModules([from], [within])] : []
-  const aOnly = missingFrom(a, b)
-  const bOnly = missingFrom(b, a)
+  // What the first package has that the second is missing — collapsing any
+  // complete individual package into its name (the same helper the suggestion
+  // uses), with the leftover markers/DNA modules listed individually.
+  const diffItems = (from?: CatalogueService, within?: CatalogueService): ExtraItem[] =>
+    from && within ? getSuggestionExtras([within], from) : []
+  const aItems = diffItems(a, b)
+  const bItems = diffItems(b, a)
   const same = Boolean(a && b && a.id === b.id)
 
   const picker = (
@@ -793,24 +795,34 @@ function ComparePanel() {
     </div>
   )
 
-  const diffColumn = (self?: CatalogueService, other?: CatalogueService, only?: string[]) => (
+  const diffColumn = (self?: CatalogueService, other?: CatalogueService, items?: ExtraItem[]) => {
+    const pkgs = items!.filter((it) => it.complete)
+    const loose = items!.filter((it) => !it.complete).flatMap((it) => it.markers)
+    const count = pkgs.length + loose.length
+    return (
     <div>
       <h4 className="sa-subhead">
-        Only in {self!.name} <span className="sa-muted sa-fig">{only!.length}</span>
+        Only in {self!.name} <span className="sa-muted sa-fig">{count}</span>
       </h4>
-      {only!.length === 0 ? (
+      {count === 0 ? (
         <p className="sa-muted">{other!.name} already covers everything in {self!.name}.</p>
       ) : (
         <div className="sa-markers">
-          {only!.map((m, i) => (
-            <span key={i} className="sa-marker">
+          {pkgs.map((it, i) => (
+            <span key={`p${i}`} className="sa-marker sa-marker-pkg">
+              {it.label}
+            </span>
+          ))}
+          {loose.map((m, i) => (
+            <span key={`m${i}`} className="sa-marker">
               {m}
             </span>
           ))}
         </div>
       )}
     </div>
-  )
+    )
+  }
 
   return (
     <div className="sa-compare-body">
@@ -825,8 +837,8 @@ function ComparePanel() {
         <p className="sa-muted">Those are the same package — pick two different ones to compare.</p>
       ) : (
         <div className="sa-compare-diff">
-          {diffColumn(a, b, aOnly)}
-          {diffColumn(b, a, bOnly)}
+          {diffColumn(a, b, aItems)}
+          {diffColumn(b, a, bItems)}
         </div>
       )}
     </div>
@@ -965,11 +977,10 @@ function ServiceRow({
   onToggleQuote: () => void
 }) {
   const groups = useMemo(() => groupComps(service), [service])
-  // Markers grouped by their profile/panel name (Liver Profile, Thyroid Profile, …).
-  const panelBreakdown = useMemo(
-    () => (expanded ? groupServiceTests(service) : []),
-    [service, expanded]
-  )
+  // Markers grouped by their profile/panel name (Liver Profile, Thyroid Profile, …),
+  // split into labelled sections where it helps (food allergy vs intolerance).
+  const sections = useMemo(() => (expanded ? markerSections(service) : []), [service, expanded])
+  const panelCount = useMemo(() => sections.reduce((n, s) => n + s.groups.length, 0), [sections])
   const detailId = `sa-d-${service.id}`
 
   return (
@@ -1008,7 +1019,7 @@ function ServiceRow({
 
       {expanded && (
         <div id={detailId} className="sa-pkg-detail">
-          {groups.length === 0 && panelBreakdown.length === 0 ? (
+          {groups.length === 0 && panelCount === 0 ? (
             <p className="sa-muted">No breakdown available for this package.</p>
           ) : (
             <>
@@ -1027,22 +1038,27 @@ function ServiceRow({
                 </div>
               ))}
 
-              {panelBreakdown.length > 0 && (
+              {panelCount > 0 && (
                 <div>
-                  <h4 className="sa-subhead">Blood panels ({panelBreakdown.length})</h4>
+                  <h4 className="sa-subhead">Blood panels ({panelCount})</h4>
                   <div className="sa-stack">
-                    {panelBreakdown.map((p) => (
-                      <div key={p.group}>
-                        <h4>
-                          {p.group} <span className="sa-muted sa-fig">{p.tests.length}</span>
-                        </h4>
-                        <div className="sa-markers">
-                          {p.tests.map((t, i) => (
-                            <span key={i} className="sa-marker">
-                              {t.name}
-                            </span>
-                          ))}
-                        </div>
+                    {sections.map((sec, si) => (
+                      <div key={sec.label ?? `main-${si}`} className="sa-stack">
+                        {sec.label && <h4 className="sa-section-label">{sec.label}</h4>}
+                        {sec.groups.map((p) => (
+                          <div key={p.group}>
+                            <h4>
+                              {p.group} <span className="sa-muted sa-fig">{p.tests.length}</span>
+                            </h4>
+                            <div className="sa-markers">
+                              {p.tests.map((t, i) => (
+                                <span key={i} className="sa-marker">
+                                  {t.name}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     ))}
                   </div>

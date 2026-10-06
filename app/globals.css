@@ -163,6 +163,34 @@ body {
   filter: drop-shadow(0 0 5px rgba(244, 241, 220, 0.65));
 }
 
+/* Bulk / Individual switch inside the Calculator tab. */
+.calc-switch {
+  display: inline-flex;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.calc-switch button {
+  padding: 9px 22px;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+.calc-switch button[aria-pressed='true'] {
+  background: var(--accent-primary);
+  color: #fff;
+}
+.calc-switch button:not([aria-pressed='true']):hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
 .settings-toggle-row {
   display: flex;
   align-items: center;
@@ -1494,6 +1522,8 @@ body.light-mode .sa {
 
 .sa-markers { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 0 12px; }
 .sa-marker { font-size: 0.8125rem; padding: 3px 9px; border-radius: 6px; background: var(--sa-sunk); border: 1px solid var(--sa-hairline); color: var(--sa-ink-soft); }
+/* A diff chip that stands for a whole individual package, not a single marker. */
+.sa-marker-pkg { background: var(--sa-violet-wash); border-color: var(--sa-violet-text); color: var(--sa-violet-text); font-weight: 600; }
 
 .sa-warn { border: 1px solid var(--sa-ochre); border-radius: 8px; background: var(--sa-ochre-wash); padding: 12px 14px 2px; }
 .sa-warn-title { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-weight: 600; }
@@ -1515,6 +1545,10 @@ body.light-mode .sa {
 .sa-pkg-price { font-weight: 700; margin-right: 4px; }
 .sa-pkg-detail { padding: 16px; display: grid; gap: 18px; border-top: 1px solid var(--sa-hairline); }
 .sa-stack { display: grid; gap: 16px; }
+.sa h4.sa-section-label {
+  font-size: 1rem; color: var(--sa-violet-text);
+  padding-bottom: 6px; margin-bottom: 2px; border-bottom: 1px solid var(--sa-hairline);
+}
 .sa-kv { display: grid; }
 .sa-kv > div { display: flex; justify-content: space-between; gap: 16px; padding: 6px 0; border-bottom: 1px solid var(--sa-hairline); }
 .sa-kv > div:last-child { border-bottom: 0; }

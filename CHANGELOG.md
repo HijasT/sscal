@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.7.0]
+
+### Changed
+- **Calculator tab.** The "Bulk" tab is now "Calculator", and the Individual calculator moved inside it as a Bulk / Individual switch (defaults to Bulk). One fewer top-level tab; both calculators are still a click away.
+- **Food allergy vs intolerance are now separated.** Any package that includes both the food-allergy and food-intolerance panels (the bundle, and everything built on it — Ultimate Gut Health, Dubai It, HEALTHMAXXING) now shows its food markers under separate "Food Allergy" and "Food Intolerance" sections in the details. This also restores ~39 markers (Apple, Anchovy, …) that exist in both panels and were previously collapsed into one.
+- **Compare collapses whole packages.** When the markers unique to one package make up a complete individual package, Compare now shows that package's name instead of the full marker list, listing only the leftover markers.
+
 ## [10.6.1]
 
 ### Changed

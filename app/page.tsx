@@ -13,7 +13,9 @@ import { purgeExpiredData } from '@/lib/storage'
 import { APP_VERSION, DEFAULT_THEME, DEFAULT_ROBOT_ENABLED } from '@/lib/config'
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('bulk')
+  const [activeTab, setActiveTab] = useState('calculator')
+  // Within the Calculator tab: bulk (team Excel upload) or individual (manual).
+  const [calcMode, setCalcMode] = useState<'bulk' | 'individual'>('bulk')
   const [theme, setTheme] = useState<'light' | 'dark'>(DEFAULT_THEME)
   const [robotEnabled, setRobotEnabled] = useState(DEFAULT_ROBOT_ENABLED)
 
@@ -68,16 +70,10 @@ export default function Home() {
 
       <nav className="nav-tabs">
         <button
-          className={`nav-tab ${activeTab === 'bulk' ? 'active' : ''}`}
-          onClick={() => setActiveTab('bulk')}
+          className={`nav-tab ${activeTab === 'calculator' ? 'active' : ''}`}
+          onClick={() => setActiveTab('calculator')}
         >
-          Bulk
-        </button>
-        <button
-          className={`nav-tab ${activeTab === 'individual' ? 'active' : ''}`}
-          onClick={() => setActiveTab('individual')}
-        >
-          Individual
+          Calculator
         </button>
         <button
           className={`nav-tab ${activeTab === 'sale-assistant' ? 'active' : ''}`}
@@ -99,15 +95,36 @@ export default function Home() {
         </button>
       </nav>
 
-      {activeTab === 'individual'     && <IndividualTab />}
+      {activeTab === 'calculator' && (
+        <>
+          <div className="calc-switch" role="group" aria-label="Calculator mode">
+            <button
+              type="button"
+              aria-pressed={calcMode === 'bulk'}
+              onClick={() => setCalcMode('bulk')}
+            >
+              Bulk
+            </button>
+            <button
+              type="button"
+              aria-pressed={calcMode === 'individual'}
+              onClick={() => setCalcMode('individual')}
+            >
+              Individual
+            </button>
+          </div>
+          {calcMode === 'bulk' ? (
+            <ErrorBoundary label="Bulk tab">
+              <BulkTab />
+            </ErrorBoundary>
+          ) : (
+            <IndividualTab />
+          )}
+        </>
+      )}
       {activeTab === 'sale-assistant' && (
         <ErrorBoundary label="Sale Assistant tab">
           <SaleAssistantTab />
-        </ErrorBoundary>
-      )}
-      {activeTab === 'bulk' && (
-        <ErrorBoundary label="Bulk tab">
-          <BulkTab />
         </ErrorBoundary>
       )}
       {activeTab === 'settings'       && (
