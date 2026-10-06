@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.8.1]
+
+### Changed
+- Card description panels (e.g. the Calculator's "Upload your Excel file…" line) now use a flat 1px hairline instead of a violet left-accent bar, matching the privacy notice above them and the flat, one-accent design direction.
+
 ## [10.8.0]
 
 ### Added

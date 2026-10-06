@@ -375,7 +375,7 @@ body {
   padding: 14px 16px;
   background: var(--bg-tertiary);
   border-radius: var(--radius-md);
-  border-left: 3px solid var(--accent-primary);
+  border: 1px solid var(--border-color);
 }
 
 .form-grid {
