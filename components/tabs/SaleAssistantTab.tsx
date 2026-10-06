@@ -28,6 +28,7 @@ import {
   getPanelTests,
   serviceGender,
   suggestPackage,
+  suggestPartialPackage,
   getSuggestionExtras,
   excludedMarkers,
   excludedDnaModules,
@@ -72,6 +73,7 @@ export function SaleAssistantTab() {
   // any other edit to the selection, so Undo only ever restores that exact state.
   const [undo, setUndo] = useState<{ lines: QuoteLine[]; name: string } | null>(null)
   const [ladderOpen, setLadderOpen] = useState(false)
+  const [compareOpen, setCompareOpen] = useState(false)
   const [suggDiscOpen, setSuggDiscOpen] = useState(false)
   const [openExtra, setOpenExtra] = useState<number | null>(null)
   const [hydrated, setHydrated] = useState(false)
@@ -99,6 +101,13 @@ export function SaleAssistantTab() {
   const selServices = useMemo(() => lines.map((l) => l.service), [lines])
   const totalsSel = useMemo(() => quoteTotals(lines), [lines])
   const suggestion = useMemo(() => suggestPackage(selServices, gender), [selServices, gender])
+  // Partial combined-package suggestion: covers most (not all) of the selection,
+  // leaving the rest as individual lines. Hidden when it's the same package as the
+  // full-cover suggestion (then it's not actually partial).
+  const partial = useMemo(() => {
+    const p = suggestPartialPackage(selServices, gender)
+    return p && p.service.id !== suggestion?.id ? p : null
+  }, [selServices, gender, suggestion])
   const suggestionLine: QuoteLine | null = suggestion
     ? { service: suggestion, qty: 1, discountType: suggDiscount.type, discountValue: suggDiscount.value }
     : null
@@ -208,6 +217,18 @@ export function SaleAssistantTab() {
     setLines([{ service: suggestion, qty: 1, discountType: 'pct', discountValue: 0 }])
   }
 
+  // Swap ONLY the covered packages for the combined one, keeping the rest as
+  // individual lines (becomes combined + individual). Undoable like a full replace.
+  const applyPartialSuggestion = () => {
+    if (!partial) return
+    const covered = new Set(partial.coveredIds)
+    setUndo({ lines, name: partial.service.name })
+    setLines((prev) => [
+      { service: partial.service, qty: 1, discountType: 'pct', discountValue: 0 },
+      ...prev.filter((l) => !covered.has(l.service.id)),
+    ])
+  }
+
   const undoReplace = () => {
     if (!undo) return
     setLines(undo.lines)
@@ -219,6 +240,14 @@ export function SaleAssistantTab() {
   const selectedCountText = (n: number) =>
     n === 1 ? 'the selected package' : n === 2 ? 'both selected packages' : `all ${n} selected packages`
   const difference = suggestedNet - totalsSel.total
+
+  // Partial suggestion: split the selection into what the combined package
+  // replaces and what stays, and the resulting total (combined + leftovers).
+  const partialCovered = partial ? lines.filter((l) => partial.coveredIds.includes(l.service.id)) : []
+  const partialLeftover = partial ? lines.filter((l) => !partial.coveredIds.includes(l.service.id)) : []
+  const partialResultTotal = partial
+    ? (partial.service.price ?? 0) + partialLeftover.reduce((a, l) => a + lineNet(l), 0)
+    : 0
 
   return (
     <div className="card">
@@ -469,9 +498,66 @@ export function SaleAssistantTab() {
                   </p>
                 </>
               ) : (
-                <p className="sa-muted">
-                  Add two or more packages and the cheapest package that includes them appears here.
-                </p>
+                !partial && (
+                  <p className="sa-muted">
+                    Add two or more packages and the cheapest package that includes them appears here.
+                  </p>
+                )
+              )}
+
+              {partial && (
+                <div className="sa-partial">
+                  <h4 className="sa-subhead">Or combine most of them</h4>
+                  <div className="sa-suggest">
+                    <div className="sa-suggest-top">
+                      <span className="sa-suggest-name">{partial.service.name}</span>
+                      <span className="sa-fig sa-suggest-price">{formatAED(partial.service.price)}</span>
+                    </div>
+                    <p className="sa-suggest-delta">
+                      Covers {partialCovered.length} of your selected packages, leaving{' '}
+                      {partialLeftover.length} as {partialLeftover.length === 1 ? 'an individual line' : 'individual lines'}.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="sa-subhead">Replaces</h4>
+                    <div className="sa-markers">
+                      {partialCovered.map((l) => (
+                        <span key={l.service.id} className="sa-marker">
+                          {l.service.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="sa-subhead">Keeps as individual</h4>
+                    <div className="sa-markers">
+                      {partialLeftover.map((l) => (
+                        <span key={l.service.id} className="sa-marker">
+                          {l.service.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="sa-compare" style={{ padding: 0, border: 0, background: 'none' }}>
+                    <span>
+                      New total <span className="sa-fig sa-strong">{formatAED(partialResultTotal)}</span>
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="sa-btn sa-btn-primary sa-btn-block"
+                    onClick={applyPartialSuggestion}
+                  >
+                    Replace {partialCovered.length} with {partial.service.name}
+                  </button>
+                  <p className="sa-hint">
+                    Keeps the other {partialLeftover.length} package{partialLeftover.length === 1 ? '' : 's'}. You can undo
+                    this straight afterwards.
+                  </p>
+                </div>
               )}
             </section>
           </div>
@@ -493,6 +579,19 @@ export function SaleAssistantTab() {
               </span>
             </div>
           )}
+        </details>
+
+        {/* Compare two packages */}
+        <details
+          className="sa-ladder sa-compare-tool"
+          open={compareOpen}
+          onToggle={(e) => setCompareOpen((e.currentTarget as HTMLDetailsElement).open)}
+        >
+          <summary className="sa-disclosure">
+            <strong>Compare packages</strong>
+            <Icon name="chevron" className="sa-chev" />
+          </summary>
+          <ComparePanel />
         </details>
 
         {/* Find packages */}
@@ -639,6 +738,99 @@ function extraDetail(it: ExtraItem): string {
   if (it.markers.length === 0) return 'Included in the suggestion'
   const n = it.markers.length
   return /^DNA -/.test(it.label) ? `${n} DNA module${n === 1 ? '' : 's'}` : `${n} marker${n === 1 ? '' : 's'}`
+}
+
+/**
+ * Compare any two packages and see which markers/DNA modules each one has that
+ * the other is missing — reusing the same coverage helpers as the suggestion.
+ */
+function ComparePanel() {
+  const services = useMemo(() => getServices(), [])
+  const byCategory = useMemo(() => {
+    const map = new Map<string, CatalogueService[]>()
+    for (const c of getCategories()) map.set(c, [])
+    for (const s of services) map.get(s.category)?.push(s)
+    return [...map.entries()].filter(([, items]) => items.length > 0)
+  }, [services])
+
+  const [aId, setAId] = useState<number | null>(null)
+  const [bId, setBId] = useState<number | null>(null)
+  const a = aId != null ? getServiceById(aId) : undefined
+  const b = bId != null ? getServiceById(bId) : undefined
+
+  // Items in the first package that the second is missing (markers + DNA modules).
+  const missingFrom = (from?: CatalogueService, within?: CatalogueService) =>
+    from && within ? [...excludedMarkers([from], [within]), ...excludedDnaModules([from], [within])] : []
+  const aOnly = missingFrom(a, b)
+  const bOnly = missingFrom(b, a)
+  const same = Boolean(a && b && a.id === b.id)
+
+  const picker = (
+    label: string,
+    value: number | null,
+    onChange: (id: number | null) => void,
+    id: string
+  ) => (
+    <div className="sa-field">
+      <label htmlFor={id}>{label}</label>
+      <select
+        id={id}
+        className="sa-select"
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
+      >
+        <option value="">Choose a package…</option>
+        {byCategory.map(([cat, items]) => (
+          <optgroup key={cat} label={cat}>
+            {items.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+    </div>
+  )
+
+  const diffColumn = (self?: CatalogueService, other?: CatalogueService, only?: string[]) => (
+    <div>
+      <h4 className="sa-subhead">
+        Only in {self!.name} <span className="sa-muted sa-fig">{only!.length}</span>
+      </h4>
+      {only!.length === 0 ? (
+        <p className="sa-muted">{other!.name} already covers everything in {self!.name}.</p>
+      ) : (
+        <div className="sa-markers">
+          {only!.map((m, i) => (
+            <span key={i} className="sa-marker">
+              {m}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+
+  return (
+    <div className="sa-compare-body">
+      <div className="sa-compare-pick">
+        {picker('Package A', aId, setAId, 'sa-cmp-a')}
+        {picker('Package B', bId, setBId, 'sa-cmp-b')}
+      </div>
+
+      {!a || !b ? (
+        <p className="sa-muted">Choose two packages to see which markers each one is missing.</p>
+      ) : same ? (
+        <p className="sa-muted">Those are the same package — pick two different ones to compare.</p>
+      ) : (
+        <div className="sa-compare-diff">
+          {diffColumn(a, b, aOnly)}
+          {diffColumn(b, a, bOnly)}
+        </div>
+      )}
+    </div>
+  )
 }
 
 function QuoteTotalsRows({ gross, discount, total }: { gross: number; discount: number; total: number }) {

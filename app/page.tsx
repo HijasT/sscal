@@ -59,7 +59,7 @@ export default function Home() {
       {robotEnabled && activeTab !== 'sale-assistant' && <Robot />}
       <header className="header">
         <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
-          {theme === 'dark' ? <MoonIcon large /> : <SunIcon large />}
+          {theme === 'dark' ? <MoonIcon large className="moon-glow" /> : <SunIcon large />}
         </button>
         <h1>K’Nomics</h1>
         <p className="subtitle">v{APP_VERSION}</p>

@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.6.0]
+
+### Added
+- **Compare packages.** A new "Compare packages" panel in the Sale Assistant: pick any two packages and see which markers and DNA modules each one has that the other is missing.
+- **Partial combined-package suggestion.** When three or more individual packages are selected, the Package Ladder now also suggests the best mid-tier combined package that covers *most* of them (ranked by how many it covers, cheapest on ties), and "Replace" swaps only those covered packages for the combined one — the rest stay as individual lines (combined + individual). The oversized catch-alls (Dubai It / HEALTHMAXXING) are excluded so this stays a sensible upsell.
+
+### Changed
+- **Overlapping base tiers consolidate.** Selecting two nested screening tiers together (e.g. Standard + Premium, where Premium already includes Standard) now suggests the larger one alone; "Replace selection" drops the redundant smaller tier instead of pushing a bigger upgrade.
+- The dark-mode theme button now shows a bright, glowing moon instead of a dim outline.
+- About now mentions the Sale Assistant (intro and a Core Features card).
+
+### Fixed
+- DNA - Ancestry is a cheek-swab test, not a blood draw, so it now appears under the Sale Assistant's "Non-invasive" filter.
+
 ## [10.5.1]
 
 ### Changed

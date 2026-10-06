@@ -188,14 +188,20 @@ export function isBloodTestOnly(service: CatalogueService): boolean {
   return !service.comps.some((c) => NON_BLOOD_GROUPS.has(c.group))
 }
 
+/** DNA module collected by cheek swab, not a blood draw — so it's non-invasive. */
+const SWAB_DNA_MODULES = new Set(['Biocertica DNA - Ancestry'])
+
 /**
  * A non-invasive package: nothing that pricks the patient. It has no blood
- * markers and no DNA modules (DNA tests are blood-drawn) and no vaccination
- * (a needle) — e.g. body composition, ECG, gut microbiome, a plain consult.
+ * markers and no blood-drawn DNA modules and no vaccination (a needle) — e.g.
+ * body composition, ECG, gut microbiome, DNA Ancestry (swab), a plain consult.
  */
 export function isNonInvasive(service: CatalogueService): boolean {
   if (hasLabTests(service)) return false
-  return !service.comps.some((c) => c.group === 'DNA Modules' || c.group === 'Vaccinations')
+  return !service.comps.some(
+    (c) =>
+      (c.group === 'DNA Modules' && !SWAB_DNA_MODULES.has(c.name)) || c.group === 'Vaccinations'
+  )
 }
 
 /**
@@ -380,6 +386,10 @@ export function serviceGender(service: CatalogueService): 'M' | 'W' | null {
  * business composition), or null if none does. Used to suggest the next rung on
  * the package ladder. Gender-filtered when a gender is given, and HEALTHMAXXING
  * is only offered once the selection's own total reaches AED 10,000.
+ *
+ * A candidate covers itself, so when two overlapping tiers are selected together
+ * (e.g. Standard + Premium, where Premium already includes Standard) the larger
+ * one is suggested — "Replace selection" then drops the redundant smaller tier.
  */
 export function suggestPackage(selected: CatalogueService[], gender?: 'M' | 'W'): CatalogueService | null {
   if (selected.length < 2) return null
@@ -387,16 +397,62 @@ export function suggestPackage(selected: CatalogueService[], gender?: 'M' | 'W')
   const sum = selected.reduce((a, s) => a + (s.price ?? 0), 0)
   let best: CatalogueService | null = null
   for (const p of data.services) {
-    if (p.price == null || selNames.has(p.name)) continue
+    if (p.price == null) continue
     const inc = includesClosure(p.name)
     if (inc.size === 0) continue
     const g = serviceGender(p)
     if (gender && g && g !== gender) continue
     if (p.name === 'HEALTHMAXXING' && sum < 10000) continue
+    // A candidate must cover every selected package; it covers itself.
     let coversAll = true
-    for (const n of selNames) if (!inc.has(n)) { coversAll = false; break }
+    for (const n of selNames) if (n !== p.name && !inc.has(n)) { coversAll = false; break }
     if (!coversAll) continue
     if (!best || (p.price as number) < (best.price as number)) best = p
+  }
+  return best
+}
+
+/**
+ * Catch-all packages excluded from the PARTIAL suggestion: they cover almost
+ * everything, so offering them as "most of your selection" is overkill — the
+ * point of the partial suggestion is a reasonable mid-tier combined package.
+ */
+const CATCHALL_PACKAGES = new Set(["Dubai It Men's Package", "Dubai It Women's Package", 'HEALTHMAXXING'])
+
+export interface PartialSuggestion {
+  service: CatalogueService
+  /** Ids of the selected packages this combined package covers (via composition). */
+  coveredIds: number[]
+}
+
+/**
+ * The best combined (comprehensive) package that covers MOST — but not all — of
+ * the selected individual packages, leaving the rest as standalone lines. Ranked
+ * by how many selected packages it covers (most first), tie-broken by price. The
+ * oversized catch-alls (Dubai It / HEALTHMAXXING) are excluded so this stays a
+ * sensible mid-tier upsell rather than "just buy everything". Returns null when
+ * nothing covers at least two of the selection while leaving a leftover.
+ */
+export function suggestPartialPackage(
+  selected: CatalogueService[],
+  gender?: 'M' | 'W'
+): PartialSuggestion | null {
+  if (selected.length < 3) return null
+  let best: PartialSuggestion | null = null
+  for (const p of data.services) {
+    if (p.price == null || p.category !== COMPREHENSIVE_CATEGORY || CATCHALL_PACKAGES.has(p.name)) continue
+    const g = serviceGender(p)
+    if (gender && g && g !== gender) continue
+    const inc = includesClosure(p.name)
+    if (inc.size === 0) continue
+    const covered = selected.filter((s) => s.name !== p.name && inc.has(s.name))
+    // Needs 2+ covered AND at least one leftover, else it's not "combined + individual".
+    if (covered.length < 2 || covered.length >= selected.length) continue
+    const better =
+      !best ||
+      covered.length > best.coveredIds.length ||
+      (covered.length === best.coveredIds.length && (p.price as number) < (best.service.price as number))
+    if (better) best = { service: p, coveredIds: covered.map((s) => s.id) }
   }
   return best
 }

@@ -155,6 +155,14 @@ body {
   background: var(--surface-hover);
 }
 
+/* In dark mode the toggle shows the moon — make it glow like a bright moon
+   (filled disc + soft halo) rather than a dim grey outline. */
+.theme-toggle .moon-glow {
+  fill: #f4f1dc;
+  stroke: #f4f1dc;
+  filter: drop-shadow(0 0 5px rgba(244, 241, 220, 0.65));
+}
+
 .settings-toggle-row {
   display: flex;
   align-items: center;
@@ -1434,6 +1442,19 @@ body.light-mode .sa {
   background: var(--sa-violet-wash);
 }
 
+/* Compare packages */
+.sa-compare-tool { margin-top: -8px; }
+.sa select.sa-select {
+  width: 100%; min-height: 44px; padding: 0 14px; border-radius: 8px;
+  border: 1px solid var(--sa-control); background: var(--sa-card); color: var(--sa-ink);
+  font: 400 0.9375rem 'IBM Plex Sans', sans-serif; outline: none; cursor: pointer;
+}
+.sa select.sa-select:focus { border-color: var(--sa-violet-text); }
+.sa-partial { display: grid; gap: 16px; padding-top: 16px; margin-top: 4px; border-top: 1px dashed var(--sa-hairline); }
+.sa-compare-body { padding: 16px 20px; display: grid; gap: 20px; }
+.sa-compare-pick { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.sa-compare-diff { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+
 .sa-ladder-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 .sa-col { padding: 20px; display: grid; gap: 16px; align-content: start; min-width: 0; }
 .sa-col + .sa-col { border-left: 1px solid var(--sa-hairline); }
@@ -1500,6 +1521,7 @@ body.light-mode .sa {
 
 @media (max-width: 860px) {
   .sa-ladder-body { grid-template-columns: minmax(0, 1fr); }
+  .sa-compare-pick, .sa-compare-diff { grid-template-columns: minmax(0, 1fr); }
   .sa-col + .sa-col { border-left: 0; }
   .sa-col-suggest { order: -1; border-top: 0; } /* the answer comes first on narrow screens */
   .sa-col:not(.sa-col-suggest) { border-top: 1px solid var(--sa-hairline); }

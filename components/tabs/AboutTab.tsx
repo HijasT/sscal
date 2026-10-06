@@ -8,7 +8,8 @@ export function AboutTab() {
           {`K’Nomics v${APP_VERSION}`}
         </h2>
         <p style={{color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: '1.8'}}>
-          A comprehensive tool for calculating sales incentives based on team performance and achievement tiers. 
+          A comprehensive tool for calculating sales incentives based on team performance and achievement tiers,
+          plus a Sale Assistant for browsing the package catalogue and building the best-value package quote.
           Built with Next.js, React, and TypeScript for optimal performance and reliability.
         </p>
         
@@ -21,6 +22,7 @@ export function AboutTab() {
             { title: 'Bulk Processing', desc: 'Upload Excel and process entire team at once' },
             { title: 'Customizable Tiers', desc: 'Configure achievement thresholds and rates' },
             { title: 'Tier Ladder', desc: 'See requirements to reach next tier level' },
+            { title: 'Sale Assistant', desc: 'Browse the package catalogue, compare packages and build the best-value quote' },
             { title: '100% Private', desc: 'All calculations happen in your browser' },
           ].map((feature, i) => (
             <div key={i} style={{
