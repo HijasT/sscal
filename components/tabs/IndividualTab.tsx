@@ -1,5 +1,6 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
+import { LockIcon } from '@/components/icons'
 import { DEFAULT_P1_SPLIT, DEFAULT_STAFF_COUNT } from '@/lib/config'
 import { getFresh, setFresh, clearFresh } from '@/lib/storage'
 import { calculateIncentive, formatCurrency, type CalculationResult } from '@/lib/utils'
@@ -26,7 +27,7 @@ function loadPersistedInputs(): Partial<PersistedInputs> {
   }
 }
 
-export function IndividualTab() {
+export function IndividualTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
   const persisted = loadPersistedInputs()
   const [teamTarget, setTeamTarget] = useState(persisted.teamTarget ?? '')
   const [teamSales, setTeamSales] = useState(persisted.teamSales ?? '')
@@ -65,7 +66,9 @@ export function IndividualTab() {
 
   return (
     <section className="card">
+      {modeSwitch}
       <div className="privacy-notice">
+        <LockIcon />
         <span>100% local calculation · No data shared · Browser-only processing · Your data stays private</span>
       </div>
 

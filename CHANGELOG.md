@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.8.0]
+
+### Added
+- **Category wayfinding in the Sale Assistant.** Each catalogue category header now carries a small muted tone (a dot plus a tinted heading), one per category, so groups are easier to scan. Stays within the one-accent rule — violet is still reserved for actions and state.
+
+### Changed
+- **Calculator privacy notice** now matches the Sale Assistant's: a neutral hairline surface with a violet lock glyph, instead of the green banner.
+- **Bulk / Individual switch** moved inside the card, so the Calculator's white box starts at the same height as the other tabs.
+
 ## [10.7.0]
 
 ### Changed

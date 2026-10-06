@@ -1,8 +1,8 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { parseExcelFile, pickDefaultMonth, type ExcelData } from '@/lib/excelUtils'
 import { BulkResultsView } from './BulkResultsView'
-import { BarChartIcon, UploadIcon } from '@/components/icons'
+import { BarChartIcon, UploadIcon, LockIcon } from '@/components/icons'
 import { getFresh, setFresh, clearFresh } from '@/lib/storage'
 
 type ViewMode = 'monthly' | 'q1' | 'q2' | 'q3' | 'q4' | 'h1' | 'h2' | 'yearly' | 'alltime'
@@ -32,7 +32,7 @@ function loadPersistedUpload(): Partial<PersistedUpload> {
   }
 }
 
-export function BulkTab() {
+export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
   // SSR-safe defaults — localStorage isn't available during the server
   // render, so starting from it here would make the client's first render
   // diverge from the server's and trigger a hydration mismatch. The actual
@@ -111,7 +111,9 @@ export function BulkTab() {
 
   return (
     <section className="card">
+      {modeSwitch}
       <div className="privacy-notice">
+        <LockIcon />
         <span>100% local calculation · No data shared · Browser-only processing · Your data stays private</span>
       </div>
 

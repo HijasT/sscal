@@ -50,6 +50,18 @@ const ALL = 'All'
 const QUOTE_KEY = 'sic_sale_quote'
 type Gender = 'M' | 'W'
 
+// One muted wayfinding tone per catalogue category (keys into --sa-tone-* in CSS).
+// Unknown categories fall back to a stable tone by order so colours never repeat.
+const CATEGORY_TONE: Record<string, string> = {
+  'Core Health Screening': 'a',
+  'Specialised Screening': 'b',
+  'DNA Insights': 'c',
+  'Other Screenings & Consults': 'd',
+  'Comprehensive Packages / Bundles': 'e',
+}
+const TONE_CYCLE = ['a', 'b', 'c', 'd', 'e']
+const categoryTone = (cat: string, idx: number) => CATEGORY_TONE[cat] ?? TONE_CYCLE[idx % TONE_CYCLE.length]
+
 /** Display label for a comp group, matching the source catalogue's wording. */
 function compGroupLabel(group: string): string {
   return group === 'Doctor & Vital Signs' ? 'Consultation' : group
@@ -666,10 +678,11 @@ export function SaleAssistantTab() {
         ) : (
           <div className="sa-cats">
             {grouped.groups.map(([cat, items], idx) => (
-              <section key={cat} className="sa-cat" aria-labelledby={`sa-c-${idx}`}>
+              <section key={cat} className="sa-cat" data-tone={categoryTone(cat, idx)} aria-labelledby={`sa-c-${idx}`}>
                 <h3 id={`sa-c-${idx}`}>
+                  <span className="sa-cat-dot" aria-hidden="true" />
                   {cat}
-                  <span>{items.length}</span>
+                  <span className="sa-cat-n">{items.length}</span>
                 </h3>
                 {items.map((s) => (
                   <ServiceRow

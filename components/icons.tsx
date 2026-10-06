@@ -58,3 +58,9 @@ export const MoonIcon = ({ className, large, ...p }: P) => (
     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
   </svg>
 )
+export const LockIcon = ({ className, large, ...p }: P) => (
+  <svg className={cls(className, large)} viewBox="0 0 24 24" {...p}>
+    <rect x="5" y="11" width="14" height="9" rx="2"/>
+    <path d="M8 11V8a4 4 0 0 1 8 0v3"/>
+  </svg>
+)

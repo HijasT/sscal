@@ -95,33 +95,27 @@ export default function Home() {
         </button>
       </nav>
 
-      {activeTab === 'calculator' && (
-        <>
+      {activeTab === 'calculator' && (() => {
+        // Rendered inside each calculator's card (first row) so the white box
+        // starts at the same height as the other tabs.
+        const modeSwitch = (
           <div className="calc-switch" role="group" aria-label="Calculator mode">
-            <button
-              type="button"
-              aria-pressed={calcMode === 'bulk'}
-              onClick={() => setCalcMode('bulk')}
-            >
+            <button type="button" aria-pressed={calcMode === 'bulk'} onClick={() => setCalcMode('bulk')}>
               Bulk
             </button>
-            <button
-              type="button"
-              aria-pressed={calcMode === 'individual'}
-              onClick={() => setCalcMode('individual')}
-            >
+            <button type="button" aria-pressed={calcMode === 'individual'} onClick={() => setCalcMode('individual')}>
               Individual
             </button>
           </div>
-          {calcMode === 'bulk' ? (
-            <ErrorBoundary label="Bulk tab">
-              <BulkTab />
-            </ErrorBoundary>
-          ) : (
-            <IndividualTab />
-          )}
-        </>
-      )}
+        )
+        return calcMode === 'bulk' ? (
+          <ErrorBoundary label="Bulk tab">
+            <BulkTab modeSwitch={modeSwitch} />
+          </ErrorBoundary>
+        ) : (
+          <IndividualTab modeSwitch={modeSwitch} />
+        )
+      })()}
       {activeTab === 'sale-assistant' && (
         <ErrorBoundary label="Sale Assistant tab">
           <SaleAssistantTab />

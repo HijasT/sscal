@@ -325,19 +325,22 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
+/* Matches the Sale Assistant tab's notice: neutral hairline surface, violet
+   lock glyph, soft-ink text — not a green tinted banner. */
 .privacy-notice {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
-  padding: 12px 16px;
-  background: rgba(76, 175, 138, 0.08);
-  border: 1px solid rgba(76, 175, 138, 0.2);
+  padding: 12px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   margin-bottom: 24px;
   font-size: 13px;
-  color: var(--success);
+  color: var(--text-secondary);
   font-weight: 500;
 }
+.privacy-notice .icon { margin: 1px 0 0; color: var(--accent-primary); }
 
 .privacy-icon {
   font-size: 18px;
@@ -1336,6 +1339,8 @@ summary:focus-visible,
   --sa-ochre-wash: #302819;
   --sa-brick: #d97a7a;
   --sa-brick-wash: #33232a;
+  /* Muted category-wayfinding tones (one per catalogue category) — dark ground */
+  --sa-tone-a: #8a95a1; --sa-tone-b: #6fae9b; --sa-tone-c: #8a9cd0; --sa-tone-d: #c2946f; --sa-tone-e: #b095bd;
 
   display: grid;
   gap: 24px;
@@ -1360,6 +1365,8 @@ body.light-mode .sa {
   --sa-ochre-wash: #f7eedd;
   --sa-brick: #b23a3a;
   --sa-brick-wash: #f8e9e9;
+  /* Muted category-wayfinding tones (one per catalogue category) — light ground */
+  --sa-tone-a: #5b6670; --sa-tone-b: #4f7d6e; --sa-tone-c: #5a6ea8; --sa-tone-d: #8f6342; --sa-tone-e: #7a5f86;
 }
 
 .sa h3 { font-size: 1rem; font-weight: 700; color: var(--sa-ink); }
@@ -1534,8 +1541,19 @@ body.light-mode .sa {
 /* catalogue */
 .sa-cats { display: grid; gap: 28px; }
 .sa-cat { display: grid; gap: 8px; }
-.sa-cat > h3 { padding: 8px 0; border-bottom: 1px solid var(--sa-hairline); }
-.sa-cat > h3 span { color: var(--sa-ink-muted); font-weight: 500; margin-left: 8px; }
+.sa-cat > h3 {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 0; border-bottom: 1px solid var(--sa-hairline);
+  color: var(--c, var(--sa-ink));
+}
+.sa-cat-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--sa-ink-muted)); flex: none; }
+.sa-cat-n { color: var(--sa-ink-muted); font-weight: 500; margin-left: auto; }
+/* One muted tone per catalogue category (set via data-tone on the section). */
+.sa-cat[data-tone='a'] { --c: var(--sa-tone-a); }
+.sa-cat[data-tone='b'] { --c: var(--sa-tone-b); }
+.sa-cat[data-tone='c'] { --c: var(--sa-tone-c); }
+.sa-cat[data-tone='d'] { --c: var(--sa-tone-d); }
+.sa-cat[data-tone='e'] { --c: var(--sa-tone-e); }
 .sa-pkg { border: 1px solid var(--sa-hairline); border-radius: 8px; background: var(--sa-card); }
 .sa-pkg.open { border-color: var(--sa-violet-text); }
 .sa-pkg-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; padding: 10px 12px 10px 16px; }
