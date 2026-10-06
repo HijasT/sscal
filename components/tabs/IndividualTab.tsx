@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect, type ReactNode } from 'react'
-import { LockIcon } from '@/components/icons'
 import { DEFAULT_P1_SPLIT, DEFAULT_STAFF_COUNT } from '@/lib/config'
 import { getFresh, setFresh, clearFresh } from '@/lib/storage'
 import { calculateIncentive, formatCurrency, type CalculationResult } from '@/lib/utils'
@@ -67,10 +66,6 @@ export function IndividualTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
   return (
     <section className="card">
       {modeSwitch}
-      <div className="privacy-notice">
-        <LockIcon />
-        <span>100% local calculation · No data shared · Browser-only processing · Your data stays private</span>
-      </div>
 
       <div className="card-header">
         <h2 className="card-title">Calculate Your Incentive</h2>

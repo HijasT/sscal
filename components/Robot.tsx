@@ -180,6 +180,25 @@ export function Robot() {
     return () => clearInterval(timer)
   }, [])
 
+  // First-ever launch: Kleon introduces himself by name, once (persisted, so it
+  // doesn't repeat on later visits). Runs regardless of reduced-motion.
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('sic_kleon_introduced')) return
+      localStorage.setItem('sic_kleon_introduced', 'true')
+    } catch {
+      return
+    }
+    lastCommentAtRef.current = Date.now() // don't collide with the first auto-comment
+    setLooking(true)
+    setBubble("Hi, I'm Kleon. I'll be judging your sales numbers.")
+    const t = setTimeout(() => {
+      setBubble(null)
+      setLooking(false)
+    }, BUBBLE_MS)
+    return () => clearTimeout(t)
+  }, [])
+
   useEffect(() => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 

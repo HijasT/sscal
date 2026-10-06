@@ -2,7 +2,7 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { parseExcelFile, pickDefaultMonth, type ExcelData } from '@/lib/excelUtils'
 import { BulkResultsView } from './BulkResultsView'
-import { BarChartIcon, UploadIcon, LockIcon } from '@/components/icons'
+import { BarChartIcon, UploadIcon } from '@/components/icons'
 import { getFresh, setFresh, clearFresh } from '@/lib/storage'
 
 type ViewMode = 'monthly' | 'q1' | 'q2' | 'q3' | 'q4' | 'h1' | 'h2' | 'yearly' | 'alltime'
@@ -112,10 +112,6 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
   return (
     <section className="card">
       {modeSwitch}
-      <div className="privacy-notice">
-        <LockIcon />
-        <span>100% local calculation · No data shared · Browser-only processing · Your data stays private</span>
-      </div>
 
       <div className="card-header">
         <h2 className="card-title"><BarChartIcon className="icon-lg" />Bulk Calculations</h2>

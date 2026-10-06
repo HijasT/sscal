@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.9.0]
+
+### Added
+- **Kleon introduces himself.** On the first-ever launch, Kleon greets you by name once ("Hi, I'm Kleon…"); the greeting is remembered and doesn't repeat on later visits.
+
+### Changed
+- **Calculator tab top matches the Sale Assistant's.** The card now leads with the "Calculator" title, then the privacy notice, then the Bulk / Individual pill — same order as the Sale Assistant.
+- **Men / Women pill resized** to match the Bulk / Individual pill, so both segmented switches are the same size.
+
 ## [10.8.1]
 
 ### Changed

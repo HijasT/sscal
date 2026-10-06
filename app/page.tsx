@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { IndividualTab } from '@/components/tabs/IndividualTab'
-import { MoonIcon, SunIcon } from '@/components/icons'
+import { MoonIcon, SunIcon, LockIcon } from '@/components/icons'
 import { BulkTab } from '@/components/tabs/BulkTab'
 import { SaleAssistantTab } from '@/components/tabs/SaleAssistantTab'
 import { SettingsTab } from '@/components/tabs/SettingsTab'
@@ -96,17 +96,26 @@ export default function Home() {
       </nav>
 
       {activeTab === 'calculator' && (() => {
-        // Rendered inside each calculator's card (first row) so the white box
-        // starts at the same height as the other tabs.
+        // Shared card top for both calculator modes, mirroring the Sale Assistant
+        // tab's order: tab name, then privacy notice, then the mode pill.
         const modeSwitch = (
-          <div className="calc-switch" role="group" aria-label="Calculator mode">
-            <button type="button" aria-pressed={calcMode === 'bulk'} onClick={() => setCalcMode('bulk')}>
-              Bulk
-            </button>
-            <button type="button" aria-pressed={calcMode === 'individual'} onClick={() => setCalcMode('individual')}>
-              Individual
-            </button>
-          </div>
+          <>
+            <div className="card-header">
+              <h2 className="card-title">Calculator</h2>
+            </div>
+            <div className="privacy-notice">
+              <LockIcon />
+              <span>100% local calculation · No data shared · Browser-only processing · Your data stays private</span>
+            </div>
+            <div className="calc-switch" role="group" aria-label="Calculator mode">
+              <button type="button" aria-pressed={calcMode === 'bulk'} onClick={() => setCalcMode('bulk')}>
+                Bulk
+              </button>
+              <button type="button" aria-pressed={calcMode === 'individual'} onClick={() => setCalcMode('individual')}>
+                Individual
+              </button>
+            </div>
+          </>
         )
         return calcMode === 'bulk' ? (
           <ErrorBoundary label="Bulk tab">

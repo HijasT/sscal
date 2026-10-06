@@ -1439,7 +1439,7 @@ body.light-mode .sa {
 .sa-input-wrap .sa-icon-btn { position: absolute; right: 0; top: 0; }
 
 .sa-seg { display: inline-flex; justify-self: start; border: 1px solid var(--sa-control); border-radius: 999px; overflow: hidden; background: var(--sa-card); }
-.sa-seg button { min-height: 44px; padding: 0 24px; border: 0; background: transparent; color: var(--sa-ink-soft); font: 600 0.9375rem 'IBM Plex Sans', sans-serif; cursor: pointer; }
+.sa-seg button { padding: 9px 22px; border: 0; background: transparent; color: var(--sa-ink-soft); font: 600 14px 'IBM Plex Sans', sans-serif; cursor: pointer; }
 .sa-seg button[aria-pressed='true'] { background: var(--sa-violet); color: #fff; }
 .sa-seg button:not([aria-pressed='true']):hover { background: var(--sa-violet-wash); color: var(--sa-ink); }
 
