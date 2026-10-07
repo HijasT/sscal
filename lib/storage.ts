@@ -4,13 +4,34 @@
  * selection). Each key gets a sibling "<key>__saved_at" timestamp; anything
  * older than DATA_RETENTION_MS — or with no timestamp — is removed on read and
  * by purgeExpiredData(). Preferences (theme, tiers, staff centers, robot) are
- * not covered: they are configuration, not user data.
+ * not covered: they are configuration, not user data. The user can opt out of
+ * expiry entirely via the "Keep data on this device" setting (isPersistEnabled).
  */
 import { DATA_RETENTION_MS } from './config'
 
 const STAMP = '__saved_at'
 
+/** Preference key: when 'true', data is kept indefinitely instead of expiring. */
+const PERSIST_KEY = 'sic_persist_data'
+
 type Kind = 'local' | 'session'
+
+/** Whether the user chose to keep entered/uploaded data instead of auto-clearing it after 1 hour. */
+export function isPersistEnabled(): boolean {
+  try {
+    return localStorage.getItem(PERSIST_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+export function setPersistEnabled(enabled: boolean): void {
+  try {
+    localStorage.setItem(PERSIST_KEY, String(enabled))
+  } catch {
+    /* ignore */
+  }
+}
 
 /** Keys that hold entered/uploaded data and must expire. */
 export const EXPIRING_KEYS: { kind: Kind; key: string }[] = [
@@ -23,6 +44,7 @@ export const EXPIRING_KEYS: { kind: Kind; key: string }[] = [
 const area = (kind: Kind): Storage => (kind === 'local' ? localStorage : sessionStorage)
 
 function isFresh(store: Storage, key: string): boolean {
+  if (isPersistEnabled()) return true
   const saved = Number(store.getItem(key + STAMP))
   return saved > 0 && Date.now() - saved < DATA_RETENTION_MS
 }
@@ -88,6 +110,7 @@ export function clearFresh(kind: Kind, key: string): void {
 
 /** Milliseconds until the soonest-expiring stored entry is deleted; null if none is stored. */
 export function msUntilNextExpiry(): number | null {
+  if (isPersistEnabled()) return null
   let soonest: number | null = null
   for (const { kind, key } of EXPIRING_KEYS) {
     try {

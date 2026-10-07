@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.11.0]
+
+### Added
+- **"Keep data on this device" setting.** Entered and uploaded data still clears 1 hour after it last changed by default, but Settings → Preferences now has a toggle to keep it until you clear it yourself. While on, the expiry countdown is hidden and nothing is auto-deleted.
+
 ## [10.10.0]
 
 ### Changed

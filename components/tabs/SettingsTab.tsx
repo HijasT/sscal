@@ -7,7 +7,7 @@ import {
   backupStaffCenters, loadStaffCentersBackup, clearStaffCentersBackup,
 } from '@/lib/utils'
 import { CENTERS, STAFF_CENTERS, DEFAULT_TIERS, type Tier } from '@/lib/config'
-import { getFresh } from '@/lib/storage'
+import { getFresh, isPersistEnabled, setPersistEnabled } from '@/lib/storage'
 import { extractEmployeeCode, stripEmployeeCode, type ExcelData } from '@/lib/excelUtils'
 import { SlidersIcon, SaveIcon, BarChartIcon, SunIcon } from '@/components/icons'
 
@@ -70,8 +70,10 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
   const [scLastSavedAt, setScLastSavedAt] = useState<string | null>(null)
   const [scBackup, setScBackup] = useState<Record<string, string> | null>(null)
   const [codeToName, setCodeToName] = useState<Record<string, string>>({})
+  const [persist, setPersist] = useState(false)
 
   useEffect(() => {
+    setPersist(isPersistEnabled())
     setTiers(loadTiers())
     setLastSavedAt(getTiersSavedAt())
     setBackup(loadTiersBackup())
@@ -150,6 +152,11 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
     clearTiersBackup()
     setBackup(null)
     alert('Previous tier settings restored.')
+  }
+
+  const handleTogglePersist = (enabled: boolean) => {
+    setPersistEnabled(enabled)
+    setPersist(enabled)
   }
 
   const handleScChange = (index: number, field: keyof StaffCenterEntry, value: string) => {
@@ -608,6 +615,23 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
           aria-checked={robotEnabled}
           aria-label="Toggle Kleon"
           onClick={() => onToggleRobot(!robotEnabled)}
+        >
+          <span className="switch-thumb" />
+        </button>
+      </div>
+
+      <div className="settings-toggle-row">
+        <div>
+          <div className="settings-toggle-label">Keep data on this device</div>
+          <div className="settings-toggle-desc">By default, entered and uploaded data clears from this browser 1 hour after it last changed. Turn this on to keep it until you clear it yourself.</div>
+        </div>
+        <button
+          type="button"
+          className={`switch ${persist ? 'on' : ''}`}
+          role="switch"
+          aria-checked={persist}
+          aria-label="Keep data on this device"
+          onClick={() => handleTogglePersist(!persist)}
         >
           <span className="switch-thumb" />
         </button>
