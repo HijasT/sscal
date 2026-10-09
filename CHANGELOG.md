@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.13.0]
+
+### Changed
+- **Editorial polish (light theme).** Warmer page ground (`#f4f2ec`), a flat confident app title and active-tab underline in place of the gradient ones, larger/tighter card titles, and the key incentive figures set in tighter tabular mono.
+- **Header and tabs now stay pinned** (sticky `.topbar`) while the tab content scrolls.
+
 ## [10.12.0]
 
 ### Changed

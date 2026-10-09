@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Calculator — Editorial direction</title>
+<link rel="stylesheet" href="assets/editorial.css" />
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></symbol>
+  <symbol id="download" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></symbol>
+  <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <div class="masthead">
+      <div class="brand"><h1>Kleon</h1><span class="tag">Calculator</span></div>
+      <span class="privacy"><span class="dot"></span> 100% local calculation · No data shared</span>
+    </div>
+    <nav class="tabs">
+      <a href="sale-assistant-editorial.html">Sale Assistant</a>
+      <a href="calculator-editorial.html" class="active">Calculator</a>
+      <a href="#">Settings</a>
+      <a href="#">About</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="head">
+    <div>
+      <h2>Team incentives, from one upload.</h2>
+      <p>Drop in the monthly workbook — every staff member's pool share is computed in the browser, nothing leaves the device.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Calculator mode">
+        <button aria-pressed="true">Bulk</button>
+        <button aria-pressed="false">Individual</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── BULK MODE ────────────────────────────────────────────────────────── -->
+  <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:14px">
+      <button class="btn primary"><svg class="icon"><use href="#upload"/></svg> Upload workbook</button>
+      <span class="muted" style="font-size:13px">incentive_sept_2026.xlsx · 3 sheets</span>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center">
+      <select class="select" style="width:auto"><option selected>Monthly</option><option>Q1 (Jan–Mar)</option><option>H1 (Jan–Jun)</option><option>Yearly</option><option>All-Time</option></select>
+      <select class="select" style="width:auto"><option selected>September</option><option>October</option></select>
+      <select class="select" style="width:auto"><option selected>2026</option></select>
+    </div>
+  </div>
+
+  <h3 class="sect-h">Team Incentives — September 2026</h3>
+  <div class="summary">
+    <div class="cell"><div class="n fig">105%</div><div class="l">Team Achievement</div></div>
+    <div class="cell"><div class="n fig">AED 315,000</div><div class="l">Team Sales</div></div>
+    <div class="cell"><div class="n fig">Tier 2 · 3%</div><div class="l">Rate</div></div>
+    <div class="cell"><div class="n fig">AED 9,450</div><div class="l">Total Pool</div></div>
+  </div>
+
+  <h4 class="sect-h">Center-wise Stats</h4>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Center</th><th class="num">Sales (AED)</th><th class="num">Packages</th><th class="num">Clients</th><th class="num">Revenue %</th></tr></thead>
+      <tbody>
+        <tr><td class="name">Center C</td><td class="num">121,600.00</td><td class="num">49</td><td class="num">39</td><td class="num">38.60%</td></tr>
+        <tr><td class="name">Center I</td><td class="num">102,000.00</td><td class="num">41</td><td class="num">33</td><td class="num">32.38%</td></tr>
+        <tr><td class="name">Center D</td><td class="num">91,400.00</td><td class="num">36</td><td class="num">29</td><td class="num">29.02%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4 class="sect-h">Per-staff Incentive</h4>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>Rank</th><th>Name</th><th class="num">Total (AED)</th><th class="num">Packages</th><th class="num">Clients</th>
+        <th class="num">Sales (AED)</th><th class="num">Days</th><th class="num">Sales/Day</th><th class="num">Revenue %</th>
+        <th class="num">P1 (AED)</th><th class="num">P2 (AED)</th><th></th>
+      </tr></thead>
+      <tbody>
+        <tr><td class="rank">#1</td><td class="name">Staff A <span class="pill">C</span></td><td class="num total">1,116.75</td><td class="num">19</td><td class="num">15</td><td class="num">48,200.00</td><td class="num muted">26</td><td class="num">1,853.85</td><td class="num">15.30%</td><td class="num">393.75</td><td class="num">723.00</td><td><button class="btn" style="padding:6px 9px;min-height:32px"><svg class="icon"><use href="#x"/></svg></button></td></tr>
+        <tr><td class="rank">#2</td><td class="name">Staff F <span class="pill">I</span></td><td class="num total">982.40</td><td class="num">17</td><td class="num">14</td><td class="num">41,000.00</td><td class="num muted">26</td><td class="num">1,576.92</td><td class="num">13.02%</td><td class="num">393.75</td><td class="num">588.65</td><td><button class="btn" style="padding:6px 9px;min-height:32px"><svg class="icon"><use href="#x"/></svg></button></td></tr>
+        <tr><td class="rank">#3</td><td class="name">Staff K <span class="pill">D</span></td><td class="num total">861.10</td><td class="num">15</td><td class="num">12</td><td class="num">36,400.00</td><td class="num muted">25</td><td class="num">1,456.00</td><td class="num">11.56%</td><td class="num">393.75</td><td class="num">467.35</td><td><button class="btn" style="padding:6px 9px;min-height:32px"><svg class="icon"><use href="#x"/></svg></button></td></tr>
+        <tr><td class="rank">#4</td><td class="name">Staff C <span class="pill">C</span></td><td class="num total">724.90</td><td class="num">12</td><td class="num">10</td><td class="num">30,800.00</td><td class="num muted">24</td><td class="num">1,283.33</td><td class="num">9.78%</td><td class="num">393.75</td><td class="num">331.15</td><td><button class="btn" style="padding:6px 9px;min-height:32px"><svg class="icon"><use href="#x"/></svg></button></td></tr>
+        <tr><td class="rank">#5</td><td class="name">Staff H <span class="pill">I</span></td><td class="num total">612.30</td><td class="num">10</td><td class="num">8</td><td class="num">25,100.00</td><td class="num muted">24</td><td class="num">1,045.83</td><td class="num">7.97%</td><td class="num">393.75</td><td class="num">218.55</td><td><button class="btn" style="padding:6px 9px;min-height:32px"><svg class="icon"><use href="#x"/></svg></button></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cta">
+    <button class="btn"><svg class="icon"><use href="#download"/></svg> Export PDF</button>
+  </div>
+
+  <!-- ── INDIVIDUAL MODE (shown for comparison in this mockup) ─────────────── -->
+  <h3 class="sect-h" style="margin-top:46px;border-top:1px solid var(--line-2);padding-top:30px">Individual mode</h3>
+  <div class="card">
+    <div class="form-grid">
+      <div class="field"><label for="t">Team Target (AED)</label><input id="t" class="input num" value="700000"></div>
+      <div class="field"><label for="s">Team Sales (AED)</label><input id="s" class="input num" value="735000"></div>
+      <div class="field"><label for="m">My Sales (AED)</label><input id="m" class="input num" value="73500"></div>
+      <div class="field"><label for="c">Staff Count</label><input id="c" class="input num" value="29"></div>
+    </div>
+
+    <div class="split">
+      <div class="row-between">
+        <span class="label">Pool Split Distribution</span>
+        <span><span class="tag-p1">P1 60%</span> <span class="tag-p2">P2 40%</span></span>
+      </div>
+      <input type="range" min="0" max="100" step="5" value="60" />
+      <div class="scale fig"><span>0/100</span><span>25/75</span><span>50/50</span><span>75/25</span><span>100/0</span></div>
+    </div>
+
+    <button class="btn primary block">Calculate Incentive <svg class="icon"><use href="#arrow"/></svg></button>
+
+    <h4 class="sect-h">Your Incentive Breakdown</h4>
+    <dl class="result">
+      <div><dt>Team Achievement</dt><dd>105.00%</dd></div>
+      <div><dt>Tier</dt><dd>Tier 2 <span class="tag-neutral">3% rate</span></dd></div>
+      <div><dt>Total Pool</dt><dd>AED 22,050.00</dd></div>
+      <div><dt>My Contribution</dt><dd>10.00%</dd></div>
+      <div><dt><span class="tag-p1">P1</span> Equal Share</dt><dd>AED 456.21</dd></div>
+      <div><dt><span class="tag-p2">P2</span> Personal Share</dt><dd>AED 882.00</dd></div>
+      <div class="total"><dt>Total Incentive</dt><dd>AED 1,338.21</dd></div>
+    </dl>
+    <p class="calc">P1 Pool 13,230.00 ÷ 29 staff · P2 Pool 8,820.00 × 10.00%</p>
+
+    <div class="info">
+      <div class="ih">Tier Ladder</div>
+      <div class="big fig">AED 42,000.00</div>
+      <p>Team needs an additional <strong>AED 42,000.00</strong> in sales to reach <strong>AED 777,000.00</strong> (111% of target) and qualify for Tier 3 (3.5% rate).</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="foot">Mockup · Editorial / Swiss direction · not the live app</div>
+</body>
+</html>

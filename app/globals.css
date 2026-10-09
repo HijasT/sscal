@@ -65,7 +65,7 @@
 
 /* Light Mode — v8.0 */
 body.light-mode {
-  --bg-primary: #f6f5f1;
+  --bg-primary: #f4f2ec;
   --bg-secondary: #efeee9;
   --bg-tertiary: #efeee9;
   --bg-card: #ffffff;
@@ -122,9 +122,25 @@ body {
   z-index: 1;
 }
 
+/* Keep the app heading + nav tabs pinned while the tab content scrolls. */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg-primary);
+  padding-top: 16px;
+  margin-top: -16px;
+  /* Spacing below the nav lives as padding (inside the painted box) so scrolled
+     content stays hidden behind the bar instead of peeking through a margin gap. */
+  padding-bottom: 32px;
+}
+.topbar .nav-tabs {
+  margin-bottom: 0;
+}
+
 .header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 24px;
   position: relative;
 }
 
@@ -250,21 +266,11 @@ body {
 }
 
 .header h1 {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--text-primary); /* fallback for browsers without background-clip: text */
+  font-size: 36px;
+  font-weight: 600;
+  color: var(--text-primary); /* flat, confident — no gradient text (editorial direction) */
   margin-bottom: 6px;
-  letter-spacing: -0.01em;
-}
-
-@supports (background-clip: text) or (-webkit-background-clip: text) {
-  .header h1 {
-    background: var(--brand-gradient);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
-  }
+  letter-spacing: -0.03em;
 }
 
 .header .subtitle {
@@ -314,7 +320,7 @@ body {
   right: 0;
   bottom: -2px;
   height: 2px;
-  background: var(--brand-gradient);
+  background: var(--accent-primary);
 }
 
 .card {
@@ -352,10 +358,11 @@ body {
 }
 
 .card-title {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 8px;
+  letter-spacing: -0.02em;
 }
 
 /* 14px inline SVG icons */
@@ -619,6 +626,8 @@ input[type="range"]::-moz-range-thumb {
   font-size: 26px;
   font-weight: 700;
   font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
 }
 
@@ -669,6 +678,8 @@ input[type="range"]::-moz-range-thumb {
   font-size: 18px;
   font-weight: 700;
   font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
 }
 
@@ -678,7 +689,8 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .total-row .breakdown-value {
-  font-size: 28px;
+  font-size: 30px;
+  letter-spacing: -0.02em;
   color: var(--accent-primary);
 }
 

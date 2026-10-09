@@ -59,6 +59,7 @@ export default function Home() {
     <div className="container">
       {/* No robot on the Sale Assistant tab: it may be in front of a customer. */}
       {robotEnabled && activeTab !== 'sale-assistant' && <Robot />}
+      <div className="topbar">
       <header className="header">
         <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
           {theme === 'dark' ? <MoonIcon large className="moon-glow" /> : <SunIcon large />}
@@ -94,6 +95,7 @@ export default function Home() {
           About
         </button>
       </nav>
+      </div>
 
       {activeTab === 'calculator' && (() => {
         // Shared card top for both calculator modes, mirroring the Sale Assistant
