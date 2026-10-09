@@ -1167,8 +1167,23 @@
      "value": "X"
     },
     {
-     "group": "BCA / ECG",
-     "name": "BCA",
+     "group": "Cardiac Risk Markers",
+     "name": "Apolipoprotein A1 (APO-A1)",
+     "value": "X"
+    },
+    {
+     "group": "Cardiac Risk Markers",
+     "name": "Apolipoprotein B (APO-B)",
+     "value": "X"
+    },
+    {
+     "group": "Cardiac Risk Markers",
+     "name": "Apolipoprotein B/A1 ratio (APO B/APO A1)",
+     "value": "X"
+    },
+    {
+     "group": "Cardiac Risk Markers",
+     "name": "Lipoprotein (Lpa)",
      "value": "X"
     },
     {
@@ -1227,8 +1242,23 @@
      "value": "X"
     },
     {
-     "group": "BCA / ECG",
-     "name": "BCA",
+     "group": "Cardiac Risk Markers",
+     "name": "Apolipoprotein A1 (APO-A1)",
+     "value": "X"
+    },
+    {
+     "group": "Cardiac Risk Markers",
+     "name": "Apolipoprotein B (APO-B)",
+     "value": "X"
+    },
+    {
+     "group": "Cardiac Risk Markers",
+     "name": "Apolipoprotein B/A1 ratio (APO B/APO A1)",
+     "value": "X"
+    },
+    {
+     "group": "Cardiac Risk Markers",
+     "name": "Lipoprotein (Lpa)",
      "value": "X"
     },
     {
@@ -1287,8 +1317,23 @@
      "value": "X"
     },
     {
-     "group": "BCA / ECG",
-     "name": "BCA",
+     "group": "Cardiac Risk Markers",
+     "name": "Apolipoprotein A1 (APO-A1)",
+     "value": "X"
+    },
+    {
+     "group": "Cardiac Risk Markers",
+     "name": "Apolipoprotein B (APO-B)",
+     "value": "X"
+    },
+    {
+     "group": "Cardiac Risk Markers",
+     "name": "Apolipoprotein B/A1 ratio (APO B/APO A1)",
+     "value": "X"
+    },
+    {
+     "group": "Cardiac Risk Markers",
+     "name": "Lipoprotein (Lpa)",
      "value": "X"
     },
     {
@@ -1377,8 +1422,23 @@
      "value": "X"
     },
     {
-     "group": "BCA / ECG",
-     "name": "BCA",
+     "group": "Cardiac Risk Markers",
+     "name": "Apolipoprotein A1 (APO-A1)",
+     "value": "X"
+    },
+    {
+     "group": "Cardiac Risk Markers",
+     "name": "Apolipoprotein B (APO-B)",
+     "value": "X"
+    },
+    {
+     "group": "Cardiac Risk Markers",
+     "name": "Apolipoprotein B/A1 ratio (APO B/APO A1)",
+     "value": "X"
+    },
+    {
+     "group": "Cardiac Risk Markers",
+     "name": "Lipoprotein (Lpa)",
      "value": "X"
     },
     {

@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.12.0]
+
+### Changed
+- **Sale Assistant is now the first tab and the default view** on launch (nav order and landing tab).
+- **Essentials and All of You packages (Men & Women)** no longer list BCA. They now list the Cardiac Risk Markers: Apolipoprotein A1 (APO-A1), Apolipoprotein B (APO-B), Apolipoprotein B/A1 ratio (APO B/APO A1), and Lipoprotein (Lpa).
+
 ## [10.11.0]
 
 ### Added

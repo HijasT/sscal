@@ -13,7 +13,7 @@ import { purgeExpiredData } from '@/lib/storage'
 import { APP_VERSION, DEFAULT_THEME, DEFAULT_ROBOT_ENABLED } from '@/lib/config'
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('calculator')
+  const [activeTab, setActiveTab] = useState('sale-assistant')
   // Within the Calculator tab: bulk (team Excel upload) or individual (manual).
   const [calcMode, setCalcMode] = useState<'bulk' | 'individual'>('bulk')
   const [theme, setTheme] = useState<'light' | 'dark'>(DEFAULT_THEME)
@@ -70,16 +70,16 @@ export default function Home() {
 
       <nav className="nav-tabs">
         <button
-          className={`nav-tab ${activeTab === 'calculator' ? 'active' : ''}`}
-          onClick={() => setActiveTab('calculator')}
-        >
-          Calculator
-        </button>
-        <button
           className={`nav-tab ${activeTab === 'sale-assistant' ? 'active' : ''}`}
           onClick={() => setActiveTab('sale-assistant')}
         >
           Sale Assistant
+        </button>
+        <button
+          className={`nav-tab ${activeTab === 'calculator' ? 'active' : ''}`}
+          onClick={() => setActiveTab('calculator')}
+        >
+          Calculator
         </button>
         <button
           className={`nav-tab ${activeTab === 'settings' ? 'active' : ''}`}
