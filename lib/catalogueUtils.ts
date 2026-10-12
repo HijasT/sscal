@@ -743,11 +743,13 @@ export const JOURNEY_COMPONENT_ORDER = [
 export function packageComponents(service: CatalogueService): string[] {
   const comps = service.comps || []
   const hasComp = (test: (c: CatalogueComp) => boolean) => comps.some(test)
+  // Any package with DNA modules includes both a Questionnaire and a Swab.
+  const hasDna = hasComp((c) => c.group === 'DNA Modules')
   const out: string[] = []
-  if (hasComp((c) => /questionnaire/i.test(c.name) || /questionnaire/i.test(c.group))) out.push('Questionnaire')
+  if (hasDna || hasComp((c) => /questionnaire/i.test(c.name) || /questionnaire/i.test(c.group))) out.push('Questionnaire')
   if (hasComp((c) => /vital sign/i.test(c.name))) out.push('Vital Signs')
   if (hasLabTests(service)) out.push('Blood Collection')
-  if (hasComp((c) => c.group === 'DNA Modules')) out.push('Swab')
+  if (hasDna) out.push('Swab')
   if (hasComp((c) => c.name === 'BCA')) out.push('BCA')
   if (hasComp((c) => c.name === 'ECG')) out.push('ECG')
   if (hasComp((c) => c.group === 'Microbiome' || /gut/i.test(c.name))) out.push('Gut Kit')

@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.3.1]
+
+### Changed
+- **Journey: every DNA package now contributes both Swab and Questionnaire.** Both components are derived from the presence of DNA modules in a package, so any package that includes DNA shows them in the journey (previously only Swab was inferred, and Questionnaire never appeared).
+
 ## [11.3.0]
 
 ### Added
