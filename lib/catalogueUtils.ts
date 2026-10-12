@@ -363,18 +363,24 @@ const COMPOSITION: Record<string, string[]> = {
   ],
   'Healthy Heart Package': ['Body Composition Analysis', 'ECG & Consult'],
   "Women's Clarity Package": ["Premium PLUS Women's Health Screening", 'Body Composition Analysis'],
-  "Essentials Men's Package": ['Body Composition Analysis', 'DNA - Essentials', "Premium PLUS Men's Health Screening"],
-  "Essentials Women's Package": ['Body Composition Analysis', 'DNA - Essentials', "Premium PLUS Women's Health Screening"],
-  "All of You Men's Package": ['Body Composition Analysis', 'DNA - All of You', "Premium PLUS Men's Health Screening"],
-  "All of You Women's Package": ['Body Composition Analysis', 'DNA - All of You', "Premium PLUS Women's Health Screening"],
-  "Ultimate Men's Longevity Package": ["All of You Men's Package", 'Longevity Profile'],
-  "Ultimate Women's Longevity Package": ["All of You Women's Package", 'Longevity Profile'],
+  // Essentials & All of You do NOT include Body Composition Analysis (their
+  // contents carry no BCA), so BCA is not listed here — otherwise they'd be
+  // suggested as covering a selection that includes BCA.
+  "Essentials Men's Package": ['DNA - Essentials', "Premium PLUS Men's Health Screening"],
+  "Essentials Women's Package": ['DNA - Essentials', "Premium PLUS Women's Health Screening"],
+  "All of You Men's Package": ['DNA - All of You', "Premium PLUS Men's Health Screening"],
+  "All of You Women's Package": ['DNA - All of You', "Premium PLUS Women's Health Screening"],
+  // Ultimate & Executive DO include BCA (see their contents), so it is listed
+  // directly here rather than inherited from All of You (which no longer has it).
+  "Ultimate Men's Longevity Package": ["All of You Men's Package", 'Longevity Profile', 'Body Composition Analysis'],
+  "Ultimate Women's Longevity Package": ["All of You Women's Package", 'Longevity Profile', 'Body Composition Analysis'],
   "Executive Men's Health Package": [
     "All of You Men's Package",
     'ECG & Consult',
     'Cancer Risk Profile - Men',
     'Blood Group Test',
     'Cancer Risk - BRCA Genetic Test',
+    'Body Composition Analysis',
   ],
   "Executive Women's Health Package": [
     "All of You Women's Package",
@@ -382,6 +388,7 @@ const COMPOSITION: Record<string, string[]> = {
     "Cancer Risk Profile - Women's",
     'Blood Group Test',
     'Cancer Risk - BRCA Genetic Test',
+    'Body Composition Analysis',
   ],
   'Ultimate Gut Health Package': ['Gut Microbiome Test', 'Food Allergy & Intolerance Bundle'],
   "Dubai It Men's Package": ["Executive Men's Health Package", 'Longevity Profile', 'Food Allergy & Intolerance Bundle'],

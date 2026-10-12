@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.2.9]
+
+### Fixed
+- **Sale Assistant no longer suggests Essentials / All of You for a selection that includes BCA.** Those packages don't include Body Composition Analysis, so BCA was removed from their entry in the suggestion composition graph — previously they were offered as covering a BCA selection (and flagged as missing BCA). BCA stays on the packages that do include it (Ultimate, Executive, Dubai It, Women's Clarity, Healthy Heart), listed directly so their suggestions are unaffected.
+
 ## [11.2.8]
 
 ### Fixed
