@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.2.7]
+
+### Fixed
+- **Duplicate cardiac markers in Essentials & All of You packages (Men & Women).** v10.12.0 added Apolipoprotein A1/B, the APO B/A1 ratio and Lipoprotein(a) as "Cardiac Risk Markers" rows, but those markers are already lab tests in the packages' Premium PLUS panel — so they showed twice. Removed the duplicate rows (markers remain via the panel) and restored the **BCA** line that the swap had dropped (BCA is still a component of these packages per the composition graph).
+
 ## [11.2.6]
 
 ### Added
