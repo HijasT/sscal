@@ -1,13 +1,16 @@
 # Components / Journey — feature spec
 
-Status: **v1 shipped in v11.3.0** — the Journey renders in the Sale Assistant,
-derived from each package's existing data (`buildJourney`/`packageComponents` in
-`lib/catalogueUtils.ts`). Component detection from existing data: Blood
-Collection ← has lab panels; Vital Signs/BCA/ECG/Gut Kit ← `comps`; **Swab and
-Questionnaire ← any DNA package (presence of DNA Modules)** — every DNA package
-includes both; Doctor Consultation time ← summed from the `doctor` field, shown
-last. The marker/module + components DB (later) will make detection fully
-explicit per package rather than inferred.
+Status: **v2 shipped in v11.5.0** — components are now an **explicit, editable
+field per service** (`components: string[]`) in `lib/catalogue.json`, in journey
+order, and are the single source of truth for the Journey. `packageComponents`
+reads that field (falling back to the old derivation only for the runtime-only
+synthetic HEALTHMAXXING). To change what a package's journey shows, edit its
+`components` array. The arrays were generated from the source Service Catalogue
+PDFs' "What's included" sections and cross-checked against `comps`/`panels`.
+Doctor Consultation is still carried by the `doctor` field (summed, shown last).
+
+v1 (v11.3.0) derived the components heuristically from `comps`/`panels`; v2
+makes them data.
 
 ## Idea
 

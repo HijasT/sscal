@@ -39,6 +39,14 @@ export interface CatalogueService {
   /** Names of the lab panels this service includes (keys into `panels`). */
   panels: string[]
   comps: CatalogueComp[]
+  /**
+   * The client-journey components this package puts the client through, in
+   * journey order (a subset of JOURNEY_COMPONENT_ORDER; Doctor Consultation is
+   * carried separately by `doctor`). The authoritative, editable source for the
+   * Journey — change this to change what the journey shows. Optional so the
+   * synthetic HEALTHMAXXING (built at runtime) can fall back to derivation.
+   */
+  components?: string[]
 }
 
 /** A lab panel: the set of test ids it runs. */
@@ -773,6 +781,10 @@ export const JOURNEY_COMPONENT_ORDER = [
 ] as const
 
 export function packageComponents(service: CatalogueService): string[] {
+  // Prefer the explicit, catalogue-declared components (single source of truth).
+  // Fall back to deriving from comps/panels for any service without the field
+  // (e.g. the synthetic HEALTHMAXXING injected at runtime).
+  if (service.components) return service.components
   const comps = service.comps || []
   const hasComp = (test: (c: CatalogueComp) => boolean) => comps.some(test)
   // Any package with DNA modules includes both a Questionnaire and a Swab.

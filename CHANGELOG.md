@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.5.0]
+
+### Added
+- **Explicit components database.** Every package in the catalogue now carries an explicit `components` list (Blood Collection, Swab, BCA, ECG, Gut Kit, Questionnaire, Vital Signs — in journey order; Doctor Consultation stays driven by the consultation time). This is now the single source of truth for the client Journey — editing a package's `components` changes its journey directly. The lists were generated from the official Service Catalogue and cross-checked against each package's panels and inclusions.
+
+### Changed
+- The Journey reads each package's declared `components` field instead of inferring the steps, so it is exact and stays in sync when a package's components are edited.
+
 ## [11.4.0]
 
 ### Changed
