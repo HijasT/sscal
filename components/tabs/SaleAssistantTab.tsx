@@ -36,6 +36,8 @@ import {
   isNonInvasive,
   formatAED,
   formatUSD,
+  buildJourney,
+  formatDuration,
   quoteTotals,
   lineGross,
   lineNet,
@@ -119,6 +121,7 @@ export function SaleAssistantTab() {
 
   const selServices = useMemo(() => lines.map((l) => l.service), [lines])
   const totalsSel = useMemo(() => quoteTotals(lines), [lines])
+  const journey = useMemo(() => buildJourney(selServices), [selServices])
   const suggestion = useMemo(() => suggestPackage(selServices, gender), [selServices, gender])
   // Partial combined-package suggestion: covers most (not all) of the selection,
   // leaving the rest as individual lines. Hidden when it's the same package as the
@@ -357,6 +360,27 @@ export function SaleAssistantTab() {
                     total={totalsSel.total}
                     usdRate={showUsd ? usdRate : undefined}
                   />
+
+                  {(journey.steps.length > 0 || journey.consultMinutes > 0) && (
+                    <div className="sa-journey">
+                      <h4 className="sa-subhead">Client journey</h4>
+                      <p className="sa-muted sa-small">What the client goes through to use {selectedCountText(lines.length)}.</p>
+                      <ol className="sa-journey-list">
+                        {journey.steps.map((s) => (
+                          <li key={s.label}>
+                            <span className="sa-journey-label">{s.label}</span>
+                            {s.count > 1 && <span className="sa-journey-x">× {s.count}</span>}
+                          </li>
+                        ))}
+                        {journey.consultMinutes > 0 && (
+                          <li>
+                            <span className="sa-journey-label">Doctor Consultation</span>
+                            <span className="sa-journey-time">{formatDuration(journey.consultMinutes)}</span>
+                          </li>
+                        )}
+                      </ol>
+                    </div>
+                  )}
                 </>
               )}
             </section>

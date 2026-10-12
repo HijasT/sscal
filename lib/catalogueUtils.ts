@@ -721,6 +721,95 @@ export function formatUSD(aed: number | null, rate: number): string {
   return `≈ USD ${(aed / rate).toLocaleString('en-US', { maximumFractionDigits: 0 })}`
 }
 
+// ---------- client journey (components) ----------
+
+/**
+ * The components (steps) a client goes through for a package, excluding Doctor
+ * Consultation (always handled last, with summed time). Derived from the
+ * package's existing data — lab panels, `comps` groups, and comp names — so it
+ * updates automatically when a package's contents change. Ordered intake →
+ * measurement → collection; consultation is appended by buildJourney.
+ */
+export const JOURNEY_COMPONENT_ORDER = [
+  'Questionnaire',
+  'Vital Signs',
+  'Blood Collection',
+  'Swab',
+  'BCA',
+  'ECG',
+  'Gut Kit',
+] as const
+
+export function packageComponents(service: CatalogueService): string[] {
+  const comps = service.comps || []
+  const hasComp = (test: (c: CatalogueComp) => boolean) => comps.some(test)
+  const out: string[] = []
+  if (hasComp((c) => /questionnaire/i.test(c.name) || /questionnaire/i.test(c.group))) out.push('Questionnaire')
+  if (hasComp((c) => /vital sign/i.test(c.name))) out.push('Vital Signs')
+  if (hasLabTests(service)) out.push('Blood Collection')
+  if (hasComp((c) => c.group === 'DNA Modules')) out.push('Swab')
+  if (hasComp((c) => c.name === 'BCA')) out.push('BCA')
+  if (hasComp((c) => c.name === 'ECG')) out.push('ECG')
+  if (hasComp((c) => c.group === 'Microbiome' || /gut/i.test(c.name))) out.push('Gut Kit')
+  return out
+}
+
+/** Total consultation minutes declared in a `doctor` field like "30 min + 15 min" or "1 hr". */
+export function parseConsultMinutes(doctor: string | null): number {
+  if (!doctor) return 0
+  let total = 0
+  const re = /(\d+(?:\.\d+)?)\s*(hours?|hrs?|h|minutes?|mins?|m)\b/gi
+  let m: RegExpExecArray | null
+  while ((m = re.exec(doctor))) {
+    const n = parseFloat(m[1])
+    total += /^h/i.test(m[2]) ? n * 60 : n
+  }
+  return total
+}
+
+/** Format minutes as "1 hr 15 min" / "45 min" / "2 hr". */
+export function formatDuration(minutes: number): string {
+  if (minutes <= 0) return ''
+  const h = Math.floor(minutes / 60)
+  const mm = Math.round(minutes % 60)
+  const parts: string[] = []
+  if (h) parts.push(`${h} hr`)
+  if (mm) parts.push(`${mm} min`)
+  return parts.join(' ')
+}
+
+export interface JourneyStep {
+  label: string
+  /** How many selected packages include this component (shown as "× N" when > 1). */
+  count: number
+}
+
+export interface Journey {
+  steps: JourneyStep[]
+  /** Summed Doctor Consultation time across all selected packages, in minutes. */
+  consultMinutes: number
+}
+
+/**
+ * The client journey for a set of selected packages: each component with a count
+ * (repeats shown, not deduped — e.g. BCA × 2), and the summed Doctor
+ * Consultation time, which the UI shows as the final step.
+ */
+export function buildJourney(services: CatalogueService[]): Journey {
+  const counts = new Map<string, number>()
+  let consultMinutes = 0
+  for (const s of services) {
+    for (const label of packageComponents(s)) counts.set(label, (counts.get(label) ?? 0) + 1)
+    consultMinutes += parseConsultMinutes(s.doctor)
+  }
+  const steps: JourneyStep[] = []
+  for (const label of JOURNEY_COMPONENT_ORDER) {
+    const count = counts.get(label)
+    if (count) steps.push({ label, count })
+  }
+  return { steps, consultMinutes }
+}
+
 /** Per-line discount type: a percentage of the line, or a fixed AED amount. */
 export type DiscountType = 'pct' | 'amt'
 

@@ -1,7 +1,12 @@
 # Components / Journey — feature spec
 
-Status: **planned, not yet built.** This document is the agreed spec; keep it in
-sync as the feature evolves.
+Status: **v1 shipped in v11.3.0** — the Journey renders in the Sale Assistant,
+derived from each package's existing data (`buildJourney`/`packageComponents` in
+`lib/catalogueUtils.ts`). Component detection is heuristic for now: Blood
+Collection ← has lab panels; Vital Signs/BCA/ECG/Gut Kit/Swab ← `comps`
+(Swab ← DNA Modules); Doctor Consultation time ← summed from the `doctor` field,
+shown last. **Swab and Questionnaire mapping is approximate** until the
+marker/module + components DB is built, which will make detection exact.
 
 ## Idea
 

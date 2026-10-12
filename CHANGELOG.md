@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.3.0]
+
+### Added
+- **Client Journey in the Sale Assistant.** Selecting package(s) now shows the components the client goes through, as numbered steps, derived from each package's existing contents (lab panels, `comps`, and the `doctor` field) so it tracks package changes automatically. Repeated components show a count (e.g. `BCA × 2`), and **Doctor Consultation is the last step with the summed consultation time** across the selected packages (e.g. 1 hr + 15 min → 1 hr 15 min). Component detection is heuristic for now; Swab/Questionnaire mapping will become exact once the marker/module DB is built.
+
 ## [11.2.9]
 
 ### Fixed
