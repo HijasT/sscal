@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.5.6]
+
+### Added
+- **Calculation test suite** (`tests/incentive.test.ts`, run with `npm test`). 21 tests cover the incentive engine: tier bracket boundaries (lower-inclusive/upper-exclusive), a fully hand-computed Tier 3 month, single-staff months, zero personal sales, P1=0, next-tier projections, top-tier extra, P1+P2 reconciliation, and input validation. Uses Node's built-in test runner via `tsx` (dev dependency only).
+
+### Security
+- **Upgraded `jspdf` 2.5.2 → 4.2.1 and `jspdf-autotable` 3.8.4 → 5.0.8**, clearing the vulnerable bundled `dompurify`. PDF export API is unchanged (same functional `autoTable(doc, …)` calls).
+
+### Changed
+- Bulk upload size limit raised from 15 MB to **20 MB**.
+- Synced `package.json` version to match `APP_VERSION`.
+
 ## [11.5.5]
 
 ### Security
