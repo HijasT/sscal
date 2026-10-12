@@ -193,9 +193,16 @@ function extractStaffFromSheet(
     }
   }
 
-  if (monthTotalCol === -1) {
-    console.warn(`Could not find total column for ${sheetName}, using column 2`)
-    monthTotalCol = 2
+  // When found, monthTotalCol is the pre-computed "<Month> <YY> Ttl" column.
+  // The current (in-progress) month often has no such column yet — the sheet
+  // owner adds it at month end — so falling back to a fixed column read an
+  // unrelated month's total (e.g. "Jan Total" in col 2). Instead, leave it
+  // unset and derive each figure by summing that staff's daily columns below,
+  // which equals the Ttl for finished months and is the correct month-to-date
+  // value for the current one.
+  const haveTtlCol = monthTotalCol !== -1
+  if (!haveTtlCol) {
+    console.warn(`No total column for ${sheetName}; summing daily columns instead`)
   }
 
   // Build list of genuine daily columns.
@@ -253,6 +260,30 @@ function extractStaffFromSheet(
     if (dayNum !== null) dayColumns.push(col)
   }
 
+  // Sum a staff row's numeric daily cells across genuine day columns — used
+  // as the month total when the sheet has no pre-computed Ttl column.
+  const sumDaily = (r: number): number => {
+    let total = 0
+    for (const col of dayColumns) {
+      const cell = worksheet[XLSX.utils.encode_cell({ r, c: col })]
+      if (!cell || cell.v === 'NA' || cell.v == null || cell.v === '') continue
+      const n = typeof cell.v === 'number' ? cell.v : parseFloat(cell.w ?? cell.v)
+      if (!isNaN(n)) total += n
+    }
+    return total
+  }
+
+  // Reads a month figure for a staff row: the Ttl column when present,
+  // otherwise the sum of that row's daily columns.
+  const readTotal = (r: number): number => {
+    if (haveTtlCol) {
+      const cell = worksheet[XLSX.utils.encode_cell({ r, c: monthTotalCol })]
+      if (!cell || cell.v === 'NA') return 0
+      return typeof cell.v === 'number' ? cell.v : parseFloat(cell.w ?? '0') || 0
+    }
+    return sumDaily(r)
+  }
+
   // Walk staff rows starting at row 4
   let row = 4
 
@@ -274,34 +305,11 @@ function extractStaffFromSheet(
       const salesRowOffset = hasClientsRow ? 2 : 1
 
       if (name && !['STAFF', 'p25', '`', 'Grand totals'].includes(name)) {
-        const pkgCell   = worksheet[XLSX.utils.encode_cell({ r: row - 1,                c: monthTotalCol })]
-        const salesCell = worksheet[XLSX.utils.encode_cell({ r: row - 1 + salesRowOffset, c: monthTotalCol })]
-
-        let packages    = 0
-        let sales       = 0
-        let clients     = 0
         let workingDays = 0
 
-        if (pkgCell && pkgCell.v !== 'NA') {
-          packages = typeof pkgCell.v === 'number'
-            ? pkgCell.v
-            : parseFloat(pkgCell.w ?? '0') || 0
-        }
-
-        if (hasClientsRow) {
-          const clientsCell = worksheet[XLSX.utils.encode_cell({ r: row, c: monthTotalCol })]
-          if (clientsCell && clientsCell.v !== 'NA') {
-            clients = typeof clientsCell.v === 'number'
-              ? clientsCell.v
-              : parseFloat(clientsCell.w ?? '0') || 0
-          }
-        }
-
-        if (salesCell && salesCell.v !== 'NA') {
-          sales = typeof salesCell.v === 'number'
-            ? salesCell.v
-            : parseFloat(salesCell.w ?? '0') || 0
-        }
+        const packages = readTotal(row - 1)
+        const sales    = readTotal(row - 1 + salesRowOffset)
+        const clients  = hasClientsRow ? readTotal(row) : 0
 
         // Count working days over genuine day columns only.
         // A day is worked when the sales cell is not blank and not NA —

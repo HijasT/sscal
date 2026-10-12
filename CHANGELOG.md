@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.13.1]
+
+### Fixed
+- **Bulk upload read the wrong month's figures for the current (in-progress) month.** The parser locates each month's total from a pre-computed "`<Month> <YY> Ttl`" column, which the sheet owner only adds once the month closes. When that column was missing it silently fell back to a fixed column (often "Jan Total"), so the current month showed January's numbers. It now sums each staff member's daily columns when no total column exists — equal to the `Ttl` for finished months and the correct month-to-date value for the current one.
+
 ## [10.13.0]
 
 ### Changed
