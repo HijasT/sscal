@@ -154,8 +154,8 @@ export function AboutTab() {
             { ver: 'v6', desc: 'Consolidation on the new architecture — central configuration, chronological month handling, and a recoverable error boundary around the Bulk tab.' },
             { ver: 'v5', desc: 'Full rewrite into the modular Next.js + React + TypeScript app everything since is built on; Excel/PDF bundled instead of loaded from CDNs, self-hosted fonts, dark/light themes.' },
             { ver: 'v4', desc: 'Analytics introduced — team history, per-person performance scores, badges and leaderboards. This is also where Claude came on board as the build assistant. (Analytics was later retired in v10.)' },
-            { ver: 'v3', desc: 'Built on top of the calculator: customizable achievement tiers, the Tier Ladder showing what is needed to reach the next tier, and PDF/CSV export.' },
-            { ver: 'v2', desc: 'Bulk processing added — upload the monthly Excel workbook and calculate incentives for the whole team at once, not just one person.' },
+            { ver: 'v3', desc: 'Bulk processing added — upload the monthly Excel workbook and calculate incentives for the whole team at once, not just one person.' },
+            { ver: 'v2', desc: 'Built on top of the individual calculator: customizable achievement tiers, the Tier Ladder showing what is needed to reach the next tier, PDF/CSV export, and dark/light themes.' },
             { ver: 'v1', desc: 'The original: an individual incentive calculator. A single person’s payout from the team achievement %, the tier system, and the P1/P2 pool split.' },
           ].map((v, i) => (
             <div key={i} style={{display: 'flex', gap: '12px', padding: '12px 16px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)'}}>

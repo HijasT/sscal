@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.2.1]
+
+### Changed
+- About → Version History: bulk processing is now attributed to **v3** (v2 is the feature additions on top of the individual calculator — tiers, Tier Ladder, export, themes).
+
 ## [11.2.0]
 
 ### Added
