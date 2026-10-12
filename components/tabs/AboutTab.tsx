@@ -142,6 +142,10 @@ export function AboutTab() {
           <p><strong style={{color: 'var(--text-primary)'}}>Built by:</strong> HT under the Keep Alive Project</p>
           <p><strong style={{color: 'var(--text-primary)'}}>Built with:</strong> Next.js 14, React 18, TypeScript 5, and Claude</p>
           <p>Claude was used for development only. No user data is ever sent to Claude — everything runs in your browser.</p>
+          <p><strong style={{color: 'var(--text-primary)'}}>Source:</strong>{' '}
+            <a href="https://github.com/HijasT/sscal" target="_blank" rel="noopener noreferrer" style={{color: 'var(--accent-primary)'}}>github.com/HijasT/sscal</a>{' '}
+            — to build on this, fork the repo. Please don&rsquo;t scrape or clone the live site.
+          </p>
           <p><strong style={{color: 'var(--text-primary)'}}>Theme:</strong> Flat • Dark/Light Mode</p>
         </div>
 

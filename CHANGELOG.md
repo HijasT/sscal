@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.2.5]
+
+### Added
+- **AI-scraping deterrents.** A `robots.txt` that disallows the known AI/dataset crawlers (GPTBot, ClaudeBot, CCBot, Google-Extended, PerplexityBot, Bytespider, …), `noai`/`noimageai` meta hints, and an About → Source line linking the GitHub repo asking people to fork it rather than scrape or clone the live site. These are deterrents honoured only by compliant crawlers; they cannot stop a browser or a non-compliant bot from reading a publicly served page.
+
 ## [11.2.4]
 
 ### Changed

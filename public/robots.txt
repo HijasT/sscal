@@ -1,0 +1,57 @@
+# Kleon — https://github.com/HijasT/sscal
+#
+# This app's source is open. To build on it, fork the GitHub repo above —
+# do not scrape or clone the deployed site. The rules below ask AI crawlers
+# and dataset collectors not to copy this site for training or replication.
+# (Compliant crawlers honour this; it cannot stop a browser or a non-compliant
+# bot from reading a page that is served publicly.)
+
+# AI / dataset crawlers — disallowed
+User-agent: GPTBot
+Disallow: /
+
+User-agent: OAI-SearchBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: Meta-ExternalAgent
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+# Everyone else may index normally
+User-agent: *
+Allow: /

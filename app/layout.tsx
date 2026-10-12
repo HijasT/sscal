@@ -21,6 +21,15 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'black-translucent',
   },
+  // Deterrents against AI scraping / dataset collection. These are hints that
+  // only compliant crawlers honour — they cannot stop a browser (or a human
+  // pointing an AI tool at the URL) from reading a publicly served page. The
+  // sanctioned way to build on this app is to fork the GitHub repo below.
+  other: {
+    robots: 'noai, noimageai',
+    'ai-content-declaration': 'no-training, no-replication',
+    repository: 'https://github.com/HijasT/sscal',
+  },
 }
 
 export default function RootLayout({
