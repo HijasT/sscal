@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.5.5]
+
+### Security
+- **Added security response headers** (in `next.config.js`): a Content-Security-Policy with `connect-src 'self'` (the key guarantee that uploaded data can't be sent anywhere), plus `frame-ancestors 'none'`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, HSTS, and a locked-down `Permissions-Policy`. `script-src`/`style-src` keep `'unsafe-inline'` because the app depends on Next's inline bootstrap and the no-flash theme script.
+
 ## [11.5.4]
 
 ### Security
