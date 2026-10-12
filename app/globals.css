@@ -385,6 +385,40 @@ body {
   border: 1px solid var(--border-color);
 }
 
+/* Collapsible settings sections (native <details>). The card padding moves to
+   the summary and body so the whole header row stays clickable. */
+.settings-section { padding: 0; }
+.settings-section + .settings-section { margin-top: 24px; }
+.settings-summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 28px;
+  cursor: pointer;
+  user-select: none;
+}
+.settings-summary::-webkit-details-marker { display: none; }
+.settings-summary .card-title { margin-bottom: 0; }
+.settings-summary:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+  border-radius: var(--radius-lg);
+}
+.settings-chevron {
+  flex-shrink: 0;
+  width: 11px;
+  height: 11px;
+  margin-right: 4px;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+  transform: rotate(-45deg); /* points right when collapsed */
+  transition: transform 0.2s ease;
+}
+.settings-section[open] .settings-chevron { transform: rotate(45deg); } /* down when open */
+.settings-body { padding: 0 28px 28px; }
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));

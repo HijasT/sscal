@@ -204,12 +204,14 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
 
   return (
     <>
-    <section className="card">
-      <div className="card-header">
+    <details className="card settings-section" open>
+      <summary className="settings-summary">
         <h2 className="card-title"><SlidersIcon className="icon-lg" />Tier Configuration</h2>
-        <div className="card-description">
-          Customize achievement tiers, rates, and colors
-        </div>
+        <span className="settings-chevron" aria-hidden="true" />
+      </summary>
+      <div className="settings-body">
+      <div className="card-description" style={{marginBottom: '24px'}}>
+        Customize achievement tiers, rates, and colors
       </div>
 
       {/* Default Tiers Bar */}
@@ -457,14 +459,17 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
           <li>At least one tier is required</li>
         </ul>
       </div>
-    </section>
+      </div>
+    </details>
 
-    <section className="card" style={{marginTop: '24px'}}>
-      <div className="card-header">
+    <details className="card settings-section">
+      <summary className="settings-summary">
         <h2 className="card-title"><BarChartIcon className="icon-lg" />Staff Center Allocation</h2>
-        <div className="card-description">
-          Map each employee code to a center (used by Bulk Results' Center-wise Stats)
-        </div>
+        <span className="settings-chevron" aria-hidden="true" />
+      </summary>
+      <div className="settings-body">
+      <div className="card-description" style={{marginBottom: '24px'}}>
+        Map each employee code to a center (used by Bulk Results' Center-wise Stats)
       </div>
 
       <div style={{marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -593,14 +598,17 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
           <li>Changes apply immediately to Bulk Results' Center-wise Stats section</li>
         </ul>
       </div>
-    </section>
+      </div>
+    </details>
 
-    <section className="card" style={{marginTop: '24px'}}>
-      <div className="card-header">
+    <details className="card settings-section">
+      <summary className="settings-summary">
         <h2 className="card-title"><SunIcon className="icon-lg" />Preferences</h2>
-        <div className="card-description">
-          Small extras that don't affect any calculation
-        </div>
+        <span className="settings-chevron" aria-hidden="true" />
+      </summary>
+      <div className="settings-body">
+      <div className="card-description" style={{marginBottom: '24px'}}>
+        Small extras that don't affect any calculation
       </div>
 
       <div className="settings-toggle-row">
@@ -636,7 +644,8 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
           <span className="switch-thumb" />
         </button>
       </div>
-    </section>
+      </div>
+    </details>
     </>
   )
 }

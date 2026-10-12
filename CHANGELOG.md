@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.15.0]
+
+### Changed
+- **Settings sections are now collapsible.** Tier Configuration, Staff Center Allocation, and Preferences each collapse/expand from their header (native `<details>`, keyboard-accessible, with a chevron). Tier Configuration starts open; the other two start collapsed to keep the page compact.
+
 ## [10.14.2]
 
 ### Fixed
