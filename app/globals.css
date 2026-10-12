@@ -65,9 +65,12 @@
 
 /* Light Mode — v8.0 */
 body.light-mode {
-  --bg-primary: #f4f2ec;
-  --bg-secondary: #efeee9;
-  --bg-tertiary: #efeee9;
+  /* Warm paper ground carrying a touch of the Klea brand violet — a few percent
+     of the accent mixed into the cream so the page reads warm-lilac, not plain
+     grey. Cards stay white to keep content crisp against it. */
+  --bg-primary: color-mix(in srgb, #4a3d7a 5%, #f4f2ec);
+  --bg-secondary: color-mix(in srgb, #4a3d7a 7%, #efeee9);
+  --bg-tertiary: color-mix(in srgb, #4a3d7a 7%, #efeee9);
   --bg-card: #ffffff;
   --surface: #ffffff;
   --surface-hover: #f6f5f1;
@@ -400,7 +403,9 @@ body {
   user-select: none;
 }
 .settings-summary::-webkit-details-marker { display: none; }
-.settings-summary .card-title { margin-bottom: 0; }
+/* In the collapsible Settings headers the title reads as a subheading, not a
+   full card title — smaller and uniform across all three sections. */
+.settings-summary .card-title { margin-bottom: 0; font-size: 16px; letter-spacing: normal; }
 .settings-summary:focus-visible {
   outline: 2px solid var(--accent-primary);
   outline-offset: -2px;
@@ -1630,8 +1635,8 @@ body.light-mode .sa {
 .sa-cat[data-tone='c'] { --c: var(--sa-tone-c); }
 .sa-cat[data-tone='d'] { --c: var(--sa-tone-d); }
 .sa-cat[data-tone='e'] { --c: var(--sa-tone-e); }
-.sa-pkg { border: 1px solid var(--sa-hairline); border-radius: 8px; background: var(--sa-card); }
-.sa-pkg.open { border-color: var(--sa-violet-text); }
+.sa-pkg { border: 1px solid var(--sa-hairline); border-left: 3px solid var(--c, var(--sa-hairline)); border-radius: 8px; background: var(--sa-card); }
+.sa-pkg.open { border-color: var(--sa-violet-text); border-left-color: var(--c, var(--sa-violet-text)); }
 .sa-pkg-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; padding: 10px 12px 10px 16px; }
 .sa-pkg-name { font-weight: 600; }
 .sa-pkg-meta { color: var(--sa-ink-muted); font-size: 0.8125rem; }

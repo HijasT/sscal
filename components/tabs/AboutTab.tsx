@@ -155,11 +155,11 @@ export function AboutTab() {
             { ver: 'v8', desc: 'Live Individual calculator, auto-calculating Bulk with Center-wise Stats and staff-center allocation, and the first Sale Assistant (catalogue, quotes, per-line discounts) — built with Claude back on development.' },
             { ver: 'v7', desc: 'Next.js foundation hardened: central config, Excel/PDF bundled without CDNs, light theme by default, working-days fix, and a cleanup of generic "AI-look" styling.' },
             { ver: 'v6', desc: 'Consolidation on the new architecture — central configuration, chronological month handling, and a recoverable error boundary around the Bulk tab.' },
-            { ver: 'v5', desc: 'Full rewrite into the modular Next.js + React + TypeScript app everything since is built on; Excel/PDF bundled instead of loaded from CDNs, self-hosted fonts, dark/light themes.' },
+            { ver: 'v5', desc: 'Migrated from the standalone HTML build into the modular Next.js + React + TypeScript app everything since is built on, and deployed on Vercel; Excel/PDF bundled instead of loaded from CDNs, self-hosted fonts, dark/light themes.' },
             { ver: 'v4', desc: 'Analytics introduced — team history, per-person performance scores, badges and leaderboards. Claude first helped with development here (development only — no user data was ever sent to Claude). Analytics was later retired in v10.' },
             { ver: 'v3', desc: 'Bulk processing added — upload the monthly Excel workbook and calculate incentives for the whole team at once, not just one person.' },
             { ver: 'v2', desc: 'Built on top of the individual calculator: customizable achievement tiers, the Tier Ladder showing what is needed to reach the next tier, PDF/CSV export, and dark/light themes.' },
-            { ver: 'v1', desc: 'The original: an individual incentive calculator. A single person’s payout from the team achievement %, the tier system, and the P1/P2 pool split.' },
+            { ver: 'v1', desc: 'The original: an individual incentive calculator, built as a single standalone HTML page. A single person’s payout from the team achievement %, the tier system, and the P1/P2 pool split.' },
           ].map((v, i) => (
             <div key={i} style={{display: 'flex', gap: '12px', padding: '12px 16px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)'}}>
               <span style={{flexShrink: 0, minWidth: '48px', fontWeight: '700', color: 'var(--accent-primary)', fontFamily: "'JetBrains Mono', monospace", fontSize: '13px'}}>

@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.2.4]
+
+### Changed
+- **Sale Assistant:** each package in the catalogue now carries a left "thread" in its category's wayfinding colour, so category membership is visible per row (not just at the group heading).
+- **Light theme:** the warm paper ground now carries a few percent of the Klea brand violet (warm-lilac), while cards stay white. Dark theme unchanged.
+- **Settings:** the three collapsible section titles are sized as subheadings (uniform, smaller) instead of full card titles.
+- **About → Version History:** notes the original single-file HTML app, the migration to Next.js, and deployment on Vercel (v1 and v5 entries).
+
 ## [11.2.3]
 
 ### Changed
