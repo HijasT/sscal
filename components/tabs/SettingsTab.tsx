@@ -206,6 +206,52 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
     <>
     <details className="card settings-section" open>
       <summary className="settings-summary">
+        <h2 className="card-title"><SunIcon className="icon-lg" />Preferences</h2>
+        <span className="settings-chevron" aria-hidden="true" />
+      </summary>
+      <div className="settings-body">
+      <div className="card-description" style={{marginBottom: '24px'}}>
+        Small extras that don't affect any calculation
+      </div>
+
+      <div className="settings-toggle-row">
+        <div>
+          <div className="settings-toggle-label">Kleon</div>
+          <div className="settings-toggle-desc">The little robot that floats around the app and comments on your numbers</div>
+        </div>
+        <button
+          type="button"
+          className={`switch ${robotEnabled ? 'on' : ''}`}
+          role="switch"
+          aria-checked={robotEnabled}
+          aria-label="Toggle Kleon"
+          onClick={() => onToggleRobot(!robotEnabled)}
+        >
+          <span className="switch-thumb" />
+        </button>
+      </div>
+
+      <div className="settings-toggle-row">
+        <div>
+          <div className="settings-toggle-label">Keep data on this device</div>
+          <div className="settings-toggle-desc">By default, entered and uploaded data clears from this browser 1 hour after it last changed. Turn this on to keep it until you clear it yourself.</div>
+        </div>
+        <button
+          type="button"
+          className={`switch ${persist ? 'on' : ''}`}
+          role="switch"
+          aria-checked={persist}
+          aria-label="Keep data on this device"
+          onClick={() => handleTogglePersist(!persist)}
+        >
+          <span className="switch-thumb" />
+        </button>
+      </div>
+      </div>
+    </details>
+
+    <details className="card settings-section">
+      <summary className="settings-summary">
         <h2 className="card-title"><SlidersIcon className="icon-lg" />Tier Configuration</h2>
         <span className="settings-chevron" aria-hidden="true" />
       </summary>
@@ -597,52 +643,6 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
           <li>Staff with no code, or a code not listed here, show as "Unassigned" in Center-wise Stats</li>
           <li>Changes apply immediately to Bulk Results' Center-wise Stats section</li>
         </ul>
-      </div>
-      </div>
-    </details>
-
-    <details className="card settings-section">
-      <summary className="settings-summary">
-        <h2 className="card-title"><SunIcon className="icon-lg" />Preferences</h2>
-        <span className="settings-chevron" aria-hidden="true" />
-      </summary>
-      <div className="settings-body">
-      <div className="card-description" style={{marginBottom: '24px'}}>
-        Small extras that don't affect any calculation
-      </div>
-
-      <div className="settings-toggle-row">
-        <div>
-          <div className="settings-toggle-label">Kleon</div>
-          <div className="settings-toggle-desc">The little robot that floats around the app and comments on your numbers</div>
-        </div>
-        <button
-          type="button"
-          className={`switch ${robotEnabled ? 'on' : ''}`}
-          role="switch"
-          aria-checked={robotEnabled}
-          aria-label="Toggle Kleon"
-          onClick={() => onToggleRobot(!robotEnabled)}
-        >
-          <span className="switch-thumb" />
-        </button>
-      </div>
-
-      <div className="settings-toggle-row">
-        <div>
-          <div className="settings-toggle-label">Keep data on this device</div>
-          <div className="settings-toggle-desc">By default, entered and uploaded data clears from this browser 1 hour after it last changed. Turn this on to keep it until you clear it yourself.</div>
-        </div>
-        <button
-          type="button"
-          className={`switch ${persist ? 'on' : ''}`}
-          role="switch"
-          aria-checked={persist}
-          aria-label="Keep data on this device"
-          onClick={() => handleTogglePersist(!persist)}
-        >
-          <span className="switch-thumb" />
-        </button>
       </div>
       </div>
     </details>

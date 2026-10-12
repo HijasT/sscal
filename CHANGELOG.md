@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.0.1]
+
+### Changed
+- **Preferences (Kleon and "Keep data on this device") now sit at the top of the Settings page** and open by default, so the toggles are reachable without scrolling. Tier Configuration and Staff Center Allocation follow, collapsed.
+
 ## [11.0.0]
 
 ### Added
