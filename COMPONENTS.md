@@ -37,9 +37,17 @@ markers/modules (the specific biomarkers / DNA modules a package's tests yield).
   automatically — the journey is never hardcoded separately from the package
   data (single source of truth).
 
+## Marker search → packages
+
+Searching for a particular **marker** should list the **packages that include
+that marker**. (A word-based marker search already exists in the catalogue via
+`searchServices` in `lib/catalogueUtils.ts`, which matches marker names; the
+marker DB will make this canonical/exact and drive a dedicated marker → packages
+lookup.)
+
 ## Prerequisites (in order)
 
-1. Create a **marker / module database** (canonical list of markers and modules).
+1. Create a **marker / module database** (canonical list of markers and modules). *(Build later.)*
 2. **Confirm the markers/modules in each package** against that DB.
 
 Reconcile with the existing `lib/catalogue.json` (panels → test ids, `tests`
