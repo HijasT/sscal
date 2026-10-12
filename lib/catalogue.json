@@ -1028,9 +1028,9 @@
    "category": "Comprehensive Packages / Bundles",
    "sub": "Healthy Heart",
    "name": "Healthy Heart Package",
-   "price": 2450,
+   "price": 2750,
    "currency": "AED",
-   "biomarkers": 34,
+   "biomarkers": 38,
    "doctor": "45 min + 15 min",
    "panels": [
     "Healthy Heart Panel"
@@ -2460,6 +2460,10 @@
     54,
     87,
     88,
+    12,
+    13,
+    14,
+    69,
     60,
     89,
     66,
@@ -2473,7 +2477,7 @@
     120,
     121
    ],
-   "count": 34
+   "count": 38
   },
   "Cortisol Panel": {
    "tests": [

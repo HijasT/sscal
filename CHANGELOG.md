@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.3.4]
+
+### Changed
+- **Healthy Heart Package updated to match the latest catalogue.** Price AED 2,450 → 2,750; markers 34 → 38 (added four Cardiac Risk Markers to the Healthy Heart Panel: Apolipoprotein A1 (APO-A1), Apolipoprotein B (APO-B), Apolipoprotein B/A1 ratio, and Lipoprotein (Lpa)). Verified against a full price + marker-name diff of all 51 packages; no other package changed.
+
 ## [11.3.3]
 
 ### Changed
