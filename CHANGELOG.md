@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.1.0]
+
+### Added
+- **Version History on the About page.** A concise one-line-per-major-version summary (v1–v6 legacy/rewrite through v11), so what changed across the big releases is visible in-app.
+
 ## [11.0.1]
 
 ### Changed

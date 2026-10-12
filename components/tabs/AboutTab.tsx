@@ -142,6 +142,29 @@ export function AboutTab() {
         </div>
 
         <h4 style={{color: 'var(--text-primary)', marginBottom: '12px', marginTop: '28px', fontSize: '16px'}}>
+          Version History
+        </h4>
+        <div style={{display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px'}}>
+          {[
+            { ver: 'v11', desc: 'Per-package discount caps in the Sale Assistant, step-by-step Excel upload instructions, and collapsible Settings sections.' },
+            { ver: 'v10', desc: 'Renamed to Kleon. Removed the Analytics feature; added 1-hour local data auto-expiry with a "keep on this device" option; Sale Assistant became the first tab; editorial design polish.' },
+            { ver: 'v9', desc: 'Sale Assistant matured: the Package Ladder, cheapest-bundle suggestions via a package-composition graph, HEALTHMAXXING, a Men/Women toggle, and accessibility & focus fixes.' },
+            { ver: 'v8', desc: 'Live Individual calculator, auto-calculating Bulk with Center-wise Stats and staff-center allocation, and the first Sale Assistant (catalogue, quotes, per-line discounts).' },
+            { ver: 'v7', desc: 'Next.js foundation hardened: central config, Excel/PDF bundled without CDNs, light theme by default, working-days fix, and a cleanup of generic "AI-look" styling.' },
+            { ver: 'v1–v6', desc: 'Early versions: a legacy single-file HTML calculator. v5 was the full rewrite into the modular Next.js app this is built on (v1–v4 predate the changelog).' },
+          ].map((v, i) => (
+            <div key={i} style={{display: 'flex', gap: '12px', padding: '12px 16px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)'}}>
+              <span style={{flexShrink: 0, minWidth: '48px', fontWeight: '700', color: 'var(--accent-primary)', fontFamily: "'JetBrains Mono', monospace", fontSize: '13px'}}>
+                {v.ver}
+              </span>
+              <span style={{fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6'}}>
+                {v.desc}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <h4 style={{color: 'var(--text-primary)', marginBottom: '12px', marginTop: '28px', fontSize: '16px'}}>
           Version & Credits
         </h4>
         <div style={{padding: '16px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6'}}>
