@@ -1167,11 +1167,6 @@
      "value": "X"
     },
     {
-     "group": "BCA / ECG",
-     "name": "BCA",
-     "value": "X"
-    },
-    {
      "group": "DNA Modules",
      "name": "Biocertica DNA - Nutrition & Wellbeing",
      "value": "X"
@@ -1227,11 +1222,6 @@
      "value": "X"
     },
     {
-     "group": "BCA / ECG",
-     "name": "BCA",
-     "value": "X"
-    },
-    {
      "group": "DNA Modules",
      "name": "Biocertica DNA - Nutrition & Wellbeing",
      "value": "X"
@@ -1284,11 +1274,6 @@
     {
      "group": "Doctor & Vital Signs",
      "name": "Vital Signs Assessment",
-     "value": "X"
-    },
-    {
-     "group": "BCA / ECG",
-     "name": "BCA",
      "value": "X"
     },
     {
@@ -1374,11 +1359,6 @@
     {
      "group": "Doctor & Vital Signs",
      "name": "Vital Signs Assessment",
-     "value": "X"
-    },
-    {
-     "group": "BCA / ECG",
-     "name": "BCA",
      "value": "X"
     },
     {
