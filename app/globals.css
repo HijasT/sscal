@@ -1548,6 +1548,24 @@ body.light-mode .sa {
 .sa-disclosure { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; font-weight: 600; }
 .sa-ladder[open] > summary .sa-chev { transform: rotate(180deg); }
 .sa-ladder-sum { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; min-width: 0; }
+.sa-chev-up { transform: rotate(180deg); }
+
+/* Floating "jump to Package Ladder" button — appears once the ladder scrolls away. */
+.sa-ladder-fab {
+  position: fixed; right: 20px; bottom: 20px; z-index: 40;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 11px 16px; border: none; border-radius: 999px;
+  background: var(--sa-violet); color: #fff; font: inherit; font-weight: 600; cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+}
+.sa-ladder-fab:hover { background: var(--sa-violet-deep); }
+.sa-ladder-fab:focus-visible { outline: 2px solid var(--sa-violet-text); outline-offset: 2px; }
+.sa-ladder-fab .sa-icon { width: 18px; height: 18px; }
+.sa-ladder-fab-n {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px;
+  padding: 0 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.25); font-size: 12px; font-weight: 700;
+}
+@media (max-width: 560px) { .sa-ladder-fab { right: 16px; bottom: 16px; } }
 
 .sa-undo {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;

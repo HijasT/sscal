@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.4.0]
+
+### Changed
+- **HEALTHMAXXING now expands into its component packages when selected.** Instead of adding one catch-all line, picking HEALTHMAXXING drops the real individual packages into the selection — Dubai It (matching the chosen gender), Respiratory Allergy, Gut Microbiome, DNA Acne, DNA Hair Loss, Coeliac, and Advanced Diabetes — so the quote shows exactly what the client gets. Applies to the catalogue "Add" button and to replacing the selection from a suggestion.
+- **HEALTHMAXXING completed.** Added Coeliac Test and Advanced Diabetes Screening to its composition (previously missing), so it now truly covers the whole catalogue: 455 markers, AED 19,935 (was 19,150).
+
+### Added
+- **Floating "Package Ladder" button** in the Sale Assistant. The catalogue is long, so once the Package Ladder scrolls out of view a floating button appears (bottom-right, with the selected-count badge) that jumps back to it and opens it.
+
 ## [11.3.4]
 
 ### Changed

@@ -399,11 +399,42 @@ const COMPOSITION: Record<string, string[]> = {
     'DNA - Acne Package',
     'Gut Microbiome Test',
     'Respiratory Allergy Test',
+    'Coeliac Test',
+    'Advanced Diabetes Screening',
   ],
 }
 
+/**
+ * The individual packages HEALTHMAXXING expands into when selected (it is never
+ * added as a single line — picking it drops these real packages into the quote
+ * instead). Dubai It follows the chosen gender; the rest are gender-neutral.
+ * Keep in sync with COMPOSITION.HEALTHMAXXING above (same set).
+ */
+const HEALTHMAXXING_COMMON = [
+  'Respiratory Allergy Test',
+  'Gut Microbiome Test',
+  'DNA - Acne Package',
+  'DNA - Hair Loss Package',
+  'Coeliac Test',
+  'Advanced Diabetes Screening',
+]
+export function healthmaxxingComponents(gender: 'M' | 'W'): CatalogueService[] {
+  const names = [gender === 'W' ? "Dubai It Women's Package" : "Dubai It Men's Package", ...HEALTHMAXXING_COMMON]
+  return names
+    .map((n) => data.services.find((s) => s.name === n))
+    .filter((s): s is CatalogueService => !!s)
+}
+
+/**
+ * Expand a service for adding to the quote: HEALTHMAXXING becomes its component
+ * packages (see healthmaxxingComponents); every other service is itself.
+ */
+export function expandForQuote(service: CatalogueService, gender: 'M' | 'W'): CatalogueService[] {
+  return service.name === 'HEALTHMAXXING' ? healthmaxxingComponents(gender) : [service]
+}
+
 /** Price of the unofficial HEALTHMAXXING package (sum of its components). */
-const HEALTHMAXXING_PRICE = 19150
+const HEALTHMAXXING_PRICE = 19935
 
 // Inject HEALTHMAXXING — an unofficial package that covers everything on offer —
 // synthesised from the union of its component packages' panels and comps so the

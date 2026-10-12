@@ -18,7 +18,7 @@
  * All data is bundled with the app (no network calls). The selection and gender
  * are kept in sessionStorage for the session.
  */
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
   getServices,
   getCategories,
@@ -43,6 +43,7 @@ import {
   lineNet,
   lineDiscountAmount,
   maxDiscountPct,
+  expandForQuote,
   type CatalogueService,
   type ExtraItem,
   type QuoteLine,
@@ -90,6 +91,9 @@ export function SaleAssistantTab() {
   // any other edit to the selection, so Undo only ever restores that exact state.
   const [undo, setUndo] = useState<{ lines: QuoteLine[]; name: string } | null>(null)
   const [ladderOpen, setLadderOpen] = useState(false)
+  // Floating "jump to ladder" button: shown only once the ladder scrolls out of view.
+  const ladderRef = useRef<HTMLDetailsElement>(null)
+  const [showLadderFab, setShowLadderFab] = useState(false)
   const [compareOpen, setCompareOpen] = useState(false)
   const [suggDiscOpen, setSuggDiscOpen] = useState(false)
   const [openExtra, setOpenExtra] = useState<number | null>(null)
@@ -200,30 +204,55 @@ export function SaleAssistantTab() {
     }
   }, [lines, gender, hydrated])
 
+  // Show the floating "jump to ladder" button only while the ladder is off-screen.
+  useEffect(() => {
+    const el = ladderRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const obs = new IntersectionObserver(([e]) => setShowLadderFab(!e.isIntersecting), { threshold: 0 })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
+  const jumpToLadder = () => {
+    setLadderOpen(true)
+    ladderRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   // Every ordinary edit goes through here so it also invalidates a pending undo.
   const edit = (fn: (prev: QuoteLine[]) => QuoteLine[]) => {
     setUndo(null)
     setLines(fn)
   }
 
+  // Append services, skipping any already selected. HEALTHMAXXING expands into
+  // its component packages (expandForQuote) rather than being added as one line.
+  const appendServices = (services: CatalogueService[]) =>
+    edit((prev) => {
+      const next = [...prev]
+      for (const svc of services.flatMap((s) => expandForQuote(s, gender))) {
+        if (!next.some((l) => l.service.id === svc.id)) {
+          next.push({ service: svc, qty: 1, discountType: 'pct' as DiscountType, discountValue: 0 })
+        }
+      }
+      return next
+    })
+
   const addServiceById = (id?: number) => {
     if (id == null) return
     const service = getServiceById(id)
     if (!service) return
-    edit((prev) =>
-      prev.some((l) => l.service.id === id)
-        ? prev
-        : [...prev, { service, qty: 1, discountType: 'pct' as DiscountType, discountValue: 0 }]
-    )
+    appendServices([service])
     setLadderOpen(true)
   }
 
   const toggleInQuote = (service: CatalogueService) => {
-    edit((prev) =>
-      prev.some((l) => l.service.id === service.id)
-        ? prev.filter((l) => l.service.id !== service.id)
-        : [...prev, { service, qty: 1, discountType: 'pct' as DiscountType, discountValue: 0 }]
-    )
+    // HEALTHMAXXING is never a line of its own, so it can't be "in" the quote —
+    // selecting it always expands into its components.
+    if (service.name !== 'HEALTHMAXXING' && lines.some((l) => l.service.id === service.id)) {
+      edit((prev) => prev.filter((l) => l.service.id !== service.id))
+      return
+    }
+    appendServices([service])
     setLadderOpen(true)
   }
 
@@ -238,7 +267,14 @@ export function SaleAssistantTab() {
   const moveSuggestionToSelected = () => {
     if (!suggestion) return
     setUndo({ lines, name: suggestion.name })
-    setLines([{ service: suggestion, qty: 1, discountType: 'pct', discountValue: 0 }])
+    setLines(
+      expandForQuote(suggestion, gender).map((service) => ({
+        service,
+        qty: 1,
+        discountType: 'pct' as DiscountType,
+        discountValue: 0,
+      }))
+    )
   }
 
   // Swap ONLY the covered packages for the combined one, keeping the rest as
@@ -296,6 +332,7 @@ export function SaleAssistantTab() {
 
         {/* Package Ladder */}
         <details
+          ref={ladderRef}
           className="sa-ladder"
           open={ladderOpen}
           onToggle={(e) => setLadderOpen((e.currentTarget as HTMLDetailsElement).open)}
@@ -733,6 +770,14 @@ export function SaleAssistantTab() {
               </section>
             ))}
           </div>
+        )}
+
+        {showLadderFab && (
+          <button type="button" className="sa-ladder-fab" onClick={jumpToLadder}>
+            <Icon name="chevron" className="sa-chev-up" />
+            Package Ladder
+            {lines.length > 0 && <span className="sa-ladder-fab-n">{lines.length}</span>}
+          </button>
         )}
       </div>
     </div>
