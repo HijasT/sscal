@@ -327,6 +327,9 @@ export function excludedDnaModules(from: CatalogueService[], within: CatalogueSe
 /** Category that holds the comprehensive/bundle packages. */
 const COMPREHENSIVE_CATEGORY = 'Comprehensive Packages / Bundles'
 
+/** Category of the nested base screenings (HDS ⊂ Standard ⊂ Premium ⊂ Premium PLUS). */
+const CORE_CATEGORY = 'Core Health Screening'
+
 /**
  * Business composition of packages: which other purchasable packages each
  * package is made up of (direct components; transitive relationships are
@@ -475,6 +478,18 @@ export function suggestPackage(selected: CatalogueService[], gender?: 'M' | 'W')
   if (selected.length < 2) return null
   const selNames = new Set(selected.map((s) => s.name))
   const sum = selected.reduce((a, s) => a + (s.price ?? 0), 0)
+
+  // All selected from the Core Health Screening ladder nest into one another, so
+  // the biggest selected already covers the rest — suggest that one (consolidate)
+  // rather than upselling to a higher-category bundle. Returns null if no single
+  // selected package covers the others (e.g. two different-gender Premium PLUS).
+  if (selected.every((s) => s.category === CORE_CATEGORY)) {
+    const covering = selected.filter((p) =>
+      selected.every((o) => o.name === p.name || includesClosure(p.name).has(o.name))
+    )
+    if (!covering.length) return null
+    return covering.reduce((a, b) => ((b.price ?? 0) > (a.price ?? 0) ? b : a))
+  }
   let best: CatalogueService | null = null
   for (const p of data.services) {
     if (p.price == null) continue

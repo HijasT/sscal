@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.14.2]
+
+### Fixed
+- **Sale Assistant now consolidates multiple Core Health Screening selections.** The base screenings nest (Household ⊂ Standard ⊂ Premium ⊂ Premium PLUS), so when more than one is selected the biggest selected already covers the rest — it's now suggested directly instead of upselling to a higher-category bundle. Mixing in a package from another category (e.g. a Specialised add-on) still suggests the next bundle up, as in 10.14.1.
+
 ## [10.14.1]
 
 ### Fixed
