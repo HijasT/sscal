@@ -244,6 +244,16 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   }
   const si = (col: SortCol) => sortColumn === col ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ''
 
+  // Highlight the column the table is currently sorted by (header + body cells).
+  const thHl = (col: SortCol, extra?: React.CSSProperties): React.CSSProperties =>
+    sortColumn === col
+      ? { ...TH, ...extra, color: 'var(--accent-primary)', background: 'color-mix(in srgb, var(--accent-primary) 16%, var(--bg-secondary))' }
+      : { ...TH, ...extra }
+  const tdHl = (col: SortCol, extra?: React.CSSProperties): React.CSSProperties =>
+    sortColumn === col
+      ? { ...TD, ...extra, background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' }
+      : { ...TD, ...extra }
+
   const nextTierInfo = (() => {
     if (!calculatedData) return null
     const tiers = [...loadTiers()].sort((a,b) => a.min - b.min)
@@ -453,43 +463,43 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                 <thead>
                   <tr>
                     <th style={{...TH,width:'46px'}}>Rank</th>
-                    <th style={TH} onClick={()=>handleSort('name')}>Name{si('name')}</th>
-                    <th style={TH} onClick={()=>handleSort('totalIncentive')}>Total{si('totalIncentive')}</th>
-                    <th style={TH} onClick={()=>handleSort('packages')}>Packages{si('packages')}</th>
-                    <th style={TH} onClick={()=>handleSort('clients')}>Clients{si('clients')}</th>
-                    <th style={TH} onClick={()=>handleSort('sales')}>Sales{si('sales')}</th>
-                    <th style={{...TH,fontSize:'11px'}} onClick={()=>handleSort('workingDays')}>Days{si('workingDays')}</th>
-                    <th style={{...TH,fontSize:'11px'}} onClick={()=>handleSort('avgPackagesPerDay')}>Pkg/Day{si('avgPackagesPerDay')}</th>
-                    <th style={{...TH,fontSize:'11px'}} onClick={()=>handleSort('avgSalesPerDay')}>Sales/Day{si('avgSalesPerDay')}</th>
-                    <th style={{...TH,fontSize:'11px'}} onClick={()=>handleSort('avgClientsPerDay')}>Clients/Day{si('avgClientsPerDay')}</th>
-                    <th style={{...TH,fontSize:'11px'}} onClick={()=>handleSort('maxKpiClients')}>Max KPI Clients{si('maxKpiClients')}</th>
-                    <th style={TH} onClick={()=>handleSort('contribution')}>Revenue Share %{si('contribution')}</th>
-                    <th style={TH} onClick={()=>handleSort('p1')}>P1{si('p1')}</th>
-                    <th style={TH} onClick={()=>handleSort('p2')}>P2{si('p2')}</th>
+                    <th style={thHl('name')} onClick={()=>handleSort('name')}>Name{si('name')}</th>
+                    <th style={thHl('totalIncentive')} onClick={()=>handleSort('totalIncentive')}>Total{si('totalIncentive')}</th>
+                    <th style={thHl('packages')} onClick={()=>handleSort('packages')}>Packages{si('packages')}</th>
+                    <th style={thHl('clients')} onClick={()=>handleSort('clients')}>Clients{si('clients')}</th>
+                    <th style={thHl('sales')} onClick={()=>handleSort('sales')}>Sales{si('sales')}</th>
+                    <th style={thHl('workingDays',{fontSize:'11px'})} onClick={()=>handleSort('workingDays')}>Days{si('workingDays')}</th>
+                    <th style={thHl('avgPackagesPerDay',{fontSize:'11px'})} onClick={()=>handleSort('avgPackagesPerDay')}>Pkg/Day{si('avgPackagesPerDay')}</th>
+                    <th style={thHl('avgSalesPerDay',{fontSize:'11px'})} onClick={()=>handleSort('avgSalesPerDay')}>Sales/Day{si('avgSalesPerDay')}</th>
+                    <th style={thHl('avgClientsPerDay',{fontSize:'11px'})} onClick={()=>handleSort('avgClientsPerDay')}>Clients/Day{si('avgClientsPerDay')}</th>
+                    <th style={thHl('maxKpiClients',{fontSize:'11px'})} onClick={()=>handleSort('maxKpiClients')}>Max KPI Clients{si('maxKpiClients')}</th>
+                    <th style={thHl('contribution')} onClick={()=>handleSort('contribution')}>Revenue Share %{si('contribution')}</th>
+                    <th style={thHl('p1')} onClick={()=>handleSort('p1')}>P1{si('p1')}</th>
+                    <th style={thHl('p2')} onClick={()=>handleSort('p2')}>P2{si('p2')}</th>
                     <th style={{...TH,width:'46px',textAlign:'center',cursor:'default'}}>Excl.</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedResults.map(person => {
-                    const rank   = results.findIndex(r => r.name === person.name) + 1
+                  {sortedResults.map((person, i) => {
+                    const rank   = i + 1
                     const isTop3 = rank <= 3
                     const nc     = isTop3 ? 'var(--accent-primary)' : 'var(--text-secondary)'
                     return (
                       <tr key={person.name} style={{borderBottom:'1px solid var(--border-color)',background:isTop3?'var(--accent-soft)':undefined}}>
                         <td style={{...TD,fontWeight:isTop3?'700':'normal',color:nc,fontFamily:"'JetBrains Mono', monospace"}}>#{rank}</td>
-                        <td style={{...TD,fontWeight:isTop3?'700':'normal',color:nc}}>{person.name}<CenterBadge name={person.name} /></td>
-                        <td style={{...TD,fontWeight:'600',color:isTop3?'var(--accent-primary)':'var(--success)'}}>AED {formatCurrency(person.totalIncentive)}</td>
-                        <td style={TD}>{person.packages}</td>
-                        <td style={TD}>{person.clients??'-'}</td>
-                        <td style={TD}>AED {formatCurrency(person.sales)}</td>
-                        <td style={{...TD,color:'var(--text-muted)'}}>{person.workingDays}</td>
-                        <td style={TD}>{person.avgPackagesPerDay.toFixed(2)}</td>
-                        <td style={TD}>{formatCurrency(person.avgSalesPerDay)}</td>
-                        <td style={TD}>{person.clients ? person.avgClientsPerDay.toFixed(2) : '-'}</td>
-                        <td style={TD}>{person.clients ? person.maxKpiClients : '-'}</td>
-                        <td style={TD}>{person.contribution.toFixed(2)}%</td>
-                        <td style={TD}>AED {formatCurrency(person.p1)}</td>
-                        <td style={TD}>AED {formatCurrency(person.p2)}</td>
+                        <td style={tdHl('name',{fontWeight:isTop3?'700':'normal',color:nc})}>{person.name}<CenterBadge name={person.name} /></td>
+                        <td style={tdHl('totalIncentive',{fontWeight:'600',color:isTop3?'var(--accent-primary)':'var(--success)'})}>AED {formatCurrency(person.totalIncentive)}</td>
+                        <td style={tdHl('packages')}>{person.packages}</td>
+                        <td style={tdHl('clients')}>{person.clients??'-'}</td>
+                        <td style={tdHl('sales')}>AED {formatCurrency(person.sales)}</td>
+                        <td style={tdHl('workingDays',{color:'var(--text-muted)'})}>{person.workingDays}</td>
+                        <td style={tdHl('avgPackagesPerDay')}>{person.avgPackagesPerDay.toFixed(2)}</td>
+                        <td style={tdHl('avgSalesPerDay')}>{formatCurrency(person.avgSalesPerDay)}</td>
+                        <td style={tdHl('avgClientsPerDay')}>{person.clients ? person.avgClientsPerDay.toFixed(2) : '-'}</td>
+                        <td style={tdHl('maxKpiClients')}>{person.clients ? person.maxKpiClients : '-'}</td>
+                        <td style={tdHl('contribution')}>{person.contribution.toFixed(2)}%</td>
+                        <td style={tdHl('p1')}>AED {formatCurrency(person.p1)}</td>
+                        <td style={tdHl('p2')}>AED {formatCurrency(person.p2)}</td>
                         <td style={{...TD,textAlign:'center',padding:'10px 6px'}}>
                           <button
                             onClick={()=>toggleExclude(person.name)}

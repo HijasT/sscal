@@ -23,6 +23,7 @@ export function DataExpiryTimer() {
   // null on the server and before mount, so the first render matches the server's.
   const [remaining, setRemaining] = useState<number | null>(null)
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const infoRef = useRef<HTMLDialogElement>(null)
   const dismissed = useRef(false)
 
   useEffect(() => {
@@ -60,9 +61,38 @@ export function DataExpiryTimer() {
 
   return (
     <>
-      <p className="expiry-timer" title="Entered and uploaded data is deleted from this browser 1 hour after it last changed.">
+      <p className="expiry-timer">
         Saved data clears in <span className="expiry-time">{formatCountdown(remaining)}</span>
+        <button
+          type="button"
+          className="expiry-info-btn"
+          aria-label="Why does saved data clear?"
+          onClick={() => infoRef.current?.showModal()}
+        >i</button>
       </p>
+
+      <dialog ref={infoRef} className="expiry-dialog" aria-labelledby="expiry-info-title">
+        <h2 id="expiry-info-title">Why saved data clears</h2>
+        <p>
+          Everything is calculated in your browser — nothing is uploaded to a server. So that your
+          figures aren&rsquo;t left behind on a shared computer, data you enter or upload is deleted
+          from this browser {DATA_RETENTION_MS / 3_600_000} hour after it last changed.
+        </p>
+        <p>
+          The countdown starts the moment you upload your Excel file. Switching the month or year
+          view only changes what&rsquo;s shown — it doesn&rsquo;t reload the file, so it doesn&rsquo;t
+          reset the timer.
+        </p>
+        <p>
+          To keep your data until you clear it yourself, turn on{' '}
+          <strong>Settings &rarr; Keep data on this device</strong>.
+        </p>
+        <div className="expiry-actions">
+          <button type="button" className="btn btn-primary" onClick={() => infoRef.current?.close()}>
+            Got it
+          </button>
+        </div>
+      </dialog>
       <dialog ref={dialogRef} className="expiry-dialog" aria-labelledby="expiry-title" onClose={() => { dismissed.current = true }}>
         <h2 id="expiry-title">Saved data clears soon</h2>
         <p>

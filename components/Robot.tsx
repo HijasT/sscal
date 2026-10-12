@@ -49,7 +49,7 @@ const POKE_COMMENTS = [
   "Click all you want. Still doesn't count as a sale.",
   "That tickles my sensors. Unlike your commission check, apparently.",
   "I felt that. Your target didn't.",
-  "Save the clicks for your CRM.",
+  "Save the click for HIS.",
   "Keep this up and I'm telling your manager you have too much free time.",
   "Was that supposed to hurt my feelings? I don't have a quota either.",
 ]

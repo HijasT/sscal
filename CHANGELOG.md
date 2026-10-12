@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.14.0]
+
+### Added
+- **"Why saved data clears" info button** next to the expiry countdown. Explains that everything is computed in-browser, that the 1-hour timer starts when the Excel file is uploaded and is not reset by switching the month/year view, and points to **Settings → Keep data on this device** to disable auto-clearing.
+
+### Changed
+- **Bulk results: Rank now follows the sorted column.** Clicking a column header re-ranks the table by that column (and direction) instead of always ranking by Sales, and the active column is highlighted in both the header and the body cells.
+- Kleon poke line "Save the clicks for your CRM." → "Save the click for HIS."
+
+### Fixed
+- Bulk results Rank numbers (and top-3 highlight) were pinned to the Sales order regardless of which column the table was sorted by.
+
 ## [10.13.1]
 
 ### Fixed
