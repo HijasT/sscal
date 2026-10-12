@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.2.2]
+
+### Changed
+- About: clarified that Claude is used for **development only** and that **no user data is ever sent to Claude** (everything runs in the browser). Claude's involvement is noted at v4 (analytics) and again at v8 (Sale Assistant), always as a development assistant.
+
 ## [11.2.1]
 
 ### Changed

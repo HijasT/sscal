@@ -149,11 +149,11 @@ export function AboutTab() {
             { ver: 'v11', desc: 'Per-package discount caps in the Sale Assistant, step-by-step Excel upload instructions, and collapsible Settings sections.' },
             { ver: 'v10', desc: 'Renamed to Kleon. Removed the Analytics feature; added 1-hour local data auto-expiry with a "keep on this device" option; Sale Assistant became the first tab; editorial design polish.' },
             { ver: 'v9', desc: 'Sale Assistant matured: the Package Ladder, cheapest-bundle suggestions via a package-composition graph, HEALTHMAXXING, a Men/Women toggle, and accessibility & focus fixes.' },
-            { ver: 'v8', desc: 'Live Individual calculator, auto-calculating Bulk with Center-wise Stats and staff-center allocation, and the first Sale Assistant (catalogue, quotes, per-line discounts).' },
+            { ver: 'v8', desc: 'Live Individual calculator, auto-calculating Bulk with Center-wise Stats and staff-center allocation, and the first Sale Assistant (catalogue, quotes, per-line discounts) — built with Claude back on development.' },
             { ver: 'v7', desc: 'Next.js foundation hardened: central config, Excel/PDF bundled without CDNs, light theme by default, working-days fix, and a cleanup of generic "AI-look" styling.' },
             { ver: 'v6', desc: 'Consolidation on the new architecture — central configuration, chronological month handling, and a recoverable error boundary around the Bulk tab.' },
             { ver: 'v5', desc: 'Full rewrite into the modular Next.js + React + TypeScript app everything since is built on; Excel/PDF bundled instead of loaded from CDNs, self-hosted fonts, dark/light themes.' },
-            { ver: 'v4', desc: 'Analytics introduced — team history, per-person performance scores, badges and leaderboards. This is also where Claude came on board as the build assistant. (Analytics was later retired in v10.)' },
+            { ver: 'v4', desc: 'Analytics introduced — team history, per-person performance scores, badges and leaderboards. Claude first helped with development here (development only — no user data was ever sent to Claude). Analytics was later retired in v10.' },
             { ver: 'v3', desc: 'Bulk processing added — upload the monthly Excel workbook and calculate incentives for the whole team at once, not just one person.' },
             { ver: 'v2', desc: 'Built on top of the individual calculator: customizable achievement tiers, the Tier Ladder showing what is needed to reach the next tier, PDF/CSV export, and dark/light themes.' },
             { ver: 'v1', desc: 'The original: an individual incentive calculator. A single person’s payout from the team achievement %, the tier system, and the P1/P2 pool split.' },
@@ -176,6 +176,7 @@ export function AboutTab() {
           <p><strong style={{color: 'var(--text-primary)'}}>Version:</strong> {APP_VERSION}</p>
           <p><strong style={{color: 'var(--text-primary)'}}>Built by:</strong> HT under the Keep Alive Project</p>
           <p><strong style={{color: 'var(--text-primary)'}}>Built with:</strong> Next.js 14, React 18, TypeScript 5, and Claude</p>
+          <p>Claude was used for development only. No user data is ever sent to Claude — everything runs in your browser (see Privacy &amp; Data).</p>
           <p><strong style={{color: 'var(--text-primary)'}}>Theme:</strong> Flat • Dark/Light Mode</p>
         </div>
 
