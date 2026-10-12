@@ -37,13 +37,14 @@ markers/modules (the specific biomarkers / DNA modules a package's tests yield).
   automatically — the journey is never hardcoded separately from the package
   data (single source of truth).
 
-## Marker search → packages
+## Marker search → packages — ALREADY IMPLEMENTED
 
-Searching for a particular **marker** should list the **packages that include
-that marker**. (A word-based marker search already exists in the catalogue via
-`searchServices` in `lib/catalogueUtils.ts`, which matches marker names; the
-marker DB will make this canonical/exact and drive a dedicated marker → packages
-lookup.)
+Searching a particular marker already lists the packages that include it: the
+Sale Assistant catalogue search (`searchServices` in `lib/catalogueUtils.ts`)
+matches each query word against a package's name, sub-label, category, **and its
+marker names**, so e.g. "vitamin d" filters to packages containing that marker.
+No rebuild needed. The marker DB (later) would only make this canonical/exact
+(exact marker names rather than substring), if we decide that's worth it.
 
 ## Prerequisites (in order)
 
