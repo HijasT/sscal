@@ -305,10 +305,17 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     return { rows, unassigned }
   })()
 
+  // CSV-safe text: neutralise spreadsheet formula injection (names from the
+  // uploaded sheet are attacker-controllable) and escape quotes/newlines.
+  const csvText = (v: string) => {
+    const s = /^[=+\-@\t\r]/.test(v) ? `'${v}` : v
+    return `"${s.replace(/"/g, '""')}"`
+  }
+
   const handleExportCSV = () => {
     if (!results.length) return
     let csv = 'Rank,Name,Packages,Sales (AED),Clients,Days,Pkg/Day,Sales/Day,Clients/Day,Max KPI Clients,Revenue Share %,P1 (AED),P2 (AED),Total (AED)\n'
-    results.forEach((p,i) => { csv += `${i+1},"${p.name}",${p.packages},${p.sales.toFixed(2)},${p.clients??0},${p.workingDays},${p.avgPackagesPerDay.toFixed(2)},${p.avgSalesPerDay.toFixed(2)},${p.avgClientsPerDay.toFixed(2)},${p.maxKpiClients},${p.contribution.toFixed(2)},${p.p1.toFixed(2)},${p.p2.toFixed(2)},${p.totalIncentive.toFixed(2)}\n` })
+    results.forEach((p,i) => { csv += `${i+1},${csvText(p.name)},${p.packages},${p.sales.toFixed(2)},${p.clients??0},${p.workingDays},${p.avgPackagesPerDay.toFixed(2)},${p.avgSalesPerDay.toFixed(2)},${p.avgClientsPerDay.toFixed(2)},${p.maxKpiClients},${p.contribution.toFixed(2)},${p.p1.toFixed(2)},${p.p2.toFixed(2)},${p.totalIncentive.toFixed(2)}\n` })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}))
     a.download = `incentive-report-${new Date().toISOString().split('T')[0]}.csv`

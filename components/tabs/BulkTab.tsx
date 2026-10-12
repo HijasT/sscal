@@ -88,6 +88,15 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
     const uploadedFile = e.target.files?.[0]
     if (!uploadedFile) return
 
+    // Reject oversized files before parsing, so a huge/malicious upload can't
+    // freeze the browser. Real sales trackers are well under a few MB.
+    const MAX_UPLOAD_BYTES = 15 * 1024 * 1024
+    if (uploadedFile.size > MAX_UPLOAD_BYTES) {
+      e.target.value = ''
+      alert(`That file is ${(uploadedFile.size / 1024 / 1024).toFixed(1)} MB. Please upload a sales tracker under 15 MB.`)
+      return
+    }
+
     setIsProcessing(true)
 
     try {

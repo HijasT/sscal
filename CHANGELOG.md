@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.5.4]
+
+### Security
+- **CSV export now neutralises spreadsheet formula injection.** Staff names come from the uploaded sheet and were written to the CSV unescaped; a name like `=HYPERLINK(...)` or `@SUM(...)` could execute when the export was opened in Excel/Sheets. Such values are now prefixed with `'` and all fields are quote-escaped.
+- **File-size limit before parsing.** Bulk uploads over 15 MB are rejected with a clear message before the Excel parser runs, so an oversized or malicious file can't freeze the browser.
+
 ## [11.5.3]
 
 ### Security
