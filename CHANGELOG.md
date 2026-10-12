@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.5.3]
+
+### Security
+- **Replaced the abandoned npm `xlsx` 0.18.5 with the official SheetJS build 0.20.3** (from cdn.sheetjs.com), clearing its known prototype-pollution and ReDoS advisories (GHSA-4r6h-8v6p-xvw6, GHSA-5pgg-2g8v-p4x9). The Excel parser is the app's main attack surface, so this is the priority fix. API is unchanged (read + utils).
+
 ## [11.5.2]
 
 ### Fixed
