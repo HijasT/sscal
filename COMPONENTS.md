@@ -30,8 +30,15 @@ markers/modules (the specific biomarkers / DNA modules a package's tests yield).
   components the client will go through, in order.
 - **Doctor Consultation is always the last step.** All other components come
   before it (exact order among the rest: TBD).
-- Multiple packages selected → the client goes through the **union** of their
-  components (deduplicated), with consultation last.
+- Multiple packages selected → aggregate their components, showing **repeats
+  with a count** rather than deduping: e.g. if two selected packages both
+  include BCA, the Journey shows `BCA × 2`. (Applies to the repeatable physical
+  steps — BCA, ECG, Blood Collection, Swab, Gut Kit, Vital Signs, Questionnaire.)
+- **Doctor Consultation time is the SUM of every selected package's consultation
+  time**, shown as one final step. Example: a 1 hr package + a 15 min package →
+  `Doctor Consultation — 1 hr 15 min`. Consultation is always last.
+  (Consultation durations come from each service's `doctor` field, e.g.
+  "30 min + 15 min"; parse and total these into minutes, then format.)
 - **Data-driven:** the Journey is derived from each package's declared
   components. When a package's components change later, the Journey reflects it
   automatically — the journey is never hardcoded separately from the package
