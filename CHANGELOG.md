@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.2.3]
+
+### Changed
+- **About page reorganised.** Calculation Example and Version History are now collapsible; the Privacy & Data note is folded into the Core Features section; and Version & Credits now sits above Version History.
+
 ## [11.2.2]
 
 ### Changed

@@ -419,6 +419,33 @@ body {
 .settings-section[open] .settings-chevron { transform: rotate(45deg); } /* down when open */
 .settings-body { padding: 0 28px 28px; }
 
+/* Collapsible sub-sections inside the About card. */
+.about-section { margin-top: 28px; }
+.about-summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.about-summary::-webkit-details-marker { display: none; }
+.about-summary:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; border-radius: 4px; }
+.about-chevron {
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+}
+.about-section[open] .about-chevron { transform: rotate(45deg); }
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));

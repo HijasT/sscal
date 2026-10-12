@@ -40,6 +40,9 @@ export function AboutTab() {
             </div>
           ))}
         </div>
+        <div style={{padding: '16px', background: 'var(--accent-soft)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', marginBottom: '24px', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.8'}}>
+          <strong style={{color: 'var(--text-primary)'}}>100% private:</strong> all data is stored locally in your browser — no server or database. Your calculations and settings never leave your device.
+        </div>
 
         <h4 style={{color: 'var(--text-primary)', marginBottom: '12px', marginTop: '28px', fontSize: '16px'}}>
           How It Works
@@ -67,9 +70,8 @@ export function AboutTab() {
           </div>
         </div>
 
-        <h4 style={{color: 'var(--text-primary)', marginBottom: '12px', marginTop: '28px', fontSize: '16px'}}>
-          Calculation Example
-        </h4>
+        <details className="about-section" open>
+        <summary className="about-summary">Calculation Example<span className="about-chevron" aria-hidden="true" /></summary>
         <div style={{padding: '20px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', marginBottom: '24px', border: '1px solid var(--border-color)'}}>
           <div style={{color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.8', fontFamily: "'JetBrains Mono', monospace"}}>
             <p style={{marginBottom: '16px', color: 'var(--text-primary)', fontWeight: '600'}}>Given:</p>
@@ -130,20 +132,21 @@ export function AboutTab() {
             </div>
           </div>
         </div>
+        </details>
 
         <h4 style={{color: 'var(--text-primary)', marginBottom: '12px', marginTop: '28px', fontSize: '16px'}}>
-          Privacy & Data
+          Version & Credits
         </h4>
-        <div style={{padding: '16px', background: 'var(--accent-soft)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', marginBottom: '24px'}}>
-          <div style={{fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.8'}}>
-            All data is stored locally in your browser. No server or database required. 
-            Your calculations and settings never leave your device.
-          </div>
+        <div style={{padding: '16px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6', marginBottom: '24px'}}>
+          <p><strong style={{color: 'var(--text-primary)'}}>Version:</strong> {APP_VERSION}</p>
+          <p><strong style={{color: 'var(--text-primary)'}}>Built by:</strong> HT under the Keep Alive Project</p>
+          <p><strong style={{color: 'var(--text-primary)'}}>Built with:</strong> Next.js 14, React 18, TypeScript 5, and Claude</p>
+          <p>Claude was used for development only. No user data is ever sent to Claude — everything runs in your browser.</p>
+          <p><strong style={{color: 'var(--text-primary)'}}>Theme:</strong> Flat • Dark/Light Mode</p>
         </div>
 
-        <h4 style={{color: 'var(--text-primary)', marginBottom: '12px', marginTop: '28px', fontSize: '16px'}}>
-          Version History
-        </h4>
+        <details className="about-section" open>
+        <summary className="about-summary">Version History<span className="about-chevron" aria-hidden="true" /></summary>
         <div style={{display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px'}}>
           {[
             { ver: 'v11', desc: 'Per-package discount caps in the Sale Assistant, step-by-step Excel upload instructions, and collapsible Settings sections.' },
@@ -168,17 +171,7 @@ export function AboutTab() {
             </div>
           ))}
         </div>
-
-        <h4 style={{color: 'var(--text-primary)', marginBottom: '12px', marginTop: '28px', fontSize: '16px'}}>
-          Version & Credits
-        </h4>
-        <div style={{padding: '16px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6'}}>
-          <p><strong style={{color: 'var(--text-primary)'}}>Version:</strong> {APP_VERSION}</p>
-          <p><strong style={{color: 'var(--text-primary)'}}>Built by:</strong> HT under the Keep Alive Project</p>
-          <p><strong style={{color: 'var(--text-primary)'}}>Built with:</strong> Next.js 14, React 18, TypeScript 5, and Claude</p>
-          <p>Claude was used for development only. No user data is ever sent to Claude — everything runs in your browser (see Privacy &amp; Data).</p>
-          <p><strong style={{color: 'var(--text-primary)'}}>Theme:</strong> Flat • Dark/Light Mode</p>
-        </div>
+        </details>
 
         {/* Legal Disclaimer - Footer */}
         <div style={{
