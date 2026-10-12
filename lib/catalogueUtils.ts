@@ -452,6 +452,18 @@ function includesClosure(name: string): Set<string> {
   return set
 }
 
+/**
+ * The maximum discount (percent) allowed on a package, or null when unrestricted.
+ * All of You / Essentials bundles cap at 50%; Core Health Screening and Dubai It
+ * packages cap at 10%. Everything else is uncapped.
+ */
+export function maxDiscountPct(service: CatalogueService): number | null {
+  const n = service.name
+  if (/^All of You /.test(n) || /^Essentials /.test(n)) return 50
+  if (/^Dubai It /.test(n) || service.category === CORE_CATEGORY) return 10
+  return null
+}
+
 /** 'M' for a men's package, 'W' for a women's package, or null when it applies to anyone. */
 export function serviceGender(service: CatalogueService): 'M' | 'W' | null {
   const n = service.name

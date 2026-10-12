@@ -1552,6 +1552,8 @@ body.light-mode .sa {
 .sa-unit { display: inline-flex; border: 1px solid var(--sa-control); border-radius: 8px; overflow: hidden; }
 .sa-unit button { min-height: 44px; min-width: 52px; border: 0; background: var(--sa-card); color: var(--sa-ink-soft); font: 600 0.875rem 'IBM Plex Sans', sans-serif; cursor: pointer; }
 .sa-unit button[aria-pressed='true'] { background: var(--sa-violet-wash); color: var(--sa-violet-text); }
+.sa input.sa-input.sa-input-warn { border-color: var(--sa-brick); background: var(--sa-brick-wash); }
+.sa-disc-warn { flex-basis: 100%; font: 600 0.8125rem 'IBM Plex Sans', sans-serif; color: var(--sa-brick); }
 
 .sa-totals { display: grid; gap: 4px; font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
 .sa-totals > div { display: flex; justify-content: space-between; gap: 16px; }

@@ -39,6 +39,7 @@ import {
   lineGross,
   lineNet,
   lineDiscountAmount,
+  maxDiscountPct,
   type CatalogueService,
   type ExtraItem,
   type QuoteLine,
@@ -381,6 +382,8 @@ export function SaleAssistantTab() {
                     <DiscountControls
                       id="sa-dv-suggestion"
                       label={suggestion.name}
+                      service={suggestion}
+                      gross={suggestion.price ?? 0}
                       type={suggDiscount.type}
                       value={suggDiscount.value}
                       applied={suggestedDiscount}
@@ -883,6 +886,8 @@ function QuoteTotalsRows({ gross, discount, total }: { gross: number; discount: 
 function DiscountControls({
   id,
   label,
+  service,
+  gross,
   type,
   value,
   applied,
@@ -890,11 +895,17 @@ function DiscountControls({
 }: {
   id: string
   label: string
+  service: CatalogueService
+  gross: number
   type: DiscountType
   value: number
   applied: number
   onChange: (patch: Partial<Pick<QuoteLine, 'discountType' | 'discountValue'>>) => void
 }) {
+  const cap = maxDiscountPct(service)
+  // Effective discount as a percent of the line, so an AED amount is checked too.
+  const effectivePct = type === 'pct' ? value : gross > 0 ? (value / gross) * 100 : 0
+  const overCap = cap != null && effectivePct > cap + 0.01
   return (
     <div className="sa-disc">
       <label className="sa-sr" htmlFor={id}>
@@ -902,11 +913,12 @@ function DiscountControls({
       </label>
       <input
         id={id}
-        className="sa-input sa-num"
+        className={`sa-input sa-num${overCap ? ' sa-input-warn' : ''}`}
         type="number"
         min={0}
         max={type === 'pct' ? 100 : undefined}
         placeholder="0"
+        aria-invalid={overCap}
         value={value === 0 ? '' : value}
         onChange={(e) => onChange({ discountValue: Number(e.target.value) || 0 })}
       />
@@ -919,6 +931,11 @@ function DiscountControls({
         </button>
       </div>
       {applied > 0 && <span className="sa-muted sa-fig sa-small">− {formatAED(applied)}</span>}
+      {overCap && (
+        <span className="sa-disc-warn" role="alert">
+          Max {cap}% discount on {service.name}.
+        </span>
+      )}
     </div>
   )
 }
@@ -959,6 +976,8 @@ function QuoteLineRow({
         <DiscountControls
           id={`sa-dv-${line.service.id}`}
           label={line.service.name}
+          service={line.service}
+          gross={lineGross(line)}
           type={line.discountType}
           value={line.discountValue}
           applied={discount}

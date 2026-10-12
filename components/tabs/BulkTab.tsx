@@ -147,6 +147,26 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
         <p style={{fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px'}}>
           {isProcessing ? 'Processing...' : 'Upload the monthly Excel workbook to calculate team incentives'}
         </p>
+
+        <div style={{
+          marginTop: '16px',
+          padding: '12px 16px',
+          background: 'var(--surface)',
+          border: '1px solid var(--border-color)',
+          borderRadius: 'var(--radius-sm)',
+          textAlign: 'left',
+          fontSize: '12px',
+          color: 'var(--text-secondary)',
+          lineHeight: '1.6'
+        }}>
+          <strong style={{color: 'var(--text-primary)'}}>How to get the .xlsx file</strong>
+          <ol style={{margin: '8px 0 0', paddingLeft: '20px'}}>
+            <li>Open the Sales Tracker spreadsheet.</li>
+            <li>Go to the <strong>File</strong> menu.</li>
+            <li>Choose <strong>Save As</strong> (or <strong>Download</strong> / <strong>Export</strong>) and pick <strong>Excel Workbook (.xlsx)</strong>.</li>
+            <li>Upload that saved <strong>.xlsx</strong> file here.</li>
+          </ol>
+        </div>
       </div>
 
       {/* View Controls - Modern Dropdowns */}

@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.0.0]
+
+### Added
+- **Discount caps on the Sale Assistant.** Each package now has a maximum discount — All of You and Essentials bundles up to 50%, Core Health Screening and Dubai It packages up to 10%. Entering a discount above the cap (as a % or an equivalent AED amount) highlights the field and shows a warning naming the package and its limit. Other packages stay uncapped.
+- **"How to get the .xlsx file" steps** next to the Bulk upload box: open the Sales Tracker, File → Save As / Export → Excel Workbook (.xlsx), then upload it here.
+
 ## [10.15.0]
 
 ### Changed
