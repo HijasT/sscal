@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.3.2]
+
+### Changed
+- **Journey step order:** Blood Collection → Swab → BCA → ECG → Gut Kit → Questionnaire → Vital Signs → Doctor Consultation (last). Vital Signs now sits just before the consultation.
+
 ## [11.3.1]
 
 ### Changed

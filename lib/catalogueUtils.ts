@@ -727,17 +727,18 @@ export function formatUSD(aed: number | null, rate: number): string {
  * The components (steps) a client goes through for a package, excluding Doctor
  * Consultation (always handled last, with summed time). Derived from the
  * package's existing data — lab panels, `comps` groups, and comp names — so it
- * updates automatically when a package's contents change. Ordered intake →
- * measurement → collection; consultation is appended by buildJourney.
+ * updates automatically when a package's contents change. Order: Blood
+ * Collection, Swab, BCA, ECG, Gut Kit, Questionnaire, Vital Signs — with Doctor
+ * Consultation appended last by buildJourney.
  */
 export const JOURNEY_COMPONENT_ORDER = [
-  'Questionnaire',
-  'Vital Signs',
   'Blood Collection',
   'Swab',
   'BCA',
   'ECG',
   'Gut Kit',
+  'Questionnaire',
+  'Vital Signs',
 ] as const
 
 export function packageComponents(service: CatalogueService): string[] {

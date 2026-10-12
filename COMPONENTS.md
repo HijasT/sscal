@@ -34,8 +34,8 @@ markers/modules (the specific biomarkers / DNA modules a package's tests yield).
 
 - Selecting package(s) in the Sale Assistant renders the client Journey: the
   components the client will go through, in order.
-- **Doctor Consultation is always the last step.** All other components come
-  before it (exact order among the rest: TBD).
+- **Order:** Blood Collection → Swab → BCA → ECG → Gut Kit → Questionnaire →
+  Vital Signs → **Doctor Consultation (always last)**.
 - Multiple packages selected → aggregate their components, showing **repeats
   with a count** rather than deduping: e.g. if two selected packages both
   include BCA, the Journey shows `BCA × 2`. (Applies to the repeatable physical
@@ -70,7 +70,7 @@ dictionary, and `comps` groups such as "BCA / ECG", "Microbiome", "DNA Modules",
 
 ## Open questions
 
-- Order of the non-consultation components (e.g. does Vital Signs precede Blood
-  Collection?).
 - Whether each of the 8 components maps cleanly from existing `catalogue.json`
-  data or must be declared per package.
+  data or must be declared per package (the marker/module + components DB).
+- Whether Swab / Questionnaire should be shown once (deduped) when multiple DNA
+  packages are selected, rather than counted (× N).
