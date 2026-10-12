@@ -2,6 +2,7 @@
   "name": "kleon",
   "version": "7.4.0",
   "private": true,
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

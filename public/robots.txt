@@ -1,8 +1,8 @@
-# Kleon — https://github.com/HijasT/sscal
+# Kleon — proprietary. © Keep Alive Project. All rights reserved.
 #
-# This app's source is open. To build on it, fork the GitHub repo above —
-# do not scrape or clone the deployed site. The rules below ask AI crawlers
-# and dataset collectors not to copy this site for training or replication.
+# The source is private and is not licensed for copying, scraping, or
+# redistribution. The rules below ask AI crawlers and dataset collectors not
+# to copy this site for training or replication.
 # (Compliant crawlers honour this; it cannot stop a browser or a non-compliant
 # bot from reading a page that is served publicly.)
 

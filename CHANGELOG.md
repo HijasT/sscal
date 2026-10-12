@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.2.6]
+
+### Added
+- **Proprietary LICENSE** (all rights reserved; no copying/scraping/redistribution without written permission). `package.json` marked `UNLICENSED`.
+
+### Changed
+- **Repository is now private.** Anti-scraping wording updated to a proprietary stance (robots.txt header, layout meta, and the About → Source line) — the public "fork from GitHub" invitation is removed since the repo is no longer public.
+- **Disclaimer** now explicitly covers Smart Salem, **Klea Holding, and any of their subsidiaries**, in addition to any other organization.
+
 ## [11.2.5]
 
 ### Added
