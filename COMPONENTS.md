@@ -68,9 +68,11 @@ Reconcile with the existing `lib/catalogue.json` (panels → test ids, `tests`
 dictionary, and `comps` groups such as "BCA / ECG", "Microbiome", "DNA Modules",
 "Doctor & Vital Signs") rather than duplicating that data.
 
+Swab and Questionnaire are counted like every other component — if two DNA
+packages are selected the journey shows `Swab × 2` / `Questionnaire × 2` (not
+deduped).
+
 ## Open questions
 
 - Whether each of the 8 components maps cleanly from existing `catalogue.json`
   data or must be declared per package (the marker/module + components DB).
-- Whether Swab / Questionnaire should be shown once (deduped) when multiple DNA
-  packages are selected, rather than counted (× N).
