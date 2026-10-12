@@ -459,13 +459,17 @@ export function serviceGender(service: CatalogueService): 'M' | 'W' | null {
 
 /**
  * The single cheapest package that INCLUDES every selected package (via the
- * business composition), or null if none does. Used to suggest the next rung on
- * the package ladder. Gender-filtered when a gender is given, and HEALTHMAXXING
- * is only offered once the selection's own total reaches AED 10,000.
+ * business composition) but is NOT itself one of the selected packages — i.e.
+ * the next rung up the ladder that still covers all the markers in the
+ * selection. Null when nothing above the selection covers it. Gender-filtered
+ * when a gender is given, and HEALTHMAXXING is only offered once the selection's
+ * own total reaches AED 10,000.
  *
- * A candidate covers itself, so when two overlapping tiers are selected together
- * (e.g. Standard + Premium, where Premium already includes Standard) the larger
- * one is suggested — "Replace selection" then drops the redundant smaller tier.
+ * Already-selected packages are skipped on purpose: when one selected package
+ * already contains another (e.g. Premium PLUS Men's already includes Cancer Risk
+ * Profile - Men), re-offering the one in the cart would just drop the other — a
+ * lost sale. Instead we suggest the next package up that bundles both (here,
+ * Essentials Men's), so "Replace selection" is a genuine upsell.
  */
 export function suggestPackage(selected: CatalogueService[], gender?: 'M' | 'W'): CatalogueService | null {
   if (selected.length < 2) return null
@@ -474,14 +478,15 @@ export function suggestPackage(selected: CatalogueService[], gender?: 'M' | 'W')
   let best: CatalogueService | null = null
   for (const p of data.services) {
     if (p.price == null) continue
+    if (selNames.has(p.name)) continue // must be a step up, not a package already selected
     const inc = includesClosure(p.name)
     if (inc.size === 0) continue
     const g = serviceGender(p)
     if (gender && g && g !== gender) continue
     if (p.name === 'HEALTHMAXXING' && sum < 10000) continue
-    // A candidate must cover every selected package; it covers itself.
+    // A candidate must cover every selected package.
     let coversAll = true
-    for (const n of selNames) if (n !== p.name && !inc.has(n)) { coversAll = false; break }
+    for (const n of selNames) if (!inc.has(n)) { coversAll = false; break }
     if (!coversAll) continue
     if (!best || (p.price as number) < (best.price as number)) best = p
   }

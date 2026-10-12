@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [10.14.1]
+
+### Fixed
+- **Sale Assistant suggested a package already in the selection.** When two selected packages overlapped (e.g. Premium PLUS Men's, which already contains Cancer Risk Profile - Men), the tool suggested the larger one that was already selected — effectively dropping the other package. It now always suggests the next package up that covers all the selected markers and isn't itself already selected (here, Essentials Men's), so "Replace selection" is a real upsell.
+
+### Changed
+- Shortened the "Why saved data clears" info popover to two concise lines.
+
 ## [10.14.0]
 
 ### Added

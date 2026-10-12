@@ -74,17 +74,11 @@ export function DataExpiryTimer() {
       <dialog ref={infoRef} className="expiry-dialog" aria-labelledby="expiry-info-title">
         <h2 id="expiry-info-title">Why saved data clears</h2>
         <p>
-          Everything is calculated in your browser — nothing is uploaded to a server. So that your
-          figures aren&rsquo;t left behind on a shared computer, data you enter or upload is deleted
-          from this browser {DATA_RETENTION_MS / 3_600_000} hour after it last changed.
+          Everything runs in your browser — nothing is uploaded. Data you enter or upload is deleted
+          after {DATA_RETENTION_MS / 3_600_000} hour so it isn&rsquo;t left on a shared computer.
         </p>
         <p>
-          The countdown starts the moment you upload your Excel file. Switching the month or year
-          view only changes what&rsquo;s shown — it doesn&rsquo;t reload the file, so it doesn&rsquo;t
-          reset the timer.
-        </p>
-        <p>
-          To keep your data until you clear it yourself, turn on{' '}
+          To keep it until you clear it yourself, turn on{' '}
           <strong>Settings &rarr; Keep data on this device</strong>.
         </p>
         <div className="expiry-actions">
