@@ -49,6 +49,9 @@ next-env.d.ts
 # OS
 Thumbs.db
 
+# Source catalog (reference material — never published)
+catalog-source/
+
 CLAUDE.md
 
 # Claude Code local state (settings, worktrees, etc.)
