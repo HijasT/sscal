@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.3.3]
+
+### Changed
+- **Removed brand names from the catalogue.** DNA module names no longer carry third-party brand prefixes: "Biocertica DNA - …" → "DNA - …", "Fagron – Hair/Acne" → "DNA – Hair/Acne". No packages, prices, or markers changed.
+
 ## [11.3.2]
 
 ### Changed

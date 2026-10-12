@@ -265,7 +265,7 @@ export function isBloodTestOnly(service: CatalogueService): boolean {
 }
 
 /** DNA module collected by cheek swab, not a blood draw — so it's non-invasive. */
-const SWAB_DNA_MODULES = new Set(['Biocertica DNA - Ancestry'])
+const SWAB_DNA_MODULES = new Set(['DNA - Ancestry'])
 
 /**
  * A non-invasive package: nothing that pricks the patient. It has no blood
