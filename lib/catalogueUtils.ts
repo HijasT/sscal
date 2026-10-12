@@ -252,8 +252,11 @@ export function markerSections(service: CatalogueService): MarkerSection[] {
   }
 
   const sections: MarkerSection[] = []
+  // Label the non-food markers too, so a combined package (Dubai It, Ultimate
+  // Gut Health, …) shows three clearly distinct groups: the general blood
+  // panels, then Food Allergy, then Food Intolerance.
   const otherGroups = groupTestIds(other)
-  if (otherGroups.length) sections.push({ label: null, groups: otherGroups })
+  if (otherGroups.length) sections.push({ label: 'Health Markers', groups: otherGroups })
   sections.push({ label: 'Food Allergy', groups: groupTestIds(allergy) })
   sections.push({ label: 'Food Intolerance', groups: groupTestIds(intolerance) })
   return sections

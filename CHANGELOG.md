@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.5.2]
+
+### Fixed
+- **Combined packages now label all three marker groups.** In packages that bundle the food panels with regular blood work (Dubai It, Ultimate Gut Health), the non-food markers were shown in an unlabelled block above the labelled Food Allergy / Food Intolerance sections. The general markers now get a "Health Markers" heading, so the three groups are clearly distinct.
+
 ## [11.5.1]
 
 ### Changed
