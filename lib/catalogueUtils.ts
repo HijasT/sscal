@@ -100,6 +100,23 @@ export function getServiceById(id: number): CatalogueService | undefined {
 }
 
 /**
+ * Sub-groups hidden from the browsable catalogue: standalone consults and
+ * certificates (Doctor Consultation, Travel Fit Assessment) and all
+ * vaccinations — they don't earn sales incentive, so there's no reason to
+ * surface them in the Sale Assistant. They stay in the data (so a persisted
+ * selection still resolves), just out of the catalogue list.
+ */
+const CATALOGUE_HIDDEN_SUBS = new Set(['Vaccinations', 'Consults & Certificates'])
+export function isHiddenFromCatalogue(service: CatalogueService): boolean {
+  return CATALOGUE_HIDDEN_SUBS.has(service.sub)
+}
+
+/** Services shown in the browsable catalogue (everything except hidden subs). */
+export function getVisibleServices(): CatalogueService[] {
+  return data.services.filter((s) => !isHiddenFromCatalogue(s))
+}
+
+/**
  * Filter services by free-text query and/or an exact category. The query is
  * split into words and a service matches only if EVERY word appears somewhere
  * in its name, sub-label, category, or one of its lab-test/marker names — so

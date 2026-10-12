@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.5.1]
+
+### Changed
+- **Hid sales-irrelevant services from the catalogue.** Standalone Doctor Consultation, Travel Fit Assessment, and all vaccinations (Seasonal Flu, Hajj & Umrah) no longer appear in the Sale Assistant catalogue or the compare tool — they don't earn sales incentive. They remain in the data so any saved selection still resolves.
+
 ## [11.5.0]
 
 ### Added

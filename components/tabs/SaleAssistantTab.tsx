@@ -20,10 +20,11 @@
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
-  getServices,
+  getVisibleServices,
   getCategories,
   getServiceById,
   searchServices,
+  isHiddenFromCatalogue,
   groupComps,
   markerSections,
   serviceGender,
@@ -103,12 +104,13 @@ export function SaleAssistantTab() {
   const [showUsd, setShowUsd] = useState(false)
   const [usdRate, setUsdRate] = useState(DEFAULT_USD_RATE)
 
-  const totalCount = getServices().length
+  const totalCount = getVisibleServices().length
   const categories = useMemo(() => [ALL, ...getCategories()], [])
 
   // Catalogue results: search + gender + blood filter, grouped by category.
   const grouped = useMemo(() => {
     let r = searchServices(query, category === ALL ? undefined : category)
+    r = r.filter((s) => !isHiddenFromCatalogue(s))
     r = r.filter((s) => {
       const g = serviceGender(s)
       return g === null || g === gender
@@ -839,7 +841,7 @@ function extraDetail(it: ExtraItem): string {
  * the other is missing — reusing the same coverage helpers as the suggestion.
  */
 function ComparePanel() {
-  const services = useMemo(() => getServices(), [])
+  const services = useMemo(() => getVisibleServices(), [])
   const byCategory = useMemo(() => {
     const map = new Map<string, CatalogueService[]>()
     for (const c of getCategories()) map.set(c, [])
