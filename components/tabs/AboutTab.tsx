@@ -151,7 +151,12 @@ export function AboutTab() {
             { ver: 'v9', desc: 'Sale Assistant matured: the Package Ladder, cheapest-bundle suggestions via a package-composition graph, HEALTHMAXXING, a Men/Women toggle, and accessibility & focus fixes.' },
             { ver: 'v8', desc: 'Live Individual calculator, auto-calculating Bulk with Center-wise Stats and staff-center allocation, and the first Sale Assistant (catalogue, quotes, per-line discounts).' },
             { ver: 'v7', desc: 'Next.js foundation hardened: central config, Excel/PDF bundled without CDNs, light theme by default, working-days fix, and a cleanup of generic "AI-look" styling.' },
-            { ver: 'v1–v6', desc: 'Early versions: a legacy single-file HTML calculator. v5 was the full rewrite into the modular Next.js app this is built on (v1–v4 predate the changelog).' },
+            { ver: 'v6', desc: 'Consolidation on the new architecture — central configuration, chronological month handling, and a recoverable error boundary around the Bulk tab.' },
+            { ver: 'v5', desc: 'Full rewrite into the modular Next.js + React + TypeScript app everything since is built on; Excel/PDF bundled instead of loaded from CDNs, self-hosted fonts, dark/light themes.' },
+            { ver: 'v4', desc: 'Analytics introduced — team history, per-person performance scores, badges and leaderboards. This is also where Claude came on board as the build assistant. (Analytics was later retired in v10.)' },
+            { ver: 'v3', desc: 'Built on top of the calculator: customizable achievement tiers, the Tier Ladder showing what is needed to reach the next tier, and PDF/CSV export.' },
+            { ver: 'v2', desc: 'Bulk processing added — upload the monthly Excel workbook and calculate incentives for the whole team at once, not just one person.' },
+            { ver: 'v1', desc: 'The original: an individual incentive calculator. A single person’s payout from the team achievement %, the tier system, and the P1/P2 pool split.' },
           ].map((v, i) => (
             <div key={i} style={{display: 'flex', gap: '12px', padding: '12px 16px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)'}}>
               <span style={{flexShrink: 0, minWidth: '48px', fontWeight: '700', color: 'var(--accent-primary)', fontFamily: "'JetBrains Mono', monospace", fontSize: '13px'}}>

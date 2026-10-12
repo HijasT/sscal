@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.2.0]
+
+### Added
+- **USD equivalent on the Sale Assistant total.** A new Settings → Preferences toggle ("Show USD equivalent") displays an approximate USD value beneath the AED total. The exchange rate (AED per USD, default 3.5) is editable in Settings. AED remains the primary currency; USD is shown only as an approximation.
+
+### Changed
+- **About → Version History now covers v1–v6 individually:** v1 individual calculator → v2 bulk Excel processing → v3 tiers/Tier Ladder/export → v4 analytics (when Claude joined as build assistant) → v5 Next.js rewrite → v6 consolidation.
+
 ## [11.1.0]
 
 ### Added

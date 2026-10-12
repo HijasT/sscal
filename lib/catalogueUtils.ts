@@ -704,6 +704,16 @@ export function formatAED(n: number | null): string {
   return `AED ${n.toLocaleString('en-US')}`
 }
 
+/**
+ * Approximate AED as USD for display only (AED stays the primary currency).
+ * `rate` is AED per 1 USD; returns an empty string when the amount or rate is
+ * unusable.
+ */
+export function formatUSD(aed: number | null, rate: number): string {
+  if (aed == null || !(rate > 0)) return ''
+  return `≈ USD ${(aed / rate).toLocaleString('en-US', { maximumFractionDigits: 0 })}`
+}
+
 /** Per-line discount type: a percentage of the line, or a fixed AED amount. */
 export type DiscountType = 'pct' | 'amt'
 

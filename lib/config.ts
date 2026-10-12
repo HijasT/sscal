@@ -15,7 +15,7 @@
  */
 
 /** Displayed in the header, About tab, and page title. */
-export const APP_VERSION = '11.1.0'
+export const APP_VERSION = '11.2.0'
 
 export interface Tier {
   id: string
@@ -63,6 +63,14 @@ export const DATA_RETENTION_MS = 60 * 60 * 1000
  * never shown on the Sale Assistant tab regardless (see app/page.tsx).
  */
 export const DEFAULT_ROBOT_ENABLED = true
+
+/**
+ * Default exchange rate used for the Sale Assistant's optional USD display:
+ * how many AED one USD is worth. AED stays the primary currency; USD is only
+ * shown as an approximation when enabled in Settings, where the rate is also
+ * editable (saved per browser).
+ */
+export const DEFAULT_USD_RATE = 3.5
 
 /**
  * Center names shown in the Bulk Results "Center-wise Stats" section.

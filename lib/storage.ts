@@ -7,12 +7,51 @@
  * not covered: they are configuration, not user data. The user can opt out of
  * expiry entirely via the "Keep data on this device" setting (isPersistEnabled).
  */
-import { DATA_RETENTION_MS } from './config'
+import { DATA_RETENTION_MS, DEFAULT_USD_RATE } from './config'
 
 const STAMP = '__saved_at'
 
 /** Preference key: when 'true', data is kept indefinitely instead of expiring. */
 const PERSIST_KEY = 'sic_persist_data'
+
+/** Preference keys: whether to show a USD equivalent, and the AED-per-USD rate. */
+const USD_SHOW_KEY = 'sic_show_usd'
+const USD_RATE_KEY = 'sic_usd_rate'
+
+/** Whether the Sale Assistant should show a USD equivalent alongside AED. */
+export function isUsdShown(): boolean {
+  try {
+    return localStorage.getItem(USD_SHOW_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+export function setUsdShown(enabled: boolean): void {
+  try {
+    localStorage.setItem(USD_SHOW_KEY, String(enabled))
+  } catch {
+    /* ignore */
+  }
+}
+
+/** AED per 1 USD, falling back to the configured default when unset or invalid. */
+export function getUsdRate(): number {
+  try {
+    const r = parseFloat(localStorage.getItem(USD_RATE_KEY) ?? '')
+    return r > 0 ? r : DEFAULT_USD_RATE
+  } catch {
+    return DEFAULT_USD_RATE
+  }
+}
+
+export function setUsdRate(rate: number): void {
+  try {
+    if (rate > 0) localStorage.setItem(USD_RATE_KEY, String(rate))
+  } catch {
+    /* ignore */
+  }
+}
 
 type Kind = 'local' | 'session'
 

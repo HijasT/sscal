@@ -6,8 +6,8 @@ import {
   loadStaffCenters, saveStaffCenters, getStaffCentersSavedAt,
   backupStaffCenters, loadStaffCentersBackup, clearStaffCentersBackup,
 } from '@/lib/utils'
-import { CENTERS, STAFF_CENTERS, DEFAULT_TIERS, type Tier } from '@/lib/config'
-import { getFresh, isPersistEnabled, setPersistEnabled } from '@/lib/storage'
+import { CENTERS, STAFF_CENTERS, DEFAULT_TIERS, DEFAULT_USD_RATE, type Tier } from '@/lib/config'
+import { getFresh, isPersistEnabled, setPersistEnabled, isUsdShown, setUsdShown, getUsdRate, setUsdRate } from '@/lib/storage'
 import { extractEmployeeCode, stripEmployeeCode, type ExcelData } from '@/lib/excelUtils'
 import { SlidersIcon, SaveIcon, BarChartIcon, SunIcon } from '@/components/icons'
 
@@ -71,9 +71,13 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
   const [scBackup, setScBackup] = useState<Record<string, string> | null>(null)
   const [codeToName, setCodeToName] = useState<Record<string, string>>({})
   const [persist, setPersist] = useState(false)
+  const [showUsd, setShowUsd] = useState(false)
+  const [usdRate, setUsdRateInput] = useState(String(DEFAULT_USD_RATE))
 
   useEffect(() => {
     setPersist(isPersistEnabled())
+    setShowUsd(isUsdShown())
+    setUsdRateInput(String(getUsdRate()))
     setTiers(loadTiers())
     setLastSavedAt(getTiersSavedAt())
     setBackup(loadTiersBackup())
@@ -157,6 +161,23 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
   const handleTogglePersist = (enabled: boolean) => {
     setPersistEnabled(enabled)
     setPersist(enabled)
+  }
+
+  const handleToggleUsd = (enabled: boolean) => {
+    setUsdShown(enabled)
+    setShowUsd(enabled)
+  }
+
+  const handleUsdRateChange = (value: string) => {
+    setUsdRateInput(value)
+    const r = parseFloat(value)
+    if (r > 0) setUsdRate(r)
+  }
+
+  const handleUsdRateBlur = () => {
+    // Snap an empty/invalid entry back to the saved (or default) rate.
+    const r = parseFloat(usdRate)
+    if (!(r > 0)) setUsdRateInput(String(getUsdRate()))
   }
 
   const handleScChange = (index: number, field: keyof StaffCenterEntry, value: string) => {
@@ -247,6 +268,56 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
           <span className="switch-thumb" />
         </button>
       </div>
+
+      <div className="settings-toggle-row">
+        <div>
+          <div className="settings-toggle-label">Show USD equivalent</div>
+          <div className="settings-toggle-desc">Show an approximate USD value of the Sale Assistant total alongside AED. AED stays the main currency.</div>
+        </div>
+        <button
+          type="button"
+          className={`switch ${showUsd ? 'on' : ''}`}
+          role="switch"
+          aria-checked={showUsd}
+          aria-label="Show USD equivalent"
+          onClick={() => handleToggleUsd(!showUsd)}
+        >
+          <span className="switch-thumb" />
+        </button>
+      </div>
+
+      {showUsd && (
+        <div className="settings-toggle-row">
+          <div>
+            <div className="settings-toggle-label">Exchange rate</div>
+            <div className="settings-toggle-desc">AED per 1 USD (default {DEFAULT_USD_RATE}). Used only for the USD display.</div>
+          </div>
+          <div style={{display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0}}>
+            <span style={{fontSize: '13px', color: 'var(--text-muted)'}}>AED</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={usdRate}
+              onChange={(e) => handleUsdRateChange(e.target.value)}
+              onBlur={handleUsdRateBlur}
+              aria-label="AED per USD"
+              style={{
+                width: '90px',
+                padding: '8px 10px',
+                fontSize: '14px',
+                fontFamily: "'JetBrains Mono', monospace",
+                textAlign: 'right',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-sm)',
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-primary)',
+              }}
+            />
+            <span style={{fontSize: '13px', color: 'var(--text-muted)'}}>= $1</span>
+          </div>
+        </div>
+      )}
       </div>
     </details>
 

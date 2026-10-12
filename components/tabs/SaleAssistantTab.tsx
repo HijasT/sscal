@@ -35,6 +35,7 @@ import {
   isBloodTestOnly,
   isNonInvasive,
   formatAED,
+  formatUSD,
   quoteTotals,
   lineGross,
   lineNet,
@@ -45,7 +46,8 @@ import {
   type QuoteLine,
   type DiscountType,
 } from '@/lib/catalogueUtils'
-import { getFresh, setFresh, clearFresh } from '@/lib/storage'
+import { getFresh, setFresh, clearFresh, isUsdShown, getUsdRate } from '@/lib/storage'
+import { DEFAULT_USD_RATE } from '@/lib/config'
 
 const ALL = 'All'
 const QUOTE_KEY = 'sic_sale_quote'
@@ -90,6 +92,10 @@ export function SaleAssistantTab() {
   const [suggDiscOpen, setSuggDiscOpen] = useState(false)
   const [openExtra, setOpenExtra] = useState<number | null>(null)
   const [hydrated, setHydrated] = useState(false)
+  // USD display preference (set in Settings). Read on mount; this tab remounts
+  // on tab switch, so a change in Settings is picked up when returning here.
+  const [showUsd, setShowUsd] = useState(false)
+  const [usdRate, setUsdRate] = useState(DEFAULT_USD_RATE)
 
   const totalCount = getServices().length
   const categories = useMemo(() => [ALL, ...getCategories()], [])
@@ -166,6 +172,8 @@ export function SaleAssistantTab() {
     } catch {
       /* ignore */
     }
+    setShowUsd(isUsdShown())
+    setUsdRate(getUsdRate())
     setHydrated(true)
   }, [])
 
@@ -347,6 +355,7 @@ export function SaleAssistantTab() {
                     gross={totalsSel.gross}
                     discount={totalsSel.discount}
                     total={totalsSel.total}
+                    usdRate={showUsd ? usdRate : undefined}
                   />
                 </>
               )}
@@ -861,7 +870,18 @@ function ComparePanel() {
   )
 }
 
-function QuoteTotalsRows({ gross, discount, total }: { gross: number; discount: number; total: number }) {
+function QuoteTotalsRows({
+  gross,
+  discount,
+  total,
+  usdRate,
+}: {
+  gross: number
+  discount: number
+  total: number
+  /** AED per USD; when set, a USD approximation of the total is shown. */
+  usdRate?: number
+}) {
   return (
     <div className="sa-totals">
       <div>
@@ -878,6 +898,12 @@ function QuoteTotalsRows({ gross, discount, total }: { gross: number; discount: 
         <span>Total</span>
         <span>{formatAED(total)}</span>
       </div>
+      {usdRate ? (
+        <div className="sa-totals-usd">
+          <span />
+          <span>{formatUSD(total, usdRate)}</span>
+        </div>
+      ) : null}
     </div>
   )
 }

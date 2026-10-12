@@ -1559,6 +1559,7 @@ body.light-mode .sa {
 .sa-totals > div { display: flex; justify-content: space-between; gap: 16px; }
 .sa-totals-discount { color: var(--sa-green); }
 .sa-totals-grand { font-weight: 700; font-size: 1.125rem; border-top: 1px solid var(--sa-hairline); padding-top: 8px; margin-top: 4px; }
+.sa-totals-usd { color: var(--sa-ink-muted); font-size: 0.8125rem; }
 
 .sa-suggest { border: 1px solid var(--sa-violet-text); border-radius: 10px; padding: 16px; background: var(--sa-violet-wash); display: grid; gap: 4px; }
 .sa-suggest-top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
