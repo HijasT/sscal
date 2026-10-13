@@ -4,19 +4,19 @@ export function AboutTab() {
   return (
     <section className="card">
       <div style={{padding: '20px'}}>
-        <h2 style={{color: 'var(--accent-primary)', marginBottom: '12px', fontSize: '20px'}}>
+        <h2 style={{color: 'var(--text-primary)', marginBottom: '12px', fontSize: '20px'}}>
           {`Kleon v${APP_VERSION}`}
         </h2>
         <p style={{color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: '1.8'}}>
-          A comprehensive tool for calculating sales incentives based on team performance and achievement tiers,
-          plus a Sale Assistant for browsing the package catalogue and building the best-value package quote.
-          Built with Next.js, React, and TypeScript for optimal performance and reliability.
+          Two tools in one. An incentive calculator that turns a month of team sales into each
+          person&apos;s payout through the achievement tiers and the P1/P2 pool split, and a Sale Assistant
+          for browsing the package catalogue and building the best-value quote. Everything runs in your browser.
         </p>
         
         <h4 style={{color: 'var(--text-primary)', marginBottom: '12px', marginTop: '28px', fontSize: '16px'}}>
           Core Features
         </h4>
-        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '12px', marginBottom: '24px'}}>
+        <div style={{border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', marginBottom: '24px'}}>
           {[
             { title: 'Individual Calculator', desc: 'Calculate personal incentives with P1/P2 splits' },
             { title: 'Bulk Processing', desc: 'Upload Excel and process entire team at once' },
@@ -25,15 +25,13 @@ export function AboutTab() {
             { title: 'Sale Assistant', desc: 'Browse the package catalogue, compare packages and build the best-value quote' },
           ].map((feature, i) => (
             <div key={i} style={{
-              padding: '16px',
-              background: 'var(--bg-tertiary)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-color)'
+              padding: '14px 16px',
+              borderTop: i === 0 ? 'none' : '1px solid var(--border-color)',
             }}>
-              <div style={{fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px', fontSize: '14px'}}>
+              <div style={{fontWeight: '600', color: 'var(--text-primary)', marginBottom: '2px', fontSize: '14px'}}>
                 {feature.title}
               </div>
-              <div style={{fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5'}}>
+              <div style={{fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5'}}>
                 {feature.desc}
               </div>
             </div>

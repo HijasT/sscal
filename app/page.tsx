@@ -129,7 +129,7 @@ export default function Home() {
             </div>
             <div className="privacy-notice">
               <LockIcon />
-              <span>100% local calculation · No data shared · Browser-only processing · Your data stays private</span>
+              <span>Everything runs locally in your browser. No data is ever sent out.</span>
             </div>
             <div className="calc-switch" role="group" aria-label="Calculator mode">
               <button type="button" aria-pressed={calcMode === 'bulk'} onClick={() => setCalcMode('bulk')}>

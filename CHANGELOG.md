@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.11.2]
+
+### Changed
+- **Design pass (UI Forge critique).** Unified the privacy notice to one plain sentence on every tab ("Everything runs locally in your browser. No data is ever sent out.") instead of two different dot-separated strings. Rewrote the About intro in the app's own language and dropped the marketing filler; turned its Core Features grid into a flat hairline-separated list. Settings toggles are now hairline rows instead of nested filled cards. The Bulk Excel picker is a styled button over a hidden input rather than the raw browser control. Removed the lone violet accent on the About heading (violet stays reserved for actions/state).
+
 ## [11.11.1]
 
 ### Added

@@ -353,7 +353,7 @@ export function SaleAssistantTab() {
       <div className="sa">
         <p className="sa-notice">
           <Icon name="lock" />
-          <span>100% local · catalogue bundled with the app · no data shared</span>
+          <span>Everything runs locally in your browser. No data is ever sent out.</span>
         </p>
 
         {/* Package Ladder */}

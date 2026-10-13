@@ -160,20 +160,15 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
         <h3 style={{fontSize: '14px', fontWeight: '600', marginBottom: '12px', color: 'var(--accent-primary)'}}>
           <UploadIcon />Upload Excel File (Shared)
         </h3>
-        <input
-          type="file"
-          accept=".xlsx,.xls"
-          onChange={handleFileUpload}
-          disabled={isProcessing}
-          style={{
-            padding: '10px 20px',
-            background: 'var(--surface)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '6px',
-            color: 'var(--text-primary)',
-            cursor: isProcessing ? 'not-allowed' : 'pointer'
-          }}
-        />
+        <label className="file-input-btn" aria-disabled={isProcessing}>
+          Choose Excel file
+          <input
+            type="file"
+            accept=".xlsx,.xls"
+            onChange={handleFileUpload}
+            disabled={isProcessing}
+          />
+        </label>
         <p style={{fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px'}}>
           {isProcessing ? 'Processing...' : 'Upload the monthly Excel workbook to calculate team incentives'}
         </p>
