@@ -15,6 +15,7 @@ import {
   isNonInvasive,
   healthmaxxingComponents,
   suggestPackage,
+  getSuggestionExtras,
 } from '../lib/catalogueUtils.ts'
 
 const svc = (id: number) => {
@@ -88,4 +89,15 @@ test('suggestPackage: HEALTHMAXXING is offered to a women\'s selection it covers
   ]
   const s = suggestPackage(selection, 'W')
   assert.equal(s?.name, "HEALTHMAXXING Women's Package")
+})
+
+// ---------- suggestion "what it adds" reflects real composition, not marker overlap ----------
+test("getSuggestionExtras: a bundle only lists packages it genuinely includes", () => {
+  const ult = named("Ultimate Women's Longevity Package")
+  const complete = getSuggestionExtras([], ult).filter((e) => e.complete).map((e) => e.label)
+  // These share markers/modules with the bundle but are NOT part of it.
+  assert.ok(!complete.some((n) => /Nutrition/.test(n)), 'must not claim the Nutrition profile')
+  assert.ok(!complete.some((n) => /Acne/.test(n)), 'must not claim DNA Acne (its DNA module is absent)')
+  // A package the bundle really does include still shows.
+  assert.ok(complete.some((n) => /Premium PLUS Women/.test(n)), 'should still list Premium PLUS Women')
 })

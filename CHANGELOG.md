@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.10.3]
+
+### Fixed
+- **Package suggestions no longer claim bundles include packages they do not.** The "what it adds" / comparison logic collapsed a package into "included" whenever its blood markers happened to recur across the bundle's panels — so Ultimate Women's Longevity falsely listed the Nutrition/Inflammation/Immune profile and DNA Acne (whose DNA module it does not even carry). Inclusions are now driven by the catalogue composition, so only genuinely-bundled packages are shown; overlapping-but-separate markers appear as marker counts instead.
+
 ## [11.10.2]
 
 ### Changed

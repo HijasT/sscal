@@ -688,9 +688,20 @@ export function getSuggestionExtras(
 
   const items: ExtraItem[] = []
 
-  // Complete individual packages fully contained in the extra set (largest first).
+  // Complete individual packages the suggestion GENUINELY bundles (per the
+  // composition graph), largest first. Gating by the composition — not raw marker
+  // overlap — stops packages whose markers merely happen to recur across the
+  // bundle's panels (e.g. the Nutrition/Inflammation profile, or DNA Acne whose
+  // blood markers are present but whose DNA module is not) being shown as included.
+  const included = includesClosure(suggestion.name)
   const candidates = data.services
-    .filter((s) => s.category !== COMPREHENSIVE_CATEGORY && !selNames.has(s.name) && serviceTestIds(s).size > 0)
+    .filter(
+      (s) =>
+        s.category !== COMPREHENSIVE_CATEGORY &&
+        !selNames.has(s.name) &&
+        included.has(s.name) &&
+        serviceTestIds(s).size > 0
+    )
     .sort((a, b) => serviceTestIds(b).size - serviceTestIds(a).size)
   for (const p of candidates) {
     const pm = serviceTestIds(p)
