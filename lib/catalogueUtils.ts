@@ -820,6 +820,62 @@ export function packageComponents(service: CatalogueService): string[] {
   return out
 }
 
+/**
+ * Total blood tubes drawn per package, keyed by catalogue package name.
+ * Source: "Number of Tubes per Package" blood-collection reference (V3, Oct 2026) —
+ * a separate reference doc, NOT the catalogue source, so it lives here rather than
+ * in catalogue.json (a catalogue re-sync won't clobber it). Verify against that PDF
+ * when either changes. Only single packages that include a blood draw are listed;
+ * combined "booked together" rows and non-blood packages are intentionally omitted.
+ */
+const BLOOD_TUBES: Record<string, number> = {
+  'Household Domestic Health Screening': 2,
+  'Standard Health Screening': 3,
+  'Premium Health Screening': 3,
+  "Premium PLUS Women's Health Screening": 4,
+  "Premium PLUS Men's Health Screening": 4,
+  'Longevity Profile': 7,
+  'Cancer Risk Profile - Men': 2,
+  "Cancer Risk Profile - Women's": 2,
+  'Diabetes Screening': 2,
+  'Advanced Diabetes Screening': 3,
+  'Respiratory Allergy Test': 1,
+  'Food Allergy Test': 1,
+  'Food Intolerance Test': 1,
+  'Food Allergy & Intolerance Bundle': 2,
+  'Coeliac Test': 1,
+  'Cortisol Test': 1,
+  'Fasted Glucose Test': 2,
+  'Fasted Glucose & Insulin Test': 2,
+  'Blood Group Test': 1,
+  'Cardiometabolic Risk Profile': 2,
+  'Nutrition, Inflammation & Immune Health Profile': 3,
+  'Liver Profile': 1,
+  'Kidney & Metabolic Profile': 2,
+  'Thyroid, Hormone & Vitamin Profile': 2,
+  'Cancer Risk - BRCA Genetic Test': 2,
+  'DNA - Hair Loss Package': 3,
+  'DNA - Acne Package': 1,
+  'Healthy Heart Package': 3,
+  "Women's Clarity Package": 4,
+  "Essentials Men's Package": 4,
+  "Essentials Women's Package": 4,
+  "All of You Men's Package": 4,
+  "All of You Women's Package": 4,
+  "Ultimate Men's Longevity Package": 10,
+  "Ultimate Women's Longevity Package": 10,
+  "Executive Men's Health Package": 7,
+  "Executive Women's Health Package": 7,
+  'Ultimate Gut Health Package': 2,
+  "Dubai It Men's Package": 13,
+  "Dubai It Women's Package": 13,
+}
+
+/** Total blood tubes drawn for a package, or undefined if it has no blood draw / is unlisted. */
+export function bloodTubes(service: CatalogueService): number | undefined {
+  return BLOOD_TUBES[service.name]
+}
+
 /** Total consultation minutes declared in a `doctor` field like "30 min + 15 min" or "1 hr". */
 export function parseConsultMinutes(doctor: string | null): number {
   if (!doctor) return 0

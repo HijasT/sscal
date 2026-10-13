@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.8.0]
+
+### Added
+- **Blood tube count shown on the Blood Collection component.** The Components row in a package's details now shows how many tubes are drawn, e.g. "Blood Collection · 3 tubes". Counts come from the "Number of Tubes per Package" blood-collection reference (V3, Oct 2026), stored as a name-keyed map in `catalogueUtils` so a catalogue re-sync won't overwrite them.
+
 ## [11.7.1]
 
 ### Fixed

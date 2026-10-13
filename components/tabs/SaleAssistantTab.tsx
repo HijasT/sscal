@@ -27,6 +27,7 @@ import {
   isHiddenFromCatalogue,
   groupComps,
   packageComponents,
+  bloodTubes,
   markerSections,
   serviceGender,
   suggestPackage,
@@ -1111,7 +1112,10 @@ function ServiceRow({
   // separate `doctor` field, so it never appears in the components list itself).
   const components = useMemo(() => {
     if (!expanded) return []
-    const base = packageComponents(service)
+    const tubes = bloodTubes(service)
+    const base = packageComponents(service).map((c) =>
+      c === 'Blood Collection' && tubes ? `Blood Collection · ${tubes} tube${tubes === 1 ? '' : 's'}` : c
+    )
     return service.doctor ? [...base, `Doctor Consultation · ${service.doctor}`] : base
   }, [service, expanded])
   // Markers grouped by their profile/panel name (Liver Profile, Thyroid Profile, …),
