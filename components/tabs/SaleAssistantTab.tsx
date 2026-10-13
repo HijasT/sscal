@@ -410,7 +410,11 @@ export function SaleAssistantTab() {
                         {journey.steps.map((s) => (
                           <li key={s.label}>
                             <span className="sa-journey-label">{s.label}</span>
-                            {s.count > 1 && <span className="sa-journey-x">× {s.count}</span>}
+                            {s.tubes ? (
+                              <span className="sa-journey-time">{s.tubes} tube{s.tubes === 1 ? '' : 's'}</span>
+                            ) : (
+                              s.count > 1 && <span className="sa-journey-x">× {s.count}</span>
+                            )}
                           </li>
                         ))}
                         {journey.consultMinutes > 0 && (

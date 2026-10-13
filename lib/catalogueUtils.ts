@@ -904,6 +904,12 @@ export interface JourneyStep {
   label: string
   /** How many selected packages include this component (shown as "× N" when > 1). */
   count: number
+  /**
+   * For Blood Collection only: the number of tubes to draw. Blood collection is a
+   * single process regardless of how many packages are selected, so this is the
+   * MAX tube count across those packages (not the sum), and `count` stays 1.
+   */
+  tubes?: number
 }
 
 export interface Journey {
@@ -915,19 +921,25 @@ export interface Journey {
 /**
  * The client journey for a set of selected packages: each component with a count
  * (repeats shown, not deduped — e.g. BCA × 2), and the summed Doctor
- * Consultation time, which the UI shows as the final step.
+ * Consultation time, which the UI shows as the final step. Blood Collection is the
+ * exception: it's a single draw whatever the selection, so it carries the MAX tube
+ * count across the packages (not a repeat count — see JourneyStep.tubes).
  */
 export function buildJourney(services: CatalogueService[]): Journey {
   const counts = new Map<string, number>()
+  let maxTubes = 0
   let consultMinutes = 0
   for (const s of services) {
     for (const label of packageComponents(s)) counts.set(label, (counts.get(label) ?? 0) + 1)
+    maxTubes = Math.max(maxTubes, bloodTubes(s) ?? 0)
     consultMinutes += parseConsultMinutes(s.doctor)
   }
   const steps: JourneyStep[] = []
   for (const label of JOURNEY_COMPONENT_ORDER) {
     const count = counts.get(label)
-    if (count) steps.push({ label, count })
+    if (!count) continue
+    if (label === 'Blood Collection') steps.push({ label, count: 1, tubes: maxTubes || undefined })
+    else steps.push({ label, count })
   }
   return { steps, consultMinutes }
 }

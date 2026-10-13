@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.8.1]
+
+### Changed
+- **Client journey shows tubes drawn for Blood Collection, not a repeat count.** Blood collection is a single draw no matter how many packages are selected, so the journey no longer shows "Blood Collection × 2". Instead it shows the tube count of the package that needs the most tubes (e.g. a 2-tube and a 6-tube package show "6 tubes", not 8).
+
 ## [11.8.0]
 
 ### Added
