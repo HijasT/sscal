@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.9.3]
+
+### Fixed
+- **HEALTHMAXXING is now offered to women, not just men.** The catch-all's composition only listed the men's Dubai It flagship, so when a woman's selection was checked against it, HEALTHMAXXING never came up as a suggestion. It now covers both genders' flagships; selecting it still expands to the gender-correct Dubai It (men → Dubai It Men's, women → Dubai It Women's) and the gender-neutral add-ons.
+
+### Changed
+- **About: "Built with" credits Claude again** (name only), without the separate explanatory sentence.
+
 ## [11.9.2]
 
 ### Changed

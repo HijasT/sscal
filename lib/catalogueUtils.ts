@@ -416,8 +416,12 @@ const COMPOSITION: Record<string, string[]> = {
   'Ultimate Gut Health Package': ['Gut Microbiome Test', 'Food Allergy & Intolerance Bundle'],
   "Dubai It Men's Package": ["Executive Men's Health Package", 'Longevity Profile', 'Food Allergy & Intolerance Bundle'],
   "Dubai It Women's Package": ["Executive Women's Health Package", 'Longevity Profile', 'Food Allergy & Intolerance Bundle'],
+  // The top catch-all: it must cover BOTH genders' flagships so suggestPackage
+  // offers it to men and women alike. The quote expansion (healthmaxxingComponents)
+  // still drops in only the gender-correct Dubai It, never both.
   HEALTHMAXXING: [
     "Dubai It Men's Package",
+    "Dubai It Women's Package",
     'DNA - Hair Loss Package',
     'DNA - Acne Package',
     'Gut Microbiome Test',
@@ -431,7 +435,8 @@ const COMPOSITION: Record<string, string[]> = {
  * The individual packages HEALTHMAXXING expands into when selected (it is never
  * added as a single line — picking it drops these real packages into the quote
  * instead). Dubai It follows the chosen gender; the rest are gender-neutral.
- * Keep in sync with COMPOSITION.HEALTHMAXXING above (same set).
+ * COMPOSITION.HEALTHMAXXING above lists BOTH Dubai It genders (so the catch-all
+ * covers everyone for suggestions); here only the one matching `gender` is added.
  */
 const HEALTHMAXXING_COMMON = [
   'Respiratory Allergy Test',
