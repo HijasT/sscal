@@ -1494,6 +1494,8 @@ body.light-mode .sa {
 .sa-btn-sm { min-height: 28px; gap: 6px; padding: 0 8px; font-size: 0.8125rem; }
 .sa-btn-sm.sa-btn-flush { padding-left: 0; }
 .sa-btn-sm .sa-icon { width: 15px; height: 15px; }
+/* Icon-only trigger: no label (keeps the word "discount" off the customer's screen). */
+.sa-btn-icon { gap: 0; padding: 4px; }
 .sa-btn-block { width: 100%; white-space: normal; text-align: center; padding-top: 10px; padding-bottom: 10px; }
 .sa-btn-add { min-width: 104px; color: var(--sa-violet-text); border-color: var(--sa-violet-text); }
 .sa-btn-add.is-on { background: var(--sa-violet-wash); }

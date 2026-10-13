@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.10.2]
+
+### Changed
+- **Switching Men/Women now clears the selected packages.** Packages are gender-specific, so a half-built quote no longer carries across a gender switch.
+- **Discount trigger is now an icon only** (no "Add discount" text), so the word "discount" isn't shown to a customer who may be watching the screen. The salesperson still gets it via the tag icon (with tooltip); the discount controls are unchanged once opened.
+
 ## [11.10.1]
 
 ### Changed

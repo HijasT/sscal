@@ -242,6 +242,17 @@ export function SaleAssistantTab() {
     ladderRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
+  // Switching gender clears the selection — packages are gender-specific, so a
+  // half-built men's quote shouldn't carry over to a women's one (and vice versa).
+  const changeGender = (g: Gender) => {
+    if (g === gender) return
+    setGender(g)
+    setUndo(null)
+    setLines([])
+    setSuggDiscount({ type: 'pct', value: 0 })
+    setSuggDiscOpen(false)
+  }
+
   // Every ordinary edit goes through here so it also invalidates a pending undo.
   const edit = (fn: (prev: QuoteLine[]) => QuoteLine[]) => {
     setUndo(null)
@@ -486,11 +497,12 @@ export function SaleAssistantTab() {
                   ) : (
                     <button
                       type="button"
-                      className="sa-btn sa-btn-quiet sa-btn-flush sa-btn-sm"
+                      className="sa-btn sa-btn-quiet sa-btn-flush sa-btn-sm sa-btn-icon"
                       onClick={() => setSuggDiscOpen(true)}
+                      aria-label="Try a discount on the suggestion"
+                      title="Try a discount on the suggestion"
                     >
                       <Icon name="tag" small />
-                      Try a discount on the suggestion
                     </button>
                   )}
 
@@ -742,10 +754,10 @@ export function SaleAssistantTab() {
           <div className="sa-filters">
             <div className="sa-checks">
               <div className="sa-seg" role="group" aria-label="Show packages for">
-                <button type="button" aria-pressed={gender === 'M'} onClick={() => setGender('M')}>
+                <button type="button" aria-pressed={gender === 'M'} onClick={() => changeGender('M')}>
                   Men
                 </button>
-                <button type="button" aria-pressed={gender === 'W'} onClick={() => setGender('W')}>
+                <button type="button" aria-pressed={gender === 'W'} onClick={() => changeGender('W')}>
                   Women
                 </button>
               </div>
@@ -1107,9 +1119,14 @@ function QuoteLineRow({
         />
       ) : (
         <div>
-          <button type="button" className="sa-btn sa-btn-quiet sa-btn-flush sa-btn-sm" onClick={() => setDiscountOpen(true)}>
+          <button
+            type="button"
+            className="sa-btn sa-btn-quiet sa-btn-flush sa-btn-sm sa-btn-icon"
+            onClick={() => setDiscountOpen(true)}
+            aria-label="Add discount"
+            title="Add discount"
+          >
             <Icon name="tag" small />
-            Add discount
           </button>
         </div>
       )}
