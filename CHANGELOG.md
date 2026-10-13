@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.11.1]
+
+### Added
+- **Proper install icons.** Shipped real 192×192 and 512×512 PNG app icons (rasterised from the existing logo) and referenced them from the manifest as `maskable`, so installed shortcuts render crisply across platforms instead of relying on the SVG alone.
+- **About tab now notes offline / installable support** under the privacy callout and in the version history.
+
 ## [11.11.0]
 
 ### Added

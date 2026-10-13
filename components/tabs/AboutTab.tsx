@@ -41,6 +41,8 @@ export function AboutTab() {
         </div>
         <div style={{padding: '16px', background: 'var(--accent-soft)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', marginBottom: '24px', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.8'}}>
           <strong style={{color: 'var(--text-primary)'}}>100% private:</strong> all data is stored locally in your browser — no server or database. Your calculations and settings never leave your device.
+          <br /><br />
+          <strong style={{color: 'var(--text-primary)'}}>Works offline:</strong> once the page has loaded, Kleon runs entirely offline — reload it, reopen it, or lose your connection and it keeps working, exports included. You can also install it to your home screen or desktop as an app.
         </div>
 
         <h4 style={{color: 'var(--text-primary)', marginBottom: '12px', marginTop: '28px', fontSize: '16px'}}>
@@ -151,7 +153,7 @@ export function AboutTab() {
         <summary className="about-summary">Version History<span className="about-chevron" aria-hidden="true" /></summary>
         <div style={{display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px'}}>
           {[
-            { ver: 'v11', desc: 'Per-package discount caps in the Sale Assistant, step-by-step Excel upload instructions, and collapsible Settings sections.' },
+            { ver: 'v11', desc: 'Per-package discount caps in the Sale Assistant, step-by-step Excel upload instructions, collapsible Settings sections, and full offline support — installable as an app that runs without a connection.' },
             { ver: 'v10', desc: 'Renamed to Kleon. Removed the Analytics feature; added 1-hour local data auto-expiry with a "keep on this device" option; Sale Assistant became the first tab; editorial design polish.' },
             { ver: 'v9', desc: 'Sale Assistant matured: the Package Ladder, cheapest-bundle suggestions via a package-composition graph, HEALTHMAXXING, a Men/Women toggle, and accessibility & focus fixes.' },
             { ver: 'v8', desc: 'Live Individual calculator, auto-calculating Bulk with Center-wise Stats and staff-center allocation, and the first Sale Assistant (catalogue, quotes, per-line discounts) — built with Claude back on development.' },
