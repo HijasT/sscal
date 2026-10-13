@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.5.7]
+
+### Fixed
+- **Broken Excel total cells no longer pass silently.** A `#REF!` (or other error / non-numeric) value in a staff member's total was previously coerced to `0` with no indication, quietly skewing that person's sales and the team figures. The parser now flags these: the file still loads, the bad figure counts as 0, and a warning banner on the Bulk tab lists exactly which staff/cells need fixing. Per the SOP, a **blank** cell still means 0 sales and **NA / N/A** still means absent — neither is warned about.
+
 ## [11.5.6]
 
 ### Added

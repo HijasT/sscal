@@ -16,6 +16,9 @@ export interface ExcelData {
     packages: number
     sales: number
   }
+  /** Data-quality warnings (e.g. a broken "#REF!" total cell). Blank = 0 sales
+   * and NA/N/A = absent are per the SOP and never warned about. */
+  warnings?: string[]
 }
 
 // Matches an employee code like "AE01-227" embedded in a staff name cell
@@ -67,6 +70,7 @@ export async function parseExcelFile(file: File): Promise<ExcelData[]> {
               packages: extracted.staff.reduce((sum, s) => sum + s.packages, 0),
               sales: extracted.staff.reduce((sum, s) => sum + s.sales, 0),
             },
+            warnings: extracted.warnings,
           })
         }
 
@@ -153,11 +157,18 @@ function extractStaffFromSheet(
   worksheet: any,
   sheetName: string,
   XLSX: any,
-): { staff: StaffData[]; target: number } {
-  if (!worksheet) return { staff: [], target: 0 }
+): { staff: StaffData[]; target: number; warnings: string[] } {
+  if (!worksheet) return { staff: [], target: 0, warnings: [] }
 
   const staff: StaffData[] = []
+  const warnings: string[] = []
   let target = 0
+
+  // An Excel error cell (#REF!, #DIV/0!, #VALUE!, …), whether stored as a true
+  // error (t === 'e') or saved as literal text. Blank and NA/N/A are NOT errors
+  // (see SOP: blank = 0 sales, NA/N/A = absent) — only genuinely broken cells.
+  const isErrorCell = (cell: any): boolean =>
+    !!cell && (cell.t === 'e' || /^#(REF|DIV\/0|VALUE|NAME|NUM|NULL|N\/A)[!?]/i.test(String(cell.v ?? '').trim()))
 
   // Find TARGET label
   for (let row = 1; row <= 100; row++) {
@@ -262,11 +273,15 @@ function extractStaffFromSheet(
 
   // Sum a staff row's numeric daily cells across genuine day columns — used
   // as the month total when the sheet has no pre-computed Ttl column.
-  const sumDaily = (r: number): number => {
+  const sumDaily = (r: number, ctx: string): number => {
     let total = 0
     for (const col of dayColumns) {
       const cell = worksheet[XLSX.utils.encode_cell({ r, c: col })]
       if (!cell || cell.v === 'NA' || cell.v == null || cell.v === '') continue
+      if (isErrorCell(cell)) {
+        warnings.push(`${sheetName}: ${ctx} has a broken daily cell ("${cell.w ?? cell.v}") — skipped`)
+        continue
+      }
       const n = typeof cell.v === 'number' ? cell.v : parseFloat(cell.w ?? cell.v)
       if (!isNaN(n)) total += n
     }
@@ -274,14 +289,27 @@ function extractStaffFromSheet(
   }
 
   // Reads a month figure for a staff row: the Ttl column when present,
-  // otherwise the sum of that row's daily columns.
-  const readTotal = (r: number): number => {
+  // otherwise the sum of that row's daily columns. Per SOP: a blank cell is 0
+  // sales and NA/N/A is absence (both -> 0, silent); a genuine error cell like
+  // "#REF!" is flagged as a warning and counted as 0 rather than silently fudged.
+  const readTotal = (r: number, ctx: string): number => {
     if (haveTtlCol) {
       const cell = worksheet[XLSX.utils.encode_cell({ r, c: monthTotalCol })]
-      if (!cell || cell.v === 'NA') return 0
-      return typeof cell.v === 'number' ? cell.v : parseFloat(cell.w ?? '0') || 0
+      if (!cell || cell.v == null || cell.v === '') return 0 // blank = 0 sales
+      if (isErrorCell(cell)) {
+        warnings.push(`${sheetName}: ${ctx} total is "${cell.w ?? cell.v}" — unreadable, counted as 0. Please fix the sheet.`)
+        return 0
+      }
+      if (typeof cell.v === 'number') return cell.v
+      const s = String(cell.v).trim()
+      if (/^n\/?a$/i.test(s)) return 0 // NA / N/A = absent
+      const n = parseFloat(cell.w ?? s)
+      if (!isNaN(n)) return n
+      // Non-numeric, non-NA text in a totals cell is unexpected — flag it.
+      warnings.push(`${sheetName}: ${ctx} total is "${s}" — not a number, counted as 0.`)
+      return 0
     }
-    return sumDaily(r)
+    return sumDaily(r, ctx)
   }
 
   // Walk staff rows starting at row 4
@@ -307,9 +335,10 @@ function extractStaffFromSheet(
       if (name && !['STAFF', 'p25', '`', 'Grand totals'].includes(name)) {
         let workingDays = 0
 
-        const packages = readTotal(row - 1)
-        const sales    = readTotal(row - 1 + salesRowOffset)
-        const clients  = hasClientsRow ? readTotal(row) : 0
+        const who = stripEmployeeCode(name) || name
+        const packages = readTotal(row - 1, `${who} (packages)`)
+        const sales    = readTotal(row - 1 + salesRowOffset, `${who} (sales)`)
+        const clients  = hasClientsRow ? readTotal(row, `${who} (clients)`) : 0
 
         // Count working days over genuine day columns only.
         // A day is worked when the sales cell is not blank and not NA —
@@ -354,7 +383,7 @@ function extractStaffFromSheet(
     }
   }
 
-  return { staff, target }
+  return { staff, target, warnings }
 }
 
 export function getAvailableMonths(data: ExcelData[]): string[] {

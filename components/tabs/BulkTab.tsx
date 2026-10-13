@@ -43,6 +43,7 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
   const [selectedYear, setSelectedYear] = useState(getCurrentYearShort())
   const [excelData, setExcelData] = useState<ExcelData[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
+  const [parseWarnings, setParseWarnings] = useState<string[]>([])
   const [availableYears, setAvailableYears] = useState<string[]>([])
   const [hasHydrated, setHasHydrated] = useState(false)
 
@@ -102,6 +103,9 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
     try {
       const data = await parseExcelFile(uploadedFile)
       setExcelData(data)
+      // Surface data-quality warnings (e.g. a broken "#REF!" total) without
+      // blocking — the file still loads; the affected figures counted as 0.
+      setParseWarnings(data.flatMap((d) => d.warnings ?? []))
       // Auto-select the current month/year on every fresh upload, falling
       // back to the previous month if the current one has no usable data.
       // Results then calculate automatically (see BulkResultsView).
@@ -177,6 +181,31 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
           </ol>
         </div>
       </div>
+
+      {parseWarnings.length > 0 && (
+        <div
+          role="alert"
+          style={{
+            marginBottom: '24px',
+            padding: '12px 16px',
+            background: 'color-mix(in srgb, #d97706 12%, var(--surface))',
+            border: '1px solid color-mix(in srgb, #d97706 45%, var(--border-color))',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '13px',
+            color: 'var(--text-primary)',
+            lineHeight: '1.55',
+          }}
+        >
+          <strong>⚠ {parseWarnings.length} data issue{parseWarnings.length === 1 ? '' : 's'} in the uploaded sheet</strong>
+          <span style={{ color: 'var(--text-secondary)' }}> — the file still loaded; affected figures were counted as 0. Fix these in the Sales Tracker and re-upload.</span>
+          <ul style={{ margin: '8px 0 0', paddingLeft: '20px' }}>
+            {parseWarnings.slice(0, 20).map((w, i) => (
+              <li key={i}>{w}</li>
+            ))}
+            {parseWarnings.length > 20 && <li>…and {parseWarnings.length - 20} more.</li>}
+          </ul>
+        </div>
+      )}
 
       {/* View Controls - Modern Dropdowns */}
       {excelData.length > 0 && (

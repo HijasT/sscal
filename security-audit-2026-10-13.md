@@ -33,7 +33,7 @@ Nothing urgent. No exposed secret, no exploitable path. (The earlier High-severi
 ```
 
 ## Low / Info
-- **L1.** `lib/excelUtils.ts:282` — a non-numeric sales cell is coerced to `0` (`parseFloat(cell.w ?? '0') || 0`), which can silently skew a total. Data-integrity (pay-accuracy), not an attacker vector. Fix: validate numeric columns and surface an error instead of defaulting.
+- **L1.** `lib/excelUtils.ts` — ~~a non-numeric sales cell is coerced to `0`, silently skewing a total~~. **Fixed in v11.5.7:** error cells (`#REF!` etc.) now raise a warning banner and are counted as 0; blank still = 0 sales and NA/N/A still = absent, per SOP.
 - **I1.** `lib/storage.ts` — uploaded data + results live in `localStorage` (`sic_bulk_upload`/`sic_bulk_results`). By design: local-only, 1-hour auto-expiry (`DataExpiryTimer`), "Keep data" toggle. Acceptable for the shared-PC model; a manual "Clear now" button would be a nice-to-have.
 - **I2.** Live-deployment checks (headers in prod, `/.git/HEAD`, served `.map`) not run — no URL. Smoke-test the new CSP on a Vercel preview before promoting.
 
