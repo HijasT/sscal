@@ -132,6 +132,22 @@
   }
   .field input::placeholder { color: color-mix(in srgb, var(--md-on-surface) 50%, transparent); }
 
+  /* --- Frozen search bar: Men/Women slides in beside it once scrolled past --- */
+  .sticky-bar {
+    position: sticky; top: 60px; z-index: 15;
+    display: flex; align-items: stretch; gap: 12px;
+    background: var(--md-surface); padding: 8px 0 10px;
+    transition: box-shadow 300ms var(--ease);
+  }
+  .sticky-bar .field { flex: 1; margin-bottom: 0; }
+  .sticky-bar.stuck { box-shadow: 0 8px 14px -10px rgba(28, 27, 31, 0.3); }
+  .seg-compact {
+    align-self: center; flex: 0 0 auto;
+    max-width: 0; opacity: 0; overflow: hidden; pointer-events: none;
+    transition: max-width 300ms var(--ease), opacity 200ms var(--ease);
+  }
+  body.scrolled .seg-compact { max-width: 220px; opacity: 1; pointer-events: auto; }
+
   /* --- Chips --- */
   .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
   .chip {
@@ -269,10 +285,16 @@
       </button>
     </div>
 
-    <label class="field">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
-      <input type="search" aria-label="Search packages" placeholder="Search packages by name, category or marker…" />
-    </label>
+    <div class="sticky-bar" id="stickyBar">
+      <label class="field">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input type="search" aria-label="Search packages" placeholder="Search packages by name, category or marker…" />
+      </label>
+      <div class="segmented seg-compact" role="group" aria-label="Gender">
+        <button aria-pressed="true">Men</button>
+        <button aria-pressed="false">Women</button>
+      </div>
+    </div>
 
     <div class="chips" role="group" aria-label="Category">
       <button class="chip" aria-pressed="true">All</button>
@@ -283,8 +305,8 @@
       <button class="chip" aria-pressed="false">Comprehensive Packages / Bundles</button>
     </div>
 
-    <div class="filter-row">
-      <div class="segmented" role="group" aria-label="Gender">
+    <div class="filter-row" id="filterRow">
+      <div class="segmented seg-main" role="group" aria-label="Gender">
         <button aria-pressed="true">Men</button>
         <button aria-pressed="false">Women</button>
       </div>
@@ -386,5 +408,23 @@
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 18h4V8H4zM10 18h4V4h-4zM16 18h4v-7h-4z"/></svg>
     Package Ladder
   </button>
+
+  <script>
+    // Pin the search bar directly under the app bar, and slide the Men/Women
+    // control in beside it once its original row has scrolled out of view —
+    // so the frozen zone stays one line tall instead of a tall header block.
+    const appbar = document.querySelector('.appbar');
+    const bar = document.getElementById('stickyBar');
+    const row = document.getElementById('filterRow');
+    const setTop = () => { bar.style.top = appbar.offsetHeight + 'px'; };
+    const onScroll = () => {
+      const barBox = bar.getBoundingClientRect();
+      document.body.classList.toggle('scrolled', row.getBoundingClientRect().bottom < barBox.bottom);
+      bar.classList.toggle('stuck', barBox.top <= appbar.offsetHeight + 1);
+    };
+    setTop(); onScroll();
+    window.addEventListener('resize', () => { setTop(); onScroll(); }, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
+  </script>
 </body>
 </html>
