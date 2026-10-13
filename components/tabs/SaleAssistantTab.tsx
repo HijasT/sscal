@@ -26,6 +26,7 @@ import {
   searchServices,
   isHiddenFromCatalogue,
   groupComps,
+  packageComponents,
   markerSections,
   serviceGender,
   suggestPackage,
@@ -1106,6 +1107,7 @@ function ServiceRow({
   onToggleQuote: () => void
 }) {
   const groups = useMemo(() => groupComps(service), [service])
+  const components = useMemo(() => (expanded ? packageComponents(service) : []), [service, expanded])
   // Markers grouped by their profile/panel name (Liver Profile, Thyroid Profile, …),
   // split into labelled sections where it helps (food allergy vs intolerance).
   const sections = useMemo(() => (expanded ? markerSections(service) : []), [service, expanded])
@@ -1148,10 +1150,23 @@ function ServiceRow({
 
       {expanded && (
         <div id={detailId} className="sa-pkg-detail">
-          {groups.length === 0 && panelCount === 0 ? (
+          {groups.length === 0 && panelCount === 0 && components.length === 0 ? (
             <p className="sa-muted">No breakdown available for this package.</p>
           ) : (
             <>
+              {components.length > 0 && (
+                <div>
+                  <h4 className="sa-subhead">Components ({components.length})</h4>
+                  <div className="sa-markers">
+                    {components.map((c, i) => (
+                      <span key={i} className="sa-marker sa-marker-pkg">
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {groups.map((g) => (
                 <div key={g.group}>
                   <h4>{compGroupLabel(g.group)}</h4>

@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.7.0]
+
+### Added
+- **Package details now list the components in line.** Expanding a package in the Sale Assistant catalogue shows its components (Questionnaire, Blood Collection, Swab, ECG, BCA, Gut Kit, …) as a labelled row of chips at the top of the breakdown, above the "what's included" groups and blood panels.
+
 ## [11.6.1]
 
 ### Changed
