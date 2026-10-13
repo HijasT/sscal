@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.7.1]
+
+### Fixed
+- **Doctor consultation now appears in the package components.** The consultation is stored separately from the kit components, so it was missing from the new in-line Components row. It's now shown as a chip with its duration (e.g. "Doctor Consultation · 30 min").
+
 ## [11.7.0]
 
 ### Added

@@ -1107,7 +1107,13 @@ function ServiceRow({
   onToggleQuote: () => void
 }) {
   const groups = useMemo(() => groupComps(service), [service])
-  const components = useMemo(() => (expanded ? packageComponents(service) : []), [service, expanded])
+  // Kit components from the catalogue, plus the doctor consultation (tracked in a
+  // separate `doctor` field, so it never appears in the components list itself).
+  const components = useMemo(() => {
+    if (!expanded) return []
+    const base = packageComponents(service)
+    return service.doctor ? [...base, `Doctor Consultation · ${service.doctor}`] : base
+  }, [service, expanded])
   // Markers grouped by their profile/panel name (Liver Profile, Thyroid Profile, …),
   // split into labelled sections where it helps (food allergy vs intolerance).
   const sections = useMemo(() => (expanded ? markerSections(service) : []), [service, expanded])
