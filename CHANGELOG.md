@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.11.0]
+
+### Added
+- **Works fully offline.** A service worker (`public/sw.js`) now caches the app shell and its assets at runtime, so once the page has loaded online it will reload, reopen and run the Excel/PDF exports with no network — and the app can be installed to the home screen / desktop as a PWA. The page HTML is fetched network-first, so online users always get the latest build; everything else is served cache-first. Nothing is ever sent out (only same-origin requests are cached), preserving the "100% local, no data shared" guarantee.
+
+### Fixed
+- **Web app manifest icons now resolve.** The manifest referenced two PNG icons that were never shipped; it now points at the existing `favicon.svg`, so the install prompt works.
+
 ## [11.10.3]
 
 ### Fixed

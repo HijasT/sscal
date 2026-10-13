@@ -44,6 +44,14 @@ export default function Home() {
     purgeExpiredData()
   }, [])
 
+  // Register the offline service worker (public/sw.js). Runtime caching only,
+  // same-origin — lets the app reload/reopen and run exports fully offline.
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {})
+    }
+  }, [])
+
   // Publish the sticky topbar's live height as --topbar-h so sticky content below
   // it (the Sale Assistant search bar) and scroll-into-view offsets sit clear of it.
   const topbarRef = useRef<HTMLDivElement>(null)
