@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.9.1]
+
+### Changed
+- **Men/Women toggle moved onto the filter line**, as the first item before "Blood tests only" / "Non-invasive", keeping gender and the blood filters together.
+
 ## [11.9.0]
 
 ### Added

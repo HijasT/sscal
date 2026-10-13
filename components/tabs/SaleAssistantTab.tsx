@@ -344,15 +344,6 @@ export function SaleAssistantTab() {
           <span>100% local · catalogue bundled with the app · no data shared</span>
         </p>
 
-        <div className="sa-seg" role="group" aria-label="Show packages for">
-          <button type="button" aria-pressed={gender === 'M'} onClick={() => setGender('M')}>
-            Men
-          </button>
-          <button type="button" aria-pressed={gender === 'W'} onClick={() => setGender('W')}>
-            Women
-          </button>
-        </div>
-
         {/* Package Ladder */}
         <details
           ref={ladderRef}
@@ -749,6 +740,14 @@ export function SaleAssistantTab() {
 
           <div className="sa-filters">
             <div className="sa-checks">
+              <div className="sa-seg" role="group" aria-label="Show packages for">
+                <button type="button" aria-pressed={gender === 'M'} onClick={() => setGender('M')}>
+                  Men
+                </button>
+                <button type="button" aria-pressed={gender === 'W'} onClick={() => setGender('W')}>
+                  Women
+                </button>
+              </div>
               <label className="sa-check">
                 <input
                   type="checkbox"

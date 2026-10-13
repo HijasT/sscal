@@ -1542,7 +1542,7 @@ body.light-mode .sa {
   background: var(--bg-card); padding-bottom: 12px;
 }
 .sa-filters { display: flex; align-items: center; justify-content: space-between; gap: 8px 24px; flex-wrap: wrap; }
-.sa-checks { display: flex; gap: 8px 24px; flex-wrap: wrap; }
+.sa-checks { display: flex; align-items: center; gap: 8px 24px; flex-wrap: wrap; }
 .sa .sa-check {
   display: inline-flex; align-items: center; gap: 10px; min-height: 44px; margin: 0; cursor: pointer;
   font-size: 0.9375rem; font-weight: 500; color: var(--sa-ink); text-transform: none; letter-spacing: 0;
