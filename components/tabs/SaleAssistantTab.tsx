@@ -1267,7 +1267,6 @@ function ServiceRow({
           <div className="sa-pitch-head">
             <Icon name="info" small />
             <span>Sales notes</span>
-            <span className="sa-pitch-flag">staff only</span>
           </div>
           <p className="sa-pitch-what">{pitch.whatFor}</p>
           <ul className="sa-pitch-angles">

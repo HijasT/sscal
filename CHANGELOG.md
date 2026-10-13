@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.13.1]
+
+### Changed
+- **Sales notes reworded.** Every package's note now states why a customer would take it (customer benefit), rather than internal sales tactics, and no note references HEALTHMAXXING (it is a synthetic suggestion, not an official package). Removed the "staff only" label from the card.
+
 ## [11.13.0]
 
 ### Added
