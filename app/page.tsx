@@ -9,6 +9,7 @@ import { AboutTab } from '@/components/tabs/AboutTab'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Robot } from '@/components/Robot'
 import { DataExpiryTimer } from '@/components/DataExpiryTimer'
+import { MessageModal } from '@/components/MessageModal'
 import { purgeExpiredData } from '@/lib/storage'
 import { APP_VERSION, DEFAULT_THEME, DEFAULT_ROBOT_ENABLED } from '@/lib/config'
 
@@ -136,6 +137,7 @@ export default function Home() {
         <SettingsTab robotEnabled={robotEnabled} onToggleRobot={toggleRobot} />
       )}
       {activeTab === 'about'          && <AboutTab />}
+      <MessageModal />
     </div>
   )
 }

@@ -10,6 +10,7 @@ import { CENTERS, STAFF_CENTERS, DEFAULT_TIERS, DEFAULT_USD_RATE, type Tier } fr
 import { getFresh, isPersistEnabled, setPersistEnabled, isUsdShown, setUsdShown, getUsdRate, setUsdRate } from '@/lib/storage'
 import { extractEmployeeCode, stripEmployeeCode, type ExcelData } from '@/lib/excelUtils'
 import { SlidersIcon, SaveIcon, BarChartIcon, SunIcon } from '@/components/icons'
+import { notify } from '@/lib/notify'
 
 interface StaffCenterEntry {
   code: string
@@ -108,7 +109,7 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
 
   const handleRemoveTier = (index: number) => {
     if (tiers.length <= 1) {
-      alert('Must have at least one tier')
+      notify({ level: 'error', title: 'Cannot remove tier', messages: ['You must keep at least one tier.'] })
       return
     }
     if (confirm(`Remove ${tiers[index].name}?`)) {
@@ -133,7 +134,7 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
     saveTiers(sortedTiers)
     setTiers(sortedTiers)
     setLastSavedAt(getTiersSavedAt())
-    alert('Tier settings saved.')
+    notify({ level: 'success', messages: ['Tier settings saved.'] })
   }
 
   const handleReset = () => {
@@ -144,7 +145,7 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
       setTiers(DEFAULT_TIERS)
       saveTiers(DEFAULT_TIERS)
       setLastSavedAt(getTiersSavedAt())
-      alert('Tier settings reset to defaults. You can restore your previous tiers below if this was a mistake.')
+      notify({ level: 'success', title: 'Tiers reset to defaults', messages: ['You can restore your previous tiers below if this was a mistake.'] })
     }
   }
 
@@ -155,7 +156,7 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
     setLastSavedAt(getTiersSavedAt())
     clearTiersBackup()
     setBackup(null)
-    alert('Previous tier settings restored.')
+    notify({ level: 'success', messages: ['Previous tier settings restored.'] })
   }
 
   const handleTogglePersist = (enabled: boolean) => {
@@ -199,7 +200,7 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
     saveStaffCenters(mapping)
     setScEntries(toEntries(mapping))
     setScLastSavedAt(getStaffCentersSavedAt())
-    alert('Staff center allocation saved.')
+    notify({ level: 'success', messages: ['Staff center allocation saved.'] })
   }
 
   const handleResetSc = () => {
@@ -209,7 +210,7 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
       setScEntries(toEntries(STAFF_CENTERS))
       saveStaffCenters(STAFF_CENTERS)
       setScLastSavedAt(getStaffCentersSavedAt())
-      alert('Staff center allocation reset to defaults. You can restore your previous allocation below if this was a mistake.')
+      notify({ level: 'success', title: 'Allocation reset to defaults', messages: ['You can restore your previous allocation below if this was a mistake.'] })
     }
   }
 
@@ -220,7 +221,7 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
     setScLastSavedAt(getStaffCentersSavedAt())
     clearStaffCentersBackup()
     setScBackup(null)
-    alert('Previous staff center allocation restored.')
+    notify({ level: 'success', messages: ['Previous staff center allocation restored.'] })
   }
 
   return (

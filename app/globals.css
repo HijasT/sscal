@@ -1778,15 +1778,7 @@ body.light-mode .sa {
 .expiry-dialog p { color: var(--text-secondary); margin-bottom: 20px; }
 .expiry-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 
-/* Bulk-upload data-quality warnings: modal (grabs attention on upload) + a
-   compact amber chip that reopens it afterwards. */
-.bulk-warn-dialog { max-width: min(560px, calc(100vw - 32px)); }
-.bulk-warn-dialog h2 { color: #d97706; }
-.bulk-warn-list {
-  margin: 0 0 20px; padding-left: 20px; max-height: 40vh; overflow-y: auto;
-  color: var(--text-secondary); font-size: 13px; line-height: 1.6;
-}
-.bulk-warn-list li { margin-bottom: 4px; }
+/* Compact amber chip that (re)opens the data-quality popup. */
 .bulk-warn-chip {
   display: inline-flex; align-items: center; gap: 6px; margin-bottom: 24px;
   padding: 8px 14px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
@@ -1796,10 +1788,28 @@ body.light-mode .sa {
   border-radius: var(--radius-md);
 }
 .bulk-warn-chip:hover { background: color-mix(in srgb, #d97706 20%, var(--surface)); }
-.bulk-target-warn {
-  margin: 8px 0 0; padding: 8px 12px; font-size: 12.5px; line-height: 1.5;
+
+/* App-wide message popup (lib/notify.ts + MessageModal). */
+.msg-dialog {
+  margin: auto;
+  max-width: min(560px, calc(100vw - 32px));
+  padding: 24px;
+  background: var(--bg-card);
   color: var(--text-primary);
-  background: color-mix(in srgb, #d97706 12%, var(--surface));
-  border: 1px solid color-mix(in srgb, #d97706 45%, var(--border-color));
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
 }
+.msg-dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
+.msg-dialog h2 { display: flex; align-items: center; gap: 8px; font-size: 18px; margin-bottom: 12px; }
+.msg-dialog-icon { font-size: 20px; line-height: 1; }
+.msg-error h2 { color: var(--error, #dc2626); }
+.msg-warning h2 { color: #d97706; }
+.msg-success h2 { color: var(--success, #16a34a); }
+.msg-info h2 { color: var(--accent-primary); }
+.msg-dialog-single { color: var(--text-secondary); margin-bottom: 20px; line-height: 1.55; }
+.msg-dialog-list {
+  margin: 0 0 20px; padding-left: 20px; max-height: 45vh; overflow-y: auto;
+  color: var(--text-secondary); font-size: 13px; line-height: 1.6;
+}
+.msg-dialog-list li { margin-bottom: 4px; }

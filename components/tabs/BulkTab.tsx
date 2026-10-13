@@ -1,9 +1,10 @@
 'use client'
-import { useState, useEffect, useRef, type ReactNode } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { parseExcelFile, pickDefaultMonth, type ExcelData } from '@/lib/excelUtils'
 import { BulkResultsView } from './BulkResultsView'
 import { BarChartIcon, UploadIcon } from '@/components/icons'
 import { getFresh, setFresh, clearFresh } from '@/lib/storage'
+import { notify } from '@/lib/notify'
 
 type ViewMode = 'monthly' | 'q1' | 'q2' | 'q3' | 'q4' | 'h1' | 'h2' | 'yearly' | 'alltime'
 
@@ -44,8 +45,16 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
   const [excelData, setExcelData] = useState<ExcelData[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [parseWarnings, setParseWarnings] = useState<string[]>([])
-  const warnDialogRef = useRef<HTMLDialogElement>(null)
-  const openWarnings = () => warnDialogRef.current?.showModal()
+  const WARN_TITLE = (n: number) => `${n} data issue${n === 1 ? '' : 's'} in this upload`
+  const showWarnings = (warns: string[]) =>
+    notify({
+      level: 'warning',
+      title: WARN_TITLE(warns.length),
+      messages: [
+        "The file still loaded, but these need attention — any unreadable figure was counted as 0. Fix them in the Sales Tracker and re-upload.",
+        ...warns,
+      ],
+    })
   const [availableYears, setAvailableYears] = useState<string[]>([])
   const [hasHydrated, setHasHydrated] = useState(false)
 
@@ -96,7 +105,11 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
     const MAX_UPLOAD_BYTES = 20 * 1024 * 1024
     if (uploadedFile.size > MAX_UPLOAD_BYTES) {
       e.target.value = ''
-      alert(`That file is ${(uploadedFile.size / 1024 / 1024).toFixed(1)} MB. Please upload a sales tracker under 20 MB.`)
+      notify({
+        level: 'error',
+        title: 'File too large',
+        messages: [`That file is ${(uploadedFile.size / 1024 / 1024).toFixed(1)} MB. Please upload a sales tracker under 20 MB.`],
+      })
       return
     }
 
@@ -106,10 +119,10 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
       const data = await parseExcelFile(uploadedFile)
       setExcelData(data)
       // Surface data-quality warnings (broken "#REF!" totals, a missing TARGET)
-      // in a modal — a flat banner gets ignored. The file still loads.
+      // in the app-wide popup — a flat banner gets ignored. The file still loads.
       const warns = data.flatMap((d) => d.warnings ?? [])
       setParseWarnings(warns)
-      if (warns.length > 0) requestAnimationFrame(() => warnDialogRef.current?.showModal())
+      if (warns.length > 0) showWarnings(warns)
       // Auto-select the current month/year on every fresh upload, falling
       // back to the previous month if the current one has no usable data.
       // Results then calculate automatically (see BulkResultsView).
@@ -120,7 +133,7 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
     } catch (error) {
       console.error('Error parsing Excel:', error)
       const errorMsg = error instanceof Error ? error.message : 'Unknown error'
-      alert(`Error parsing Excel file: ${errorMsg}`)
+      notify({ level: 'error', title: 'Could not read the file', messages: [errorMsg] })
     } finally {
       setIsProcessing(false)
     }
@@ -186,31 +199,13 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
         </div>
       </div>
 
-      {/* Compact reopener — kept after the modal is dismissed so the issues
-          aren't lost, but it's the modal (on upload) that actually grabs attention. */}
+      {/* Compact reopener — the popup fires on upload; this brings it back after
+          dismissal so the issues aren't lost. */}
       {parseWarnings.length > 0 && (
-        <button type="button" className="bulk-warn-chip" onClick={openWarnings}>
+        <button type="button" className="bulk-warn-chip" onClick={() => showWarnings(parseWarnings)}>
           ⚠ {parseWarnings.length} data issue{parseWarnings.length === 1 ? '' : 's'} in this upload — review
         </button>
       )}
-
-      <dialog ref={warnDialogRef} className="expiry-dialog bulk-warn-dialog" aria-labelledby="bulk-warn-title">
-        <h2 id="bulk-warn-title">⚠ {parseWarnings.length} data issue{parseWarnings.length === 1 ? '' : 's'} found</h2>
-        <p>
-          The file still loaded, but these need attention. Any unreadable figure was counted as{' '}
-          <strong>0</strong>. Fix them in the Sales Tracker and re-upload.
-        </p>
-        <ul className="bulk-warn-list">
-          {parseWarnings.map((w, i) => (
-            <li key={i}>{w}</li>
-          ))}
-        </ul>
-        <div className="expiry-actions">
-          <button type="button" className="btn btn-primary" onClick={() => warnDialogRef.current?.close()}>
-            Got it
-          </button>
-        </div>
-      </dialog>
 
       {/* View Controls - Modern Dropdowns */}
       {excelData.length > 0 && (

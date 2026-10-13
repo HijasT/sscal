@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.6.1]
+
+### Changed
+- **All warnings, errors, and confirmations now show in one styled popup** instead of the browser's native `alert()` or an easy-to-miss inline card. A single app-wide message modal (`lib/notify.ts` + `MessageModal`) handles every message — colour-coded by type (error / warning / success) and dismissed with one button. Converted: Bulk upload size/parse errors and data-issue warnings, the "invalid target" and manual-target-override warnings, and all Settings save/reset/restore confirmations. Reopen chips remain for the bulk data-issue and manual-target cases so the details aren't lost after dismissal.
+
 ## [11.6.0]
 
 ### Added

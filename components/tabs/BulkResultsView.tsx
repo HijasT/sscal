@@ -5,6 +5,7 @@ import { calculateIncentive, formatCurrency, getTier, loadTiers, loadStaffCenter
 import { exportBulkToPDF } from '@/lib/pdfUtils'
 import { DEFAULT_P1_SPLIT, CENTERS } from '@/lib/config'
 import { getFresh, setFresh, clearFresh } from '@/lib/storage'
+import { notify } from '@/lib/notify'
 import { DownloadIcon } from '@/components/icons'
 import { CenterBadge } from '@/components/CenterBadge'
 
@@ -157,17 +158,32 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [excelData, viewMode, selectedMonth, selectedYear, target, p1Split, excludedStaff])
 
+  // A manual Team Target overriding the sheet's own target: warn (in the popup)
+  // so results aren't silently based on the wrong number.
+  const overrideActive = target.trim() !== '' && autoTarget > 0 && parseFloat(target) !== autoTarget
+  const overrideMessage = () =>
+    `Calculating on your manual target (AED ${formatCurrency(parseFloat(target) || 0)}), not the sheet's AED ${formatCurrency(autoTarget)}. Clear the Team Target field to use the sheet value.`
+  const prevOverride = useRef<boolean | null>(null)
+  useEffect(() => {
+    if (prevOverride.current === null) { prevOverride.current = overrideActive; return } // don't pop up on mount
+    if (overrideActive && !prevOverride.current) {
+      notify({ level: 'warning', title: 'Using a manual target', messages: [overrideMessage()] })
+    }
+    prevOverride.current = overrideActive
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overrideActive])
+
   const handleCalculate = (silent = false) => {
     const sheets = getSheetsForView()
     if (!sheets.length) {
-      if (!silent) alert('No sheets found for selected view')
+      if (!silent) notify({ level: 'error', title: 'No data for this view', messages: ['No sheets found for the selected view.'] })
       else { setResults([]); setCalcData(null) }
       return
     }
 
     const aggregated = sheets.length === 1 ? sheets[0] : aggregateSheets(sheets)
     if (!aggregated.staff.length) {
-      if (!silent) alert('No staff data found')
+      if (!silent) notify({ level: 'error', title: 'No staff data', messages: ['No staff data was found for the selected view.'] })
       else { setResults([]); setCalcData(null) }
       return
     }
@@ -177,7 +193,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
 
     const finalTarget = target ? parseFloat(target) : aggregated.target
     if (!finalTarget || finalTarget <= 0) {
-      if (!silent) alert('Invalid target. Enter manually or check Excel')
+      if (!silent) notify({ level: 'error', title: 'Invalid target', messages: ['Enter a Team Target manually, or check that the Excel sheet has one.'] })
       else { setResults([]); setCalcData(null) }
       return
     }
@@ -339,11 +355,11 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
             <div className="form-group">
               <label>Team Target (AED) <span style={{fontSize:'12px',color:'var(--text-muted)'}}>Auto or Manual</span></label>
               <input type="number" value={target} onChange={e=>setTarget(e.target.value)} placeholder={autoTarget>0?`Auto: ${autoTarget}`:'Auto-detected'} min="0" />
-              {target.trim() !== '' && autoTarget > 0 && parseFloat(target) !== autoTarget && (
-                <p className="bulk-target-warn" role="alert">
-                  ⚠ Calculating on your <strong>manual target (AED {formatCurrency(parseFloat(target) || 0)})</strong>, not the sheet's
-                  {' '}AED {formatCurrency(autoTarget)}. Clear this field to use the sheet value.
-                </p>
+              {overrideActive && (
+                <button type="button" className="bulk-warn-chip" style={{marginTop:'8px',marginBottom:0}}
+                  onClick={() => notify({ level: 'warning', title: 'Using a manual target', messages: [overrideMessage()] })}>
+                  ⚠ Using a manual target (not the sheet's) — details
+                </button>
               )}
             </div>
             <div className="form-group">
