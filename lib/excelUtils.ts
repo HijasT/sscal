@@ -383,6 +383,11 @@ function extractStaffFromSheet(
     }
   }
 
+  // A sheet with staff rows but no TARGET can't produce a team achievement %.
+  if (staff.length > 0 && !(target > 0)) {
+    warnings.push(`${sheetName}: no TARGET value found on the sheet — team achievement can't be calculated for this month.`)
+  }
+
   return { staff, target, warnings }
 }
 

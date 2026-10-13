@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.6.0]
+
+### Added
+- **Upload warnings now pop up in a modal, not a flat card.** When a sheet has data-quality issues, a modal appears on upload and must be acknowledged — flat banners get ignored. After dismissing, a compact amber chip stays so the issues can be reopened.
+- **Missing-target warning.** A month sheet that has staff rows but no TARGET value is flagged (team achievement can't be calculated for it).
+- **Manual-target override warning.** When the Bulk calculation runs on a manually entered target while the sheet already has one, a clear warning under the Team Target field shows it's using the manual value (and the sheet's value), so results aren't silently based on the wrong number.
+
 ## [11.5.7]
 
 ### Fixed

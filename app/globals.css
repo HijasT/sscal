@@ -1777,3 +1777,29 @@ body.light-mode .sa {
 .expiry-dialog h2 { font-size: 18px; margin-bottom: 8px; }
 .expiry-dialog p { color: var(--text-secondary); margin-bottom: 20px; }
 .expiry-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* Bulk-upload data-quality warnings: modal (grabs attention on upload) + a
+   compact amber chip that reopens it afterwards. */
+.bulk-warn-dialog { max-width: min(560px, calc(100vw - 32px)); }
+.bulk-warn-dialog h2 { color: #d97706; }
+.bulk-warn-list {
+  margin: 0 0 20px; padding-left: 20px; max-height: 40vh; overflow-y: auto;
+  color: var(--text-secondary); font-size: 13px; line-height: 1.6;
+}
+.bulk-warn-list li { margin-bottom: 4px; }
+.bulk-warn-chip {
+  display: inline-flex; align-items: center; gap: 6px; margin-bottom: 24px;
+  padding: 8px 14px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+  color: var(--text-primary); text-align: left;
+  background: color-mix(in srgb, #d97706 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, #d97706 45%, var(--border-color));
+  border-radius: var(--radius-md);
+}
+.bulk-warn-chip:hover { background: color-mix(in srgb, #d97706 20%, var(--surface)); }
+.bulk-target-warn {
+  margin: 8px 0 0; padding: 8px 12px; font-size: 12.5px; line-height: 1.5;
+  color: var(--text-primary);
+  background: color-mix(in srgb, #d97706 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, #d97706 45%, var(--border-color));
+  border-radius: var(--radius-sm);
+}

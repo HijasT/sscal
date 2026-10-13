@@ -339,6 +339,12 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
             <div className="form-group">
               <label>Team Target (AED) <span style={{fontSize:'12px',color:'var(--text-muted)'}}>Auto or Manual</span></label>
               <input type="number" value={target} onChange={e=>setTarget(e.target.value)} placeholder={autoTarget>0?`Auto: ${autoTarget}`:'Auto-detected'} min="0" />
+              {target.trim() !== '' && autoTarget > 0 && parseFloat(target) !== autoTarget && (
+                <p className="bulk-target-warn" role="alert">
+                  ⚠ Calculating on your <strong>manual target (AED {formatCurrency(parseFloat(target) || 0)})</strong>, not the sheet's
+                  {' '}AED {formatCurrency(autoTarget)}. Clear this field to use the sheet value.
+                </p>
+              )}
             </div>
             <div className="form-group">
               <label>Staff Count <span style={{fontSize:'12px',color:'var(--text-muted)'}}>Auto-detected</span></label>

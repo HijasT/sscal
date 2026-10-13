@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, useEffect, useRef, type ReactNode } from 'react'
 import { parseExcelFile, pickDefaultMonth, type ExcelData } from '@/lib/excelUtils'
 import { BulkResultsView } from './BulkResultsView'
 import { BarChartIcon, UploadIcon } from '@/components/icons'
@@ -44,6 +44,8 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
   const [excelData, setExcelData] = useState<ExcelData[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [parseWarnings, setParseWarnings] = useState<string[]>([])
+  const warnDialogRef = useRef<HTMLDialogElement>(null)
+  const openWarnings = () => warnDialogRef.current?.showModal()
   const [availableYears, setAvailableYears] = useState<string[]>([])
   const [hasHydrated, setHasHydrated] = useState(false)
 
@@ -103,9 +105,11 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
     try {
       const data = await parseExcelFile(uploadedFile)
       setExcelData(data)
-      // Surface data-quality warnings (e.g. a broken "#REF!" total) without
-      // blocking — the file still loads; the affected figures counted as 0.
-      setParseWarnings(data.flatMap((d) => d.warnings ?? []))
+      // Surface data-quality warnings (broken "#REF!" totals, a missing TARGET)
+      // in a modal — a flat banner gets ignored. The file still loads.
+      const warns = data.flatMap((d) => d.warnings ?? [])
+      setParseWarnings(warns)
+      if (warns.length > 0) requestAnimationFrame(() => warnDialogRef.current?.showModal())
       // Auto-select the current month/year on every fresh upload, falling
       // back to the previous month if the current one has no usable data.
       // Results then calculate automatically (see BulkResultsView).
@@ -182,30 +186,31 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
         </div>
       </div>
 
+      {/* Compact reopener — kept after the modal is dismissed so the issues
+          aren't lost, but it's the modal (on upload) that actually grabs attention. */}
       {parseWarnings.length > 0 && (
-        <div
-          role="alert"
-          style={{
-            marginBottom: '24px',
-            padding: '12px 16px',
-            background: 'color-mix(in srgb, #d97706 12%, var(--surface))',
-            border: '1px solid color-mix(in srgb, #d97706 45%, var(--border-color))',
-            borderRadius: 'var(--radius-md)',
-            fontSize: '13px',
-            color: 'var(--text-primary)',
-            lineHeight: '1.55',
-          }}
-        >
-          <strong>⚠ {parseWarnings.length} data issue{parseWarnings.length === 1 ? '' : 's'} in the uploaded sheet</strong>
-          <span style={{ color: 'var(--text-secondary)' }}> — the file still loaded; affected figures were counted as 0. Fix these in the Sales Tracker and re-upload.</span>
-          <ul style={{ margin: '8px 0 0', paddingLeft: '20px' }}>
-            {parseWarnings.slice(0, 20).map((w, i) => (
-              <li key={i}>{w}</li>
-            ))}
-            {parseWarnings.length > 20 && <li>…and {parseWarnings.length - 20} more.</li>}
-          </ul>
-        </div>
+        <button type="button" className="bulk-warn-chip" onClick={openWarnings}>
+          ⚠ {parseWarnings.length} data issue{parseWarnings.length === 1 ? '' : 's'} in this upload — review
+        </button>
       )}
+
+      <dialog ref={warnDialogRef} className="expiry-dialog bulk-warn-dialog" aria-labelledby="bulk-warn-title">
+        <h2 id="bulk-warn-title">⚠ {parseWarnings.length} data issue{parseWarnings.length === 1 ? '' : 's'} found</h2>
+        <p>
+          The file still loaded, but these need attention. Any unreadable figure was counted as{' '}
+          <strong>0</strong>. Fix them in the Sales Tracker and re-upload.
+        </p>
+        <ul className="bulk-warn-list">
+          {parseWarnings.map((w, i) => (
+            <li key={i}>{w}</li>
+          ))}
+        </ul>
+        <div className="expiry-actions">
+          <button type="button" className="btn btn-primary" onClick={() => warnDialogRef.current?.close()}>
+            Got it
+          </button>
+        </div>
+      </dialog>
 
       {/* View Controls - Modern Dropdowns */}
       {excelData.length > 0 && (
