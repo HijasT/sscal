@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.10.1]
+
+### Changed
+- **"Add discount" button made more discreet** — a smaller, lower-height variant so it no longer dominates each selected-package row (also applied to the suggestion's "Try a discount" link).
+
 ## [11.10.0]
 
 ### Changed

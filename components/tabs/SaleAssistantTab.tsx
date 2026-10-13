@@ -486,7 +486,7 @@ export function SaleAssistantTab() {
                   ) : (
                     <button
                       type="button"
-                      className="sa-btn sa-btn-quiet sa-btn-flush"
+                      className="sa-btn sa-btn-quiet sa-btn-flush sa-btn-sm"
                       onClick={() => setSuggDiscOpen(true)}
                     >
                       <Icon name="tag" small />
@@ -1107,7 +1107,7 @@ function QuoteLineRow({
         />
       ) : (
         <div>
-          <button type="button" className="sa-btn sa-btn-quiet sa-btn-flush" onClick={() => setDiscountOpen(true)}>
+          <button type="button" className="sa-btn sa-btn-quiet sa-btn-flush sa-btn-sm" onClick={() => setDiscountOpen(true)}>
             <Icon name="tag" small />
             Add discount
           </button>

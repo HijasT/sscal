@@ -1490,6 +1490,10 @@ body.light-mode .sa {
 .sa-btn-quiet { color: var(--sa-violet-text); padding: 0 12px; }
 .sa-btn-quiet:hover { background: var(--sa-violet-wash); }
 .sa-btn-flush { padding-left: 0; justify-self: start; }
+/* Compact, discreet variant for low-emphasis actions (e.g. "Add discount"). */
+.sa-btn-sm { min-height: 28px; gap: 6px; padding: 0 8px; font-size: 0.8125rem; }
+.sa-btn-sm.sa-btn-flush { padding-left: 0; }
+.sa-btn-sm .sa-icon { width: 15px; height: 15px; }
 .sa-btn-block { width: 100%; white-space: normal; text-align: center; padding-top: 10px; padding-bottom: 10px; }
 .sa-btn-add { min-width: 104px; color: var(--sa-violet-text); border-color: var(--sa-violet-text); }
 .sa-btn-add.is-on { background: var(--sa-violet-wash); }
