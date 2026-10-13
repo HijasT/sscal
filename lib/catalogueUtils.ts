@@ -416,11 +416,19 @@ const COMPOSITION: Record<string, string[]> = {
   'Ultimate Gut Health Package': ['Gut Microbiome Test', 'Food Allergy & Intolerance Bundle'],
   "Dubai It Men's Package": ["Executive Men's Health Package", 'Longevity Profile', 'Food Allergy & Intolerance Bundle'],
   "Dubai It Women's Package": ["Executive Women's Health Package", 'Longevity Profile', 'Food Allergy & Intolerance Bundle'],
-  // The top catch-all: it must cover BOTH genders' flagships so suggestPackage
-  // offers it to men and women alike. The quote expansion (healthmaxxingComponents)
-  // still drops in only the gender-correct Dubai It, never both.
-  HEALTHMAXXING: [
+  // The top catch-alls — one per gender — each the gender's Dubai It flagship plus
+  // the gender-neutral add-ons. Two packages (not one) so the catalogue shows the
+  // right one per toggle and Compare lists both.
+  "HEALTHMAXXING Men's Package": [
     "Dubai It Men's Package",
+    'DNA - Hair Loss Package',
+    'DNA - Acne Package',
+    'Gut Microbiome Test',
+    'Respiratory Allergy Test',
+    'Coeliac Test',
+    'Advanced Diabetes Screening',
+  ],
+  "HEALTHMAXXING Women's Package": [
     "Dubai It Women's Package",
     'DNA - Hair Loss Package',
     'DNA - Acne Package',
@@ -431,77 +439,82 @@ const COMPOSITION: Record<string, string[]> = {
   ],
 }
 
+/** The two gendered HEALTHMAXXING catch-all package names (synthetic, injected below). */
+const HEALTHMAXXING_NAMES = {
+  M: "HEALTHMAXXING Men's Package",
+  W: "HEALTHMAXXING Women's Package",
+} as const
+export function isHealthmaxxing(name: string): boolean {
+  return name === HEALTHMAXXING_NAMES.M || name === HEALTHMAXXING_NAMES.W
+}
+
 /**
- * The individual packages HEALTHMAXXING expands into when selected (it is never
- * added as a single line — picking it drops these real packages into the quote
- * instead). Dubai It follows the chosen gender; the rest are gender-neutral.
- * COMPOSITION.HEALTHMAXXING above lists BOTH Dubai It genders (so the catch-all
- * covers everyone for suggestions); here only the one matching `gender` is added.
+ * The individual packages a HEALTHMAXXING package expands into when selected (it
+ * is never added as a single line — picking it drops these real packages into the
+ * quote instead). Taken straight from its composition, so it stays the gender's
+ * Dubai It plus the gender-neutral add-ons.
  */
-const HEALTHMAXXING_COMMON = [
-  'Respiratory Allergy Test',
-  'Gut Microbiome Test',
-  'DNA - Acne Package',
-  'DNA - Hair Loss Package',
-  'Coeliac Test',
-  'Advanced Diabetes Screening',
-]
 export function healthmaxxingComponents(gender: 'M' | 'W'): CatalogueService[] {
-  const names = [gender === 'W' ? "Dubai It Women's Package" : "Dubai It Men's Package", ...HEALTHMAXXING_COMMON]
-  return names
+  return (COMPOSITION[HEALTHMAXXING_NAMES[gender]] || [])
     .map((n) => data.services.find((s) => s.name === n))
     .filter((s): s is CatalogueService => !!s)
 }
 
 /**
- * Expand a service for adding to the quote: HEALTHMAXXING becomes its component
- * packages (see healthmaxxingComponents); every other service is itself.
+ * Expand a service for adding to the quote: a HEALTHMAXXING package becomes its
+ * component packages (see healthmaxxingComponents), using its own gender; every
+ * other service is itself.
  */
 export function expandForQuote(service: CatalogueService, gender: 'M' | 'W'): CatalogueService[] {
-  return service.name === 'HEALTHMAXXING' ? healthmaxxingComponents(gender) : [service]
+  if (!isHealthmaxxing(service.name)) return [service]
+  return healthmaxxingComponents(serviceGender(service) ?? gender)
 }
 
-/** Price of the unofficial HEALTHMAXXING package (sum of its components). */
+/** Price of a HEALTHMAXXING package (sum of its components — same for both genders). */
 const HEALTHMAXXING_PRICE = 19935
 
-// Inject HEALTHMAXXING — an unofficial package that covers everything on offer —
-// synthesised from the union of its component packages' panels and comps so the
-// catalogue view and suggestions treat it like any other package.
+// Inject the two gendered HEALTHMAXXING packages — unofficial catch-alls covering
+// everything on offer for that gender — synthesised from the union of their
+// component packages' panels and comps so the catalogue and suggestions treat them
+// like any other package.
 ;(function injectHealthmaxxing() {
-  if (data.services.some((s) => s.name === 'HEALTHMAXXING')) return
-  const byName = new Map(data.services.map((s) => [s.name, s]))
-  const panels: string[] = []
-  const comps: CatalogueComp[] = []
-  const compKeys = new Set<string>()
-  for (const name of COMPOSITION.HEALTHMAXXING) {
-    const c = byName.get(name)
-    if (!c) continue
-    for (const p of c.panels) if (!panels.includes(p)) panels.push(p)
-    for (const row of c.comps) {
-      const k = `${row.group}::${row.name}`
-      if (!compKeys.has(k)) {
-        compKeys.add(k)
-        comps.push(row)
+  for (const gender of ['M', 'W'] as const) {
+    const name = HEALTHMAXXING_NAMES[gender]
+    if (data.services.some((s) => s.name === name)) continue
+    const byName = new Map(data.services.map((s) => [s.name, s]))
+    const panels: string[] = []
+    const comps: CatalogueComp[] = []
+    const compKeys = new Set<string>()
+    for (const cn of COMPOSITION[name] || []) {
+      const c = byName.get(cn)
+      if (!c) continue
+      for (const p of c.panels) if (!panels.includes(p)) panels.push(p)
+      for (const row of c.comps) {
+        const k = `${row.group}::${row.name}`
+        if (!compKeys.has(k)) {
+          compKeys.add(k)
+          comps.push(row)
+        }
       }
     }
+    const testIds = new Set<number>()
+    for (const p of panels) {
+      const panel = data.panels[p]
+      if (panel) for (const id of panel.tests) testIds.add(id)
+    }
+    data.services.push({
+      id: Math.max(...data.services.map((s) => s.id)) + 1,
+      category: COMPREHENSIVE_CATEGORY,
+      sub: 'Healthmaxxing',
+      name,
+      price: HEALTHMAXXING_PRICE,
+      currency: 'AED',
+      biomarkers: testIds.size,
+      doctor: '60 min + 15 min',
+      panels,
+      comps,
+    })
   }
-  const testIds = new Set<number>()
-  for (const p of panels) {
-    const panel = data.panels[p]
-    if (panel) for (const id of panel.tests) testIds.add(id)
-  }
-  data.services.push({
-    id: Math.max(...data.services.map((s) => s.id)) + 1,
-    category: COMPREHENSIVE_CATEGORY,
-    sub: 'Healthmaxxing',
-    name: 'HEALTHMAXXING',
-    price: HEALTHMAXXING_PRICE,
-    currency: 'AED',
-    biomarkers: testIds.size,
-    doctor: '60 min + 15 min',
-    panels,
-    comps,
-  })
 })()
 
 /** Transitive set of packages (by name) a package is composed of. */
@@ -576,7 +589,7 @@ export function suggestPackage(selected: CatalogueService[], gender?: 'M' | 'W')
     if (inc.size === 0) continue
     const g = serviceGender(p)
     if (gender && g && g !== gender) continue
-    if (p.name === 'HEALTHMAXXING' && sum < 10000) continue
+    if (isHealthmaxxing(p.name) && sum < 10000) continue
     // A candidate must cover every selected package.
     let coversAll = true
     for (const n of selNames) if (!inc.has(n)) { coversAll = false; break }
@@ -591,7 +604,12 @@ export function suggestPackage(selected: CatalogueService[], gender?: 'M' | 'W')
  * everything, so offering them as "most of your selection" is overkill — the
  * point of the partial suggestion is a reasonable mid-tier combined package.
  */
-const CATCHALL_PACKAGES = new Set(["Dubai It Men's Package", "Dubai It Women's Package", 'HEALTHMAXXING'])
+const CATCHALL_PACKAGES = new Set([
+  "Dubai It Men's Package",
+  "Dubai It Women's Package",
+  HEALTHMAXXING_NAMES.M,
+  HEALTHMAXXING_NAMES.W,
+])
 
 export interface PartialSuggestion {
   service: CatalogueService

@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.10.0]
+
+### Changed
+- **HEALTHMAXXING is now two gender-specific packages** — "HEALTHMAXXING Men's Package" and "HEALTHMAXXING Women's Package". The catalogue shows the one matching the Men/Women toggle, and the Compare dropdown lists both. Each is its gender's Dubai It flagship plus the gender-neutral add-ons; selecting either still expands into the gender-correct component packages.
+- **README rewritten** in the owner's voice, with the full version history.
+
 ## [11.9.3]
 
 ### Fixed

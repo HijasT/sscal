@@ -37,6 +37,7 @@ import {
   excludedDnaModules,
   isBloodTestOnly,
   isNonInvasive,
+  isHealthmaxxing,
   formatAED,
   formatUSD,
   buildJourney,
@@ -269,9 +270,9 @@ export function SaleAssistantTab() {
   }
 
   const toggleInQuote = (service: CatalogueService) => {
-    // HEALTHMAXXING is never a line of its own, so it can't be "in" the quote —
-    // selecting it always expands into its components.
-    if (service.name !== 'HEALTHMAXXING' && lines.some((l) => l.service.id === service.id)) {
+    // A HEALTHMAXXING package is never a line of its own, so it can't be "in" the
+    // quote — selecting it always expands into its components.
+    if (!isHealthmaxxing(service.name) && lines.some((l) => l.service.id === service.id)) {
       edit((prev) => prev.filter((l) => l.service.id !== service.id))
       return
     }

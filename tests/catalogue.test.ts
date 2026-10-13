@@ -87,5 +87,5 @@ test('suggestPackage: HEALTHMAXXING is offered to a women\'s selection it covers
     named('Gut Microbiome Test'),
   ]
   const s = suggestPackage(selection, 'W')
-  assert.equal(s?.name, 'HEALTHMAXXING')
+  assert.equal(s?.name, "HEALTHMAXXING Women's Package")
 })
