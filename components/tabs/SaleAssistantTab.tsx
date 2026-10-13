@@ -49,6 +49,9 @@ import {
   maxDiscountPct,
   expandForQuote,
   type CatalogueService,
+} from '@/lib/catalogueUtils'
+import { pitchNote } from '@/lib/pitchNotes'
+import {
   type ExtraItem,
   type QuoteLine,
   type DiscountType,
@@ -884,6 +887,12 @@ const ICON_SHAPES: Record<string, ReactNode> = {
       <path d="M12 10v4M12 17h.01" />
     </>
   ),
+  info: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 11v5M12 8h.01" />
+    </>
+  ),
 }
 
 function Icon({ name, small, className }: { name: string; small?: boolean; className?: string }) {
@@ -1196,6 +1205,10 @@ function ServiceRow({
   const sections = useMemo(() => (expanded ? markerSections(service) : []), [service, expanded])
   const panelCount = useMemo(() => sections.reduce((n, s) => n + s.groups.length, 0), [sections])
   const detailId = `sa-d-${service.id}`
+  // Staff-facing sales notes (lib/pitchNotes.ts), shown via the "i" button.
+  const pitch = pitchNote(service.name)
+  const [pitchOpen, setPitchOpen] = useState(false)
+  const pitchId = `sa-p-${service.id}`
   // On expand, bring this row to the top so its details unfold downward into view.
   const rowRef = useRef<HTMLElement>(null)
   useEffect(() => {
@@ -1215,6 +1228,19 @@ function ServiceRow({
         </div>
         <div className="sa-pkg-side">
           <span className="sa-fig sa-pkg-price">{formatAED(service.price)}</span>
+          {pitch && (
+            <button
+              type="button"
+              className={`sa-icon-btn${pitchOpen ? ' is-on' : ''}`}
+              aria-expanded={pitchOpen}
+              aria-controls={pitchId}
+              aria-label={`Sales notes for ${service.name}`}
+              title="Sales notes"
+              onClick={() => setPitchOpen((v) => !v)}
+            >
+              <Icon name="info" />
+            </button>
+          )}
           <button
             type="button"
             className="sa-btn sa-btn-quiet"
@@ -1235,6 +1261,22 @@ function ServiceRow({
           </button>
         </div>
       </div>
+
+      {pitch && pitchOpen && (
+        <div id={pitchId} className="sa-pitch" role="note">
+          <div className="sa-pitch-head">
+            <Icon name="info" small />
+            <span>Sales notes</span>
+            <span className="sa-pitch-flag">staff only</span>
+          </div>
+          <p className="sa-pitch-what">{pitch.whatFor}</p>
+          <ul className="sa-pitch-angles">
+            {pitch.angles.map((a, i) => (
+              <li key={i}>{a}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {expanded && (
         <div id={detailId} className="sa-pkg-detail">

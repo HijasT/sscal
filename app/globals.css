@@ -1581,6 +1581,26 @@ body.light-mode .sa {
   transition: max-width 0.3s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease;
 }
 .sa-seg-compact.is-shown { max-width: 220px; opacity: 1; pointer-events: auto; }
+
+/* Staff-facing sales notes, revealed by the per-package "i" button. */
+.sa-pitch {
+  display: grid; gap: 8px; margin-top: 12px;
+  padding: 12px 14px; border-radius: 8px;
+  background: var(--sa-violet-wash);
+  border: 1px solid var(--sa-violet-text); border-left-width: 3px;
+}
+.sa-pitch-head {
+  display: flex; align-items: center; gap: 8px;
+  color: var(--sa-violet-text); font: 700 0.75rem 'IBM Plex Sans', sans-serif;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.sa-pitch-head .sa-icon { width: 16px; height: 16px; }
+.sa-pitch-flag {
+  margin-left: auto; color: var(--sa-ink-muted);
+  font-weight: 500; font-size: 0.6875rem; text-transform: none; letter-spacing: 0;
+}
+.sa-pitch-what { margin: 0; color: var(--sa-ink); font-size: 0.9375rem; }
+.sa-pitch-angles { margin: 0; padding-left: 18px; display: grid; gap: 4px; color: var(--sa-ink-soft); font-size: 0.9375rem; }
 .sa-filters { display: flex; align-items: center; justify-content: space-between; gap: 8px 24px; flex-wrap: wrap; }
 .sa-checks { display: flex; align-items: center; gap: 8px 24px; flex-wrap: wrap; }
 .sa .sa-check {

@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.13.0]
+
+### Added
+- **Staff sales notes on each package.** An "i" button on every Sale Assistant package opens a brief, staff-only "Sales notes" card: a plain-language line on what the package checks, plus a few quick selling angles. Hidden until tapped, so it isn't on screen in front of a customer. Copy lives in `lib/pitchNotes.ts` (keyed by package name, kept out of the synced catalogue so it survives re-syncs); it is an internal selling aid, not customer copy or medical advice, and is a **draft pending clinical/brand review**.
+
 ## [11.12.0]
 
 ### Changed
