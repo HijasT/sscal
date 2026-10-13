@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kleon — Material You mockup</title>
+<!--
+  STATIC MOCKUP ONLY. Not served or imported by the app (see CLAUDE.md > mockups/).
+  Explores the Sale Assistant + app chrome restyled in Material Design 3
+  (purple seed #6750A4). Content is real catalogue data; the MD3 *system* is
+  applied to the actual tool, not the landing-page sections in the brief.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    /* MD3 tonal palette — purple seed #6750A4, light scheme */
+    --md-surface: #FFFBFE;
+    --md-surface-container: #F3EDF7;
+    --md-surface-container-low: #E7E0EC;
+    --md-on-surface: #1C1B1F;
+    --md-on-surface-variant: #49454F;
+    --md-primary: #6750A4;
+    --md-on-primary: #FFFFFF;
+    --md-primary-10: rgba(103, 80, 164, 0.10);
+    --md-primary-05: rgba(103, 80, 164, 0.05);
+    --md-secondary-container: #E8DEF8;
+    --md-on-secondary-container: #1D192B;
+    --md-tertiary: #7D5260;
+    --md-outline: #79747E;
+    --md-outline-variant: #CAC4D0;
+
+    --r-sm: 12px;
+    --r-md: 16px;
+    --r-lg: 24px;
+    --r-xl: 28px;
+    --r-xxl: 48px;
+
+    --ease: cubic-bezier(0.2, 0, 0, 1);
+    --shadow-sm: 0 1px 2px rgba(28, 27, 31, 0.08), 0 1px 3px rgba(28, 27, 31, 0.06);
+    --shadow-md: 0 2px 6px rgba(28, 27, 31, 0.10), 0 6px 14px rgba(28, 27, 31, 0.08);
+    --shadow-lg: 0 6px 16px rgba(28, 27, 31, 0.12), 0 12px 28px rgba(28, 27, 31, 0.10);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: 'Roboto', system-ui, sans-serif;
+    color: var(--md-on-surface);
+    background: var(--md-surface);
+    line-height: 1.5;
+    position: relative;
+    overflow-x: hidden;
+  }
+  ::selection { background: var(--md-primary-10); }
+
+  /* --- Organic atmospheric blur shapes (signature MD3) --- */
+  .aura { position: fixed; z-index: 0; filter: blur(80px); opacity: 0.5; pointer-events: none; mix-blend-mode: multiply; }
+  .aura-1 { top: -180px; right: -140px; width: 520px; height: 520px; border-radius: 9999px; background: var(--md-secondary-container); }
+  .aura-2 { top: 40%; left: -220px; width: 460px; height: 460px; border-radius: 100px 100px 100px 20px; background: #EADDFF; }
+  .aura-3 { bottom: -200px; right: -120px; width: 420px; height: 420px; border-radius: 9999px; background: #F3D9E3; }
+
+  /* --- Top app bar --- */
+  .appbar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 24px;
+    padding: 14px clamp(16px, 5vw, 40px);
+    background: color-mix(in srgb, var(--md-surface) 72%, transparent);
+    backdrop-filter: saturate(140%) blur(14px);
+    border-bottom: 1px solid var(--md-outline-variant);
+  }
+  .brand { font-weight: 700; font-size: 1.375rem; letter-spacing: -0.01em; margin-right: 8px; }
+  .brand .ver { font-weight: 400; font-size: 0.75rem; color: var(--md-on-surface-variant); margin-left: 8px; }
+  .nav { display: flex; gap: 4px; flex-wrap: wrap; }
+  .nav a {
+    position: relative; text-decoration: none; color: var(--md-on-surface-variant);
+    font-size: 0.9375rem; font-weight: 500; padding: 8px 14px; border-radius: 9999px;
+    transition: background-color 200ms var(--ease), color 200ms var(--ease);
+  }
+  .nav a:hover { background: var(--md-primary-10); color: var(--md-on-surface); }
+  .nav a[aria-current="page"] { color: var(--md-primary); background: var(--md-secondary-container); }
+  .spacer { flex: 1; }
+  .icon-btn {
+    display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 9999px;
+    border: none; background: transparent; color: var(--md-on-surface-variant); cursor: pointer;
+    transition: background-color 200ms var(--ease);
+  }
+  .icon-btn:hover { background: var(--md-primary-10); color: var(--md-primary); }
+
+  main { position: relative; z-index: 1; max-width: 980px; margin: 0 auto; padding: clamp(20px, 4vw, 40px) clamp(16px, 5vw, 40px) 120px; }
+
+  h1.page { font-size: 2rem; font-weight: 500; letter-spacing: -0.01em; line-height: 1.25; margin: 8px 0 20px; }
+
+  /* --- Privacy banner (tonal) --- */
+  .banner {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--md-secondary-container); color: var(--md-on-secondary-container);
+    border-radius: var(--r-md); padding: 14px 18px; margin-bottom: 20px; font-size: 0.9375rem;
+  }
+  .banner svg { flex: 0 0 auto; }
+
+  /* --- Summary cards (Ladder / Compare) --- */
+  .summary-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .summary {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: var(--md-surface-container); border-radius: var(--r-lg); padding: 18px 20px;
+    box-shadow: var(--shadow-sm); cursor: pointer; border: none; width: 100%; text-align: left;
+    font: inherit; color: inherit;
+    transition: box-shadow 300ms var(--ease), transform 300ms var(--ease), background-color 200ms var(--ease);
+  }
+  .summary:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .summary:active { transform: scale(0.99); }
+  .summary .label { font-weight: 500; }
+  .summary .meta { color: var(--md-on-surface-variant); font-size: 0.9375rem; }
+
+  /* --- Filled text field (MD3) --- */
+  .field {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--md-surface-container-low);
+    border-radius: var(--r-sm) var(--r-sm) 0 0;
+    border-bottom: 2px solid var(--md-outline);
+    padding: 0 16px; height: 56px; margin-bottom: 16px;
+    transition: border-color 200ms var(--ease), background-color 200ms var(--ease);
+  }
+  .field:focus-within { border-bottom-color: var(--md-primary); background: color-mix(in srgb, var(--md-primary-05) 60%, var(--md-surface-container-low)); }
+  .field svg { color: var(--md-on-surface-variant); flex: 0 0 auto; }
+  .field input {
+    flex: 1; border: none; background: transparent; outline: none;
+    font: inherit; color: var(--md-on-surface); height: 100%;
+  }
+  .field input::placeholder { color: color-mix(in srgb, var(--md-on-surface) 50%, transparent); }
+
+  /* --- Chips --- */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .chip {
+    border: 1px solid var(--md-outline-variant); background: transparent; color: var(--md-on-surface);
+    border-radius: 9999px; padding: 8px 16px; font: 500 0.875rem 'Roboto', sans-serif; cursor: pointer;
+    transition: background-color 200ms var(--ease), border-color 200ms var(--ease), transform 150ms var(--ease);
+  }
+  .chip:hover { background: var(--md-primary-10); }
+  .chip:active { transform: scale(0.95); }
+  .chip[aria-pressed="true"] { background: var(--md-secondary-container); border-color: transparent; color: var(--md-on-secondary-container); }
+  .chip.check[aria-pressed="true"]::before { content: "✓ "; }
+
+  /* --- Segmented + filter row --- */
+  .filter-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; }
+  .segmented { display: inline-flex; border: 1px solid var(--md-outline); border-radius: 9999px; overflow: hidden; }
+  .segmented button {
+    border: none; background: transparent; cursor: pointer; padding: 8px 20px; min-height: 40px;
+    font: 500 0.875rem 'Roboto', sans-serif; color: var(--md-on-surface-variant);
+    transition: background-color 200ms var(--ease), color 200ms var(--ease);
+  }
+  .segmented button + button { border-left: 1px solid var(--md-outline); }
+  .segmented button[aria-pressed="true"] { background: var(--md-secondary-container); color: var(--md-on-secondary-container); }
+  .count { margin-left: auto; color: var(--md-on-surface-variant); font-size: 0.875rem; }
+
+  /* --- Catalogue sections --- */
+  .cat-head { display: flex; align-items: center; gap: 10px; margin: 28px 0 14px; }
+  .cat-dot { width: 10px; height: 10px; border-radius: 9999px; background: var(--md-tertiary); }
+  .cat-head h2 { font-size: 1.125rem; font-weight: 500; margin: 0; }
+  .cat-head .n { margin-left: auto; color: var(--md-on-surface-variant); font-weight: 500; }
+
+  /* --- Package card --- */
+  .pkg {
+    background: var(--md-surface-container); border-radius: var(--r-lg); padding: 20px 22px;
+    margin-bottom: 14px; box-shadow: var(--shadow-sm);
+    transition: box-shadow 300ms var(--ease), transform 300ms var(--ease);
+  }
+  .pkg:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .pkg-main { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .pkg-info { flex: 1 1 260px; min-width: 0; }
+  .pkg-name { font-size: 1.25rem; font-weight: 500; line-height: 1.3; }
+  .pkg-meta { color: var(--md-on-surface-variant); font-size: 0.9375rem; margin-top: 2px; }
+  .pkg-price { font-size: 1.125rem; font-weight: 500; white-space: nowrap; }
+  .pkg-actions { display: flex; align-items: center; gap: 8px; }
+
+  /* --- Buttons (pill, state layers, tactile) --- */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; border-radius: 9999px; cursor: pointer;
+    font: 500 0.875rem 'Roboto', sans-serif; min-height: 40px; padding: 0 22px; border: 1px solid transparent;
+    transition: background-color 200ms var(--ease), box-shadow 300ms var(--ease), transform 120ms var(--ease);
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn-filled { background: var(--md-primary); color: var(--md-on-primary); }
+  .btn-filled:hover { background: color-mix(in srgb, var(--md-primary) 90%, #000); box-shadow: var(--shadow-md); }
+  .btn-text { background: transparent; color: var(--md-primary); padding: 0 14px; }
+  .btn-text:hover { background: var(--md-primary-10); }
+  .btn-outline { background: transparent; color: var(--md-primary); border-color: var(--md-outline); }
+  .btn-outline:hover { background: var(--md-primary-05); }
+
+  /* --- Expanded detail --- */
+  .pkg.open { box-shadow: var(--shadow-md); }
+  .detail { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--md-outline-variant); }
+  .detail h3 { font-size: 0.875rem; font-weight: 500; color: var(--md-on-surface-variant); margin: 0 0 10px; text-transform: none; }
+  .tonal-chip {
+    display: inline-flex; align-items: center; background: var(--md-secondary-container);
+    color: var(--md-on-secondary-container); border-radius: 9999px; padding: 6px 14px;
+    font-size: 0.8125rem; font-weight: 500; margin: 0 8px 8px 0;
+  }
+  .marker-chip {
+    display: inline-flex; align-items: center; background: var(--md-surface-container-low);
+    color: var(--md-on-surface-variant); border-radius: 9999px; padding: 5px 12px;
+    font-size: 0.75rem; margin: 0 6px 6px 0;
+  }
+
+  /* --- Extended FAB --- */
+  .fab {
+    position: fixed; z-index: 30; right: clamp(16px, 4vw, 36px); bottom: clamp(16px, 4vw, 36px);
+    display: inline-flex; align-items: center; gap: 10px; border: none; cursor: pointer;
+    background: var(--md-tertiary); color: #fff; border-radius: var(--r-md); padding: 0 22px; height: 56px;
+    font: 500 0.9375rem 'Roboto', sans-serif; box-shadow: var(--shadow-md);
+    transition: box-shadow 300ms var(--ease), transform 120ms var(--ease);
+  }
+  .fab:hover { box-shadow: var(--shadow-lg); }
+  .fab:active { transform: scale(0.95); }
+
+  :where(a, button, input):focus-visible {
+    outline: 2px solid var(--md-primary); outline-offset: 2px; border-radius: 9999px;
+  }
+  .field:focus-within { outline: none; }
+
+  @media (max-width: 680px) {
+    .summary-row { grid-template-columns: 1fr; }
+    .count { margin-left: 0; width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.01ms !important; }
+    .summary:hover, .pkg:hover { transform: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="aura aura-1" aria-hidden="true"></div>
+  <div class="aura aura-2" aria-hidden="true"></div>
+  <div class="aura aura-3" aria-hidden="true"></div>
+
+  <header class="appbar">
+    <span class="brand">Kleon<span class="ver">v11.11.2</span></span>
+    <nav class="nav" aria-label="Primary">
+      <a href="#" aria-current="page">Sale Assistant</a>
+      <a href="#">Calculator</a>
+      <a href="#">Settings</a>
+      <a href="#">About</a>
+    </nav>
+    <span class="spacer"></span>
+    <button class="icon-btn" aria-label="Toggle theme">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
+    </button>
+  </header>
+
+  <main>
+    <h1 class="page">Sale Assistant</h1>
+
+    <div class="banner">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+      <span>Everything runs locally in your browser. No data is ever sent out.</span>
+    </div>
+
+    <div class="summary-row">
+      <button class="summary">
+        <span><span class="label">Package Ladder</span> &nbsp; <span class="meta">Selected AED 0</span></span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <button class="summary">
+        <span class="label">Compare packages</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </div>
+
+    <label class="field">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      <input type="search" aria-label="Search packages" placeholder="Search packages by name, category or marker…" />
+    </label>
+
+    <div class="chips" role="group" aria-label="Category">
+      <button class="chip" aria-pressed="true">All</button>
+      <button class="chip" aria-pressed="false">Core Health Screening</button>
+      <button class="chip" aria-pressed="false">Specialised Screening</button>
+      <button class="chip" aria-pressed="false">DNA Insights</button>
+      <button class="chip" aria-pressed="false">Other Screenings &amp; Consults</button>
+      <button class="chip" aria-pressed="false">Comprehensive Packages / Bundles</button>
+    </div>
+
+    <div class="filter-row">
+      <div class="segmented" role="group" aria-label="Gender">
+        <button aria-pressed="true">Men</button>
+        <button aria-pressed="false">Women</button>
+      </div>
+      <button class="chip check" aria-pressed="false">Blood tests only</button>
+      <button class="chip check" aria-pressed="false">Non-invasive</button>
+      <span class="count">Showing 39 of 48 packages</span>
+    </div>
+
+    <div class="cat-head">
+      <span class="cat-dot" aria-hidden="true"></span>
+      <h2>Core Health Screening</h2>
+      <span class="n">4</span>
+    </div>
+
+    <article class="pkg">
+      <div class="pkg-main">
+        <div class="pkg-info">
+          <div class="pkg-name">Standard Health Screening</div>
+          <div class="pkg-meta">Standard · 50 biomarkers · 30 min doctor</div>
+        </div>
+        <div class="pkg-price">AED 950</div>
+        <div class="pkg-actions">
+          <button class="btn btn-text">Details</button>
+          <button class="btn btn-filled">+ Add</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="pkg open">
+      <div class="pkg-main">
+        <div class="pkg-info">
+          <div class="pkg-name">Premium Health Screening</div>
+          <div class="pkg-meta">Premium · 64 biomarkers · 30 min doctor</div>
+        </div>
+        <div class="pkg-price">AED 1,250</div>
+        <div class="pkg-actions">
+          <button class="btn btn-outline">Hide details</button>
+          <button class="btn btn-filled">+ Add</button>
+        </div>
+      </div>
+      <div class="detail">
+        <h3>Components (3)</h3>
+        <div>
+          <span class="tonal-chip">Blood Collection · 3 tubes</span>
+          <span class="tonal-chip">Vital Signs</span>
+          <span class="tonal-chip">Doctor Consultation · 30 min</span>
+        </div>
+        <h3 style="margin-top:16px;">Complete Blood Count · 21 markers</h3>
+        <div>
+          <span class="marker-chip">Hemoglobin (Hb)</span>
+          <span class="marker-chip">Hematocrit (HCT)</span>
+          <span class="marker-chip">RBC Count</span>
+          <span class="marker-chip">Platelet Count</span>
+          <span class="marker-chip">MCV</span>
+          <span class="marker-chip">MCH</span>
+          <span class="marker-chip">Lymphocytes</span>
+          <span class="marker-chip">Neutrophils</span>
+          <span class="marker-chip">+ 13 more</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="pkg">
+      <div class="pkg-main">
+        <div class="pkg-info">
+          <div class="pkg-name">Premium PLUS Men's Health Screening</div>
+          <div class="pkg-meta">Premium PLUS · 80 biomarkers · 30 min doctor</div>
+        </div>
+        <div class="pkg-price">AED 1,695</div>
+        <div class="pkg-actions">
+          <button class="btn btn-text">Details</button>
+          <button class="btn btn-filled">+ Add</button>
+        </div>
+      </div>
+    </article>
+
+    <div class="cat-head">
+      <span class="cat-dot" aria-hidden="true" style="background:#6750A4;"></span>
+      <h2>Specialised Screening</h2>
+      <span class="n">18</span>
+    </div>
+
+    <article class="pkg">
+      <div class="pkg-main">
+        <div class="pkg-info">
+          <div class="pkg-name">Longevity Profile</div>
+          <div class="pkg-meta">Longevity · 22 biomarkers · 15 min doctor</div>
+        </div>
+        <div class="pkg-price">AED 2,450</div>
+        <div class="pkg-actions">
+          <button class="btn btn-text">Details</button>
+          <button class="btn btn-filled">+ Add</button>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <button class="fab" aria-label="Open Package Ladder">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 18h4V8H4zM10 18h4V4h-4zM16 18h4v-7h-4z"/></svg>
+    Package Ladder
+  </button>
+</body>
+</html>
