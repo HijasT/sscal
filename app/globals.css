@@ -125,6 +125,10 @@ body {
   z-index: 1;
 }
 
+/* Offset scroll-into-view (package details, ladder jump) so targets land below
+   the sticky topbar instead of behind it. */
+html { scroll-padding-top: calc(var(--topbar-h, 0px) + var(--sa-find-h, 0px) + 8px); }
+
 /* Keep the app heading + nav tabs pinned while the tab content scrolls. */
 .topbar {
   position: sticky;
@@ -1531,7 +1535,12 @@ body.light-mode .sa {
 .sa-chip:hover { border-color: var(--sa-violet-text); color: var(--sa-ink); }
 .sa-chip[aria-pressed='true'] { background: var(--sa-violet-wash); border-color: var(--sa-violet-text); color: var(--sa-violet-text); }
 
-.sa-find { display: grid; gap: 16px; }
+.sa-find {
+  display: grid; gap: 16px;
+  /* Freeze the search bar below the app topbar while the catalogue scrolls. */
+  position: sticky; top: var(--topbar-h, 0px); z-index: 12;
+  background: var(--bg-card); padding-bottom: 12px;
+}
 .sa-filters { display: flex; align-items: center; justify-content: space-between; gap: 8px 24px; flex-wrap: wrap; }
 .sa-checks { display: flex; gap: 8px 24px; flex-wrap: wrap; }
 .sa .sa-check {
@@ -1684,6 +1693,9 @@ body.light-mode .sa {
   display: flex; align-items: center; gap: 8px;
   padding: 8px 0; border-bottom: 1px solid var(--sa-hairline);
   color: var(--c, var(--sa-ink));
+  /* Pin the category name just below the frozen search bar while scrolling. */
+  position: sticky; top: calc(var(--topbar-h, 0px) + var(--sa-find-h, 0px)); z-index: 10;
+  background: var(--bg-card);
 }
 .sa-cat-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--sa-ink-muted)); flex: none; }
 .sa-cat-n { color: var(--sa-ink-muted); font-weight: 500; margin-left: auto; }

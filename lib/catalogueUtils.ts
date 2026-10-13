@@ -279,33 +279,28 @@ export function hasLabTests(service: CatalogueService): boolean {
   return serviceTestIds(service).size > 0
 }
 
-/** Comp groups that make a package more than "just blood tests". */
-const NON_BLOOD_GROUPS = new Set(['DNA Modules', 'Microbiome', 'BCA / ECG'])
+/** Components allowed alongside Blood Collection in a "blood tests only" package.
+ *  (Doctor Consultation lives in the `doctor` field, not the components list, so
+ *  it's always permitted.) */
+const BLOOD_ONLY_COMPONENTS = new Set(['Blood Collection', 'Vital Signs'])
 
 /**
- * A pure blood-test package: it has lab tests and carries none of the non-blood
- * add-ons (DNA modules, gut microbiome kit, BCA or ECG). Used by the "Blood
- * tests only" filter. A doctor consultation is still allowed.
+ * A pure blood-test package: it draws blood and carries nothing else except a
+ * doctor consultation and vital signs — no swab, BCA, ECG, gut kit or
+ * questionnaire. Used by the "Blood tests only" filter.
  */
 export function isBloodTestOnly(service: CatalogueService): boolean {
-  if (!hasLabTests(service)) return false
-  return !service.comps.some((c) => NON_BLOOD_GROUPS.has(c.group))
+  const comps = packageComponents(service)
+  return comps.includes('Blood Collection') && comps.every((c) => BLOOD_ONLY_COMPONENTS.has(c))
 }
 
-/** DNA module collected by cheek swab, not a blood draw — so it's non-invasive. */
-const SWAB_DNA_MODULES = new Set(['DNA - Ancestry'])
-
 /**
- * A non-invasive package: nothing that pricks the patient. It has no blood
- * markers and no blood-drawn DNA modules and no vaccination (a needle) — e.g.
- * body composition, ECG, gut microbiome, DNA Ancestry (swab), a plain consult.
+ * A non-invasive package: no blood draw. Used by the "Non-invasive" filter —
+ * any package whose components don't include Blood Collection (e.g. body
+ * composition, ECG, gut microbiome, swab-only DNA, a plain consult).
  */
 export function isNonInvasive(service: CatalogueService): boolean {
-  if (hasLabTests(service)) return false
-  return !service.comps.some(
-    (c) =>
-      (c.group === 'DNA Modules' && !SWAB_DNA_MODULES.has(c.name)) || c.group === 'Vaccinations'
-  )
+  return !packageComponents(service).includes('Blood Collection')
 }
 
 /**
@@ -938,7 +933,10 @@ export function buildJourney(services: CatalogueService[]): Journey {
   for (const label of JOURNEY_COMPONENT_ORDER) {
     const count = counts.get(label)
     if (!count) continue
+    // Blood Collection and Vital Signs each happen once per visit regardless of
+    // how many packages are selected, so they're never shown as a repeat count.
     if (label === 'Blood Collection') steps.push({ label, count: 1, tubes: maxTubes || undefined })
+    else if (label === 'Vital Signs') steps.push({ label, count: 1 })
     else steps.push({ label, count })
   }
   return { steps, consultMinutes }

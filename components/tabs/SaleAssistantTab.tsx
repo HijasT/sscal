@@ -96,6 +96,9 @@ export function SaleAssistantTab() {
   const [ladderOpen, setLadderOpen] = useState(false)
   // Floating "jump to ladder" button: shown only once the ladder scrolls out of view.
   const ladderRef = useRef<HTMLDetailsElement>(null)
+  // The search bar is sticky; its live height feeds --sa-find-h so the category
+  // headings stick just below it (both clear of the app topbar).
+  const findRef = useRef<HTMLElement>(null)
   const [showLadderFab, setShowLadderFab] = useState(false)
   const [compareOpen, setCompareOpen] = useState(false)
   const [suggDiscOpen, setSuggDiscOpen] = useState(false)
@@ -215,6 +218,22 @@ export function SaleAssistantTab() {
     const obs = new IntersectionObserver(([e]) => setShowLadderFab(!e.isIntersecting), { threshold: 0 })
     obs.observe(el)
     return () => obs.disconnect()
+  }, [])
+
+  // Publish the sticky search bar's live height so category headings can stack
+  // right below it (it wraps differently across widths, so it can't be a constant).
+  useEffect(() => {
+    const el = findRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const root = document.documentElement
+    const set = () => root.style.setProperty('--sa-find-h', `${el.offsetHeight}px`)
+    set()
+    const obs = new ResizeObserver(set)
+    obs.observe(el)
+    return () => {
+      obs.disconnect()
+      root.style.removeProperty('--sa-find-h')
+    }
   }, [])
 
   const jumpToLadder = () => {
@@ -688,7 +707,7 @@ export function SaleAssistantTab() {
         </details>
 
         {/* Find packages */}
-        <section className="sa-find" aria-label="Find packages">
+        <section ref={findRef} className="sa-find" aria-label="Find packages">
           <div className="sa-field">
             <label htmlFor="sa-search">Search packages</label>
             <div className="sa-input-wrap">
@@ -1127,9 +1146,14 @@ function ServiceRow({
   const sections = useMemo(() => (expanded ? markerSections(service) : []), [service, expanded])
   const panelCount = useMemo(() => sections.reduce((n, s) => n + s.groups.length, 0), [sections])
   const detailId = `sa-d-${service.id}`
+  // On expand, bring this row to the top so its details unfold downward into view.
+  const rowRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    if (expanded) rowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [expanded])
 
   return (
-    <article className={`sa-pkg${expanded ? ' open' : ''}`}>
+    <article ref={rowRef} className={`sa-pkg${expanded ? ' open' : ''}`}>
       <div className="sa-pkg-head">
         <div>
           <div className="sa-pkg-name">{service.name}</div>

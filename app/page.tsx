@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { IndividualTab } from '@/components/tabs/IndividualTab'
 import { MoonIcon, SunIcon, LockIcon } from '@/components/icons'
 import { BulkTab } from '@/components/tabs/BulkTab'
@@ -44,6 +44,19 @@ export default function Home() {
     purgeExpiredData()
   }, [])
 
+  // Publish the sticky topbar's live height as --topbar-h so sticky content below
+  // it (the Sale Assistant search bar) and scroll-into-view offsets sit clear of it.
+  const topbarRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = topbarRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const set = () => document.documentElement.style.setProperty('--topbar-h', `${el.offsetHeight}px`)
+    set()
+    const obs = new ResizeObserver(set)
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark'
     setTheme(next)
@@ -60,7 +73,7 @@ export default function Home() {
     <div className="container">
       {/* No robot on the Sale Assistant tab: it may be in front of a customer. */}
       {robotEnabled && activeTab !== 'sale-assistant' && <Robot />}
-      <div className="topbar">
+      <div className="topbar" ref={topbarRef}>
       <header className="header">
         <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
           {theme === 'dark' ? <MoonIcon large className="moon-glow" /> : <SunIcon large />}

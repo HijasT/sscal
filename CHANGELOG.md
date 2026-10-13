@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.9.0]
+
+### Added
+- **Search bar and category headings now freeze while scrolling the catalogue.** The search/filter bar sticks below the app header, and each category name pins just beneath it, so searching stays within reach down a long list.
+
+### Changed
+- **Vital Signs shows once in the client journey** (no "× N") — like blood collection, it happens once per visit regardless of how many packages are selected.
+- **"Non-invasive" filter now includes swab-only DNA packages.** Redefined to simply mean "no blood draw", so **DNA - Essentials** and **DNA - All of You** (cheek-swab only) now appear. The **"Blood tests only"** filter is unchanged (same packages as before) but is now defined directly by components: a blood draw plus nothing other than vital signs and a doctor consultation.
+- **Clicking "Details" scrolls the package to the top** so its breakdown opens downward into view instead of unfolding off-screen.
+
 ## [11.8.1]
 
 ### Changed
