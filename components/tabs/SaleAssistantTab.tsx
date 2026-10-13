@@ -100,6 +100,10 @@ export function SaleAssistantTab() {
   // The search bar is sticky; its live height feeds --sa-find-h so the category
   // headings stick just below it (both clear of the app topbar).
   const findRef = useRef<HTMLElement>(null)
+  // The Men/Women control lives in its own filter row; once that row scrolls up
+  // behind the frozen search bar, a compact copy slides onto the search line.
+  const filtersRef = useRef<HTMLDivElement>(null)
+  const [compactGender, setCompactGender] = useState(false)
   const [showLadderFab, setShowLadderFab] = useState(false)
   const [compareOpen, setCompareOpen] = useState(false)
   const [suggDiscOpen, setSuggDiscOpen] = useState(false)
@@ -237,6 +241,22 @@ export function SaleAssistantTab() {
     }
   }, [])
 
+  // Reveal the compact Men/Women on the frozen search line once its own filter
+  // row has scrolled up behind the search bar.
+  useEffect(() => {
+    const find = findRef.current
+    const filt = filtersRef.current
+    if (!find || !filt) return
+    const onScroll = () => setCompactGender(filt.getBoundingClientRect().bottom < find.getBoundingClientRect().bottom)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [])
+
   const jumpToLadder = () => {
     setLadderOpen(true)
     ladderRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -353,7 +373,7 @@ export function SaleAssistantTab() {
       <div className="sa">
         <p className="sa-notice">
           <Icon name="lock" />
-          <span>Everything runs locally in your browser. No data is ever sent out.</span>
+          <span>Everything runs locally in your browser and works offline. No data is ever sent out.</span>
         </p>
 
         {/* Package Ladder */}
@@ -736,8 +756,22 @@ export function SaleAssistantTab() {
               )}
             </div>
           </div>
+          <div
+            className={`sa-seg sa-seg-compact${compactGender ? ' is-shown' : ''}`}
+            role="group"
+            aria-label="Show packages for"
+            aria-hidden="true"
+          >
+            <button type="button" tabIndex={-1} aria-pressed={gender === 'M'} onClick={() => changeGender('M')}>
+              Men
+            </button>
+            <button type="button" tabIndex={-1} aria-pressed={gender === 'W'} onClick={() => changeGender('W')}>
+              Women
+            </button>
+          </div>
+        </section>
 
-          <div className="sa-chips" role="group" aria-label="Category">
+        <div className="sa-chips" role="group" aria-label="Category">
             {categories.map((c) => (
               <button
                 key={c}
@@ -751,7 +785,7 @@ export function SaleAssistantTab() {
             ))}
           </div>
 
-          <div className="sa-filters">
+          <div className="sa-filters" ref={filtersRef}>
             <div className="sa-checks">
               <div className="sa-seg" role="group" aria-label="Show packages for">
                 <button type="button" aria-pressed={gender === 'M'} onClick={() => changeGender('M')}>
@@ -782,7 +816,6 @@ export function SaleAssistantTab() {
               Showing {grouped.list.length} of {totalCount} packages
             </p>
           </div>
-        </section>
 
         {/* Results grouped by category */}
         {grouped.list.length === 0 ? (

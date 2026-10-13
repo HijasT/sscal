@@ -16,7 +16,7 @@ export function AboutTab() {
         <h4 style={{color: 'var(--text-primary)', marginBottom: '12px', marginTop: '28px', fontSize: '16px'}}>
           Core Features
         </h4>
-        <div style={{border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden', marginBottom: '24px'}}>
+        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '12px', marginBottom: '24px'}}>
           {[
             { title: 'Individual Calculator', desc: 'Calculate personal incentives with P1/P2 splits' },
             { title: 'Bulk Processing', desc: 'Upload Excel and process entire team at once' },
@@ -25,13 +25,15 @@ export function AboutTab() {
             { title: 'Sale Assistant', desc: 'Browse the package catalogue, compare packages and build the best-value quote' },
           ].map((feature, i) => (
             <div key={i} style={{
-              padding: '14px 16px',
-              borderTop: i === 0 ? 'none' : '1px solid var(--border-color)',
+              padding: '16px',
+              background: 'var(--bg-tertiary)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-color)'
             }}>
-              <div style={{fontWeight: '600', color: 'var(--text-primary)', marginBottom: '2px', fontSize: '14px'}}>
+              <div style={{fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px', fontSize: '14px'}}>
                 {feature.title}
               </div>
-              <div style={{fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5'}}>
+              <div style={{fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5'}}>
                 {feature.desc}
               </div>
             </div>

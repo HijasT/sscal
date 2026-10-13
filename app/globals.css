@@ -65,15 +65,15 @@
 
 /* Light Mode — v8.0 */
 body.light-mode {
-  /* Warm paper ground carrying a touch of the Klea brand violet — a few percent
-     of the accent mixed into the cream so the page reads warm-lilac, not plain
-     grey. Cards stay white to keep content crisp against it. */
-  --bg-primary: color-mix(in srgb, #4a3d7a 5%, #f4f2ec);
-  --bg-secondary: color-mix(in srgb, #4a3d7a 7%, #efeee9);
-  --bg-tertiary: color-mix(in srgb, #4a3d7a 7%, #efeee9);
-  --bg-card: #ffffff;
-  --surface: #ffffff;
-  --surface-hover: #f6f5f1;
+  /* Material You tonal surfaces (purple seed): one cohesive lavender family
+     instead of white cards on a warm ground. The page is the lightest tone,
+     cards and recessed surfaces step up gently from it. */
+  --bg-primary: #faf7fe;
+  --bg-secondary: #f1ebf9;
+  --bg-tertiary: #efe8f6;
+  --bg-card: #f5f0fb;
+  --surface: #fbf9fe;
+  --surface-hover: #ece5f4;
 
   --accent-primary: #4a3d7a;
   --accent-secondary: #372c5c;
@@ -93,7 +93,7 @@ body.light-mode {
   --tier-3: #c08a2e;
   --tier-4: #1f7a5c;
 
-  --border-color: #e4e1d9;
+  --border-color: #e5dff0;
   --shadow-sm: 0 1px 2px rgba(23, 26, 31, 0.05);
   --shadow-md: 0 1px 3px rgba(23, 26, 31, 0.07);
   --shadow-lg: 0 2px 6px rgba(23, 26, 31, 0.08);
@@ -145,16 +145,21 @@ html { scroll-padding-top: calc(var(--topbar-h, 0px) + var(--sa-find-h, 0px) + 8
   margin-bottom: 0;
 }
 
-.header {
-  text-align: center;
+/* Single-line app bar: brand + version, nav tabs, then the theme toggle. */
+.appbar {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 4px 20px;
   margin-bottom: 24px;
-  position: relative;
+  border-bottom: 1px solid var(--border-color);
 }
+.appbar-brand { display: flex; align-items: baseline; gap: 8px; padding: 4px 0 12px; margin-right: 4px; }
+.appbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; padding-bottom: 8px; }
+.appbar .expiry-timer { margin-top: 0; }
 
 .theme-toggle {
-  position: absolute;
-  top: 0;
-  right: 0;
+  flex: none;
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -274,16 +279,16 @@ html { scroll-padding-top: calc(var(--topbar-h, 0px) + var(--sa-find-h, 0px) + 8
   transform: translateX(20px);
 }
 
-.header h1 {
-  font-size: 36px;
+.appbar h1 {
+  font-size: 22px;
   font-weight: 600;
   color: var(--text-primary); /* flat, confident — no gradient text (editorial direction) */
-  margin-bottom: 6px;
-  letter-spacing: -0.03em;
+  margin: 0;
+  letter-spacing: -0.02em;
 }
 
-.header .subtitle {
-  font-size: 14px;
+.appbar .subtitle {
+  font-size: 13px;
   color: var(--text-muted);
   font-weight: 500;
   font-family: 'JetBrains Mono', monospace;
@@ -291,15 +296,14 @@ html { scroll-padding-top: calc(var(--topbar-h, 0px) + var(--sa-find-h, 0px) + 8
 
 .nav-tabs {
   display: flex;
+  align-items: flex-end;
   gap: 4px;
-  margin-bottom: 32px;
-  border-bottom: 1px solid var(--border-color);
 }
 
 .nav-tab {
   position: relative;
-  flex: 1;
-  padding: 12px 20px;
+  flex: 0 0 auto;
+  padding: 12px 16px;
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
@@ -1245,22 +1249,15 @@ input[type="range"]::-moz-range-thumb {
     padding: 24px 16px;
   }
 
-  .header {
-    /* keep the centred title clear of the absolutely-positioned theme toggle */
-    padding: 0 52px;
-  }
-
-  .header h1 {
-    font-size: 26px;
-  }
-
-  .theme-toggle {
+  .appbar h1 {
     font-size: 20px;
   }
 
-  /* One horizontal, scrollable strip instead of five stacked rows, so the page
-     content isn't pushed ~240px down the screen. */
+  /* Brand + toggle share the first line; the tab strip scrolls on its own line
+     below, so content isn't pushed down the screen. */
   .nav-tabs {
+    order: 3;
+    flex: 1 1 100%;
     overflow-x: auto;
     scrollbar-width: none;
   }
@@ -1461,10 +1458,10 @@ summary:focus-visible,
 }
 
 body.light-mode .sa {
-  --sa-sunk: #efeee9;
-  --sa-card: #ffffff;
-  --sa-hairline: #e4e1d9;
-  --sa-control: #8b8e94;
+  --sa-sunk: #ece5f4;
+  --sa-card: #f5f0fb;
+  --sa-hairline: #e5dff0;
+  --sa-control: #9790a6;
   --sa-ink: #171a1f;
   --sa-ink-soft: #4b5057;
   --sa-ink-muted: #62666d;
@@ -1572,11 +1569,18 @@ body.light-mode .sa {
 .sa-chip[aria-pressed='true'] { background: var(--sa-violet-wash); border-color: var(--sa-violet-text); color: var(--sa-violet-text); }
 
 .sa-find {
-  display: grid; gap: 16px;
-  /* Freeze the search bar below the app topbar while the catalogue scrolls. */
+  display: flex; align-items: center; gap: 12px;
+  /* Freeze just the search bar below the app topbar while the catalogue scrolls. */
   position: sticky; top: var(--topbar-h, 0px); z-index: 12;
   background: var(--bg-card); padding-bottom: 12px;
 }
+.sa-find .sa-field { flex: 1 1 auto; min-width: 0; }
+/* Compact Men/Women that slides onto the search line once its own row scrolls past. */
+.sa-seg-compact {
+  flex: 0 0 auto; max-width: 0; opacity: 0; overflow: hidden; pointer-events: none;
+  transition: max-width 0.3s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease;
+}
+.sa-seg-compact.is-shown { max-width: 220px; opacity: 1; pointer-events: auto; }
 .sa-filters { display: flex; align-items: center; justify-content: space-between; gap: 8px 24px; flex-wrap: wrap; }
 .sa-checks { display: flex; align-items: center; gap: 8px 24px; flex-wrap: wrap; }
 .sa .sa-check {

@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.12.0]
+
+### Changed
+- **Single-line app bar.** The tool name and version, the navigation tabs, and the theme toggle now sit on one row (brand left, tabs beside it, toggle right) instead of a centred title stacked above a full-width tab strip. On small screens the tab strip scrolls on its own line below. The dark-mode toggle uses a plain outline moon (no glow).
+- **Material You background (light mode).** Light mode moves to one cohesive lavender tonal family — the page is the lightest tone and cards/recessed surfaces step up gently from it — instead of white cards on a warm paper ground. Dark mode is unchanged.
+- **Sale Assistant: only the search bar freezes.** The category chips and filter row now scroll normally; once the Men/Women row scrolls up behind the frozen search bar, a compact Men/Women control slides onto the search line, so the frozen zone stays one line tall.
+- **Privacy note mentions offline.** Sale Assistant and Calculator now read "Everything runs locally in your browser and works offline. No data is ever sent out."
+
 ## [11.11.2]
 
 ### Changed

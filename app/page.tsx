@@ -82,16 +82,12 @@ export default function Home() {
       {/* No robot on the Sale Assistant tab: it may be in front of a customer. */}
       {robotEnabled && activeTab !== 'sale-assistant' && <Robot />}
       <div className="topbar" ref={topbarRef}>
-      <header className="header">
-        <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
-          {theme === 'dark' ? <MoonIcon large className="moon-glow" /> : <SunIcon large />}
-        </button>
-        <h1>Kleon</h1>
-        <p className="subtitle">v{APP_VERSION}</p>
-        <DataExpiryTimer />
-      </header>
-
-      <nav className="nav-tabs">
+      <header className="appbar">
+        <div className="appbar-brand">
+          <h1>Kleon</h1>
+          <span className="subtitle">v{APP_VERSION}</span>
+        </div>
+        <nav className="nav-tabs">
         <button
           className={`nav-tab ${activeTab === 'sale-assistant' ? 'active' : ''}`}
           onClick={() => setActiveTab('sale-assistant')}
@@ -116,7 +112,14 @@ export default function Home() {
         >
           About
         </button>
-      </nav>
+        </nav>
+        <div className="appbar-right">
+          <DataExpiryTimer />
+          <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
+            {theme === 'dark' ? <MoonIcon large /> : <SunIcon large />}
+          </button>
+        </div>
+      </header>
       </div>
 
       {activeTab === 'calculator' && (() => {
@@ -129,7 +132,7 @@ export default function Home() {
             </div>
             <div className="privacy-notice">
               <LockIcon />
-              <span>Everything runs locally in your browser. No data is ever sent out.</span>
+              <span>Everything runs locally in your browser and works offline. No data is ever sent out.</span>
             </div>
             <div className="calc-switch" role="group" aria-label="Calculator mode">
               <button type="button" aria-pressed={calcMode === 'bulk'} onClick={() => setCalcMode('bulk')}>
