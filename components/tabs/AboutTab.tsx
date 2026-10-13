@@ -23,7 +23,6 @@ export function AboutTab() {
             { title: 'Customizable Tiers', desc: 'Configure achievement thresholds and rates' },
             { title: 'Tier Ladder', desc: 'See requirements to reach next tier level' },
             { title: 'Sale Assistant', desc: 'Browse the package catalogue, compare packages and build the best-value quote' },
-            { title: '100% Private', desc: 'All calculations happen in your browser' },
           ].map((feature, i) => (
             <div key={i} style={{
               padding: '16px',
@@ -140,8 +139,7 @@ export function AboutTab() {
         <div style={{padding: '16px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6', marginBottom: '24px'}}>
           <p><strong style={{color: 'var(--text-primary)'}}>Version:</strong> {APP_VERSION}</p>
           <p><strong style={{color: 'var(--text-primary)'}}>Built by:</strong> HT under the Keep Alive Project</p>
-          <p><strong style={{color: 'var(--text-primary)'}}>Built with:</strong> Next.js 14, React 18, TypeScript 5, and Claude</p>
-          <p>Claude was used for development only. No user data is ever sent to Claude — everything runs in your browser.</p>
+          <p><strong style={{color: 'var(--text-primary)'}}>Built with:</strong> Next.js 14, React 18, TypeScript 5</p>
           <p><strong style={{color: 'var(--text-primary)'}}>Source:</strong> Private, proprietary repository.
             © 2026 HT · Keep Alive Project — all rights reserved. Not licensed for copying, scraping, or
             redistribution.

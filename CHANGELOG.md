@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.9.2]
+
+### Changed
+- **Catalogue search bar drops its heading label** — the prompt now lives inside the field as placeholder text ("Search packages by name, category or marker…"), with an accessible label retained for screen readers.
+- **About: merged the duplicated privacy statement** into the single privacy callout card (removed the redundant "100% Private" feature tile).
+
+### Removed
+- **About: removed the standalone "Claude was used for development" line** and the "and Claude" mention from Built with. Claude's involvement is documented in the Version History only.
+
 ## [11.9.1]
 
 ### Changed

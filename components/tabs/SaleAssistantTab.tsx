@@ -700,13 +700,13 @@ export function SaleAssistantTab() {
         {/* Find packages */}
         <section ref={findRef} className="sa-find" aria-label="Find packages">
           <div className="sa-field">
-            <label htmlFor="sa-search">Search packages</label>
             <div className="sa-input-wrap">
               <input
                 id="sa-search"
                 className="sa-input"
                 type="text"
-                placeholder="Name, category or marker, for example vitamin d"
+                aria-label="Search packages"
+                placeholder="Search packages by name, category or marker…"
                 autoComplete="off"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
