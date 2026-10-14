@@ -352,6 +352,22 @@ function dnaModuleSet(service: CatalogueService): Set<string> {
  * Empty when the bundle has no DNA. Derived from the catalogue's own DNA
  * packages, so it survives re-syncs.
  */
+/**
+ * Panel names that belong to a standalone DNA package (e.g. "DNA Hair Loss
+ * Panel"). A bundle's "Included packages" list drops these from its panel chips
+ * because its DNA is summarised separately as DNA package chips (see
+ * dnaPackageLabels) — otherwise HEALTHMAXXING would show both the panel and the
+ * package for Hair/Acne.
+ */
+export function dnaPackagePanelNames(): Set<string> {
+  const names = new Set<string>()
+  for (const r of data.services) {
+    if (!/^DNA\s*[-–]/.test(r.name)) continue
+    for (const p of r.panels) names.add(p)
+  }
+  return names
+}
+
 export function dnaPackageLabels(service: CatalogueService): string[] {
   const set = dnaModuleSet(service)
   if (set.size === 0) return []

@@ -33,6 +33,7 @@ import {
   suggestPackage,
   suggestPartialPackage,
   dnaPackageLabels,
+  dnaPackagePanelNames,
   markerCatalogue,
   findPackageForMarkers,
   getSuggestionExtras,
@@ -1376,7 +1377,10 @@ function ServiceRow({
   // modules collapsed to one "DNA (N modules)" chip. Consultation/vitals are left
   // out (shown under Components). Lets staff read the whole bundle at a glance.
   const included = useMemo(() => {
-    const items = [...service.panels]
+    // Drop panels that belong to a DNA package (e.g. DNA Hair Loss/Acne Panel);
+    // DNA is summarised as package chips below, so the panel would be a duplicate.
+    const dnaPanels = dnaPackagePanelNames()
+    const items = service.panels.filter((p) => !dnaPanels.has(p))
     for (const c of service.comps) {
       if (c.group === 'Doctor & Vital Signs' || c.group === 'DNA Modules') continue
       items.push(c.name)

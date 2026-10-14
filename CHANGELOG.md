@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.0.1]
+
+### Fixed
+- **HEALTHMAXXING no longer lists DNA Hair/Acne as both a panel and a package.** A bundle's "Included packages" list now drops panels that belong to a standalone DNA package (DNA Hair Loss Panel, DNA Acne Panel), since its DNA is already summarised as DNA package chips — so Hair/Acne show once, as the package.
+
 ## [12.0.0]
 
 ### Changed
