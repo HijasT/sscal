@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.14.1]
+
+### Changed
+- **Find package: allergen markers removed from the picker.** The marker list no longer includes Food Allergy, Food Intolerance, or Respiratory Allergy markers (≈340 individual allergens), leaving the blood/clinical markers staff actually pick by. Package coverage is unaffected.
+
 ## [11.14.0]
 
 ### Added

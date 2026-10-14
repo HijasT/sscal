@@ -335,14 +335,25 @@ export interface MarkerGroup {
   markers: { id: number; name: string }[]
 }
 
+// Allergy/intolerance panels are excluded from the marker picker — hundreds of
+// individual allergens that drown out the blood/clinical markers staff pick by.
+const FINDER_EXCLUDED_PANELS = ['Food Allergy Panel', 'Food Intolerance Panel', 'Respiratory Allergy Panel']
+
 /**
  * Every lab marker grouped by its clinical profile (`test.group` — Liver Profile,
  * Complete Blood Count, …), independent of which packages include it. Powers the
- * "Find package" marker picker. Groups and markers are sorted by name.
+ * "Find package" marker picker. Allergy/intolerance markers are left out (see
+ * FINDER_EXCLUDED_PANELS). Groups and markers are sorted by name.
  */
 export function markerCatalogue(): MarkerGroup[] {
+  const excluded = new Set<number>()
+  for (const name of FINDER_EXCLUDED_PANELS) {
+    const panel = data.panels[name]
+    if (panel) for (const id of panel.tests) excluded.add(id)
+  }
   const byGroup = new Map<string, { id: number; name: string }[]>()
   for (const [id, t] of Object.entries(data.tests)) {
+    if (excluded.has(Number(id))) continue
     const g = t.group || 'Other'
     if (!byGroup.has(g)) byGroup.set(g, [])
     byGroup.get(g)!.push({ id: Number(id), name: t.name })
