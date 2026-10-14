@@ -18,6 +18,25 @@ const PERSIST_KEY = 'sic_persist_data'
 const USD_SHOW_KEY = 'sic_show_usd'
 const USD_RATE_KEY = 'sic_usd_rate'
 
+/** Whether the Sale Assistant hides packages already covered by the selection
+ *  (default on — only an explicit 'false' turns it off). */
+const HIDE_COVERED_KEY = 'sic_hide_covered'
+export function isHideCoveredEnabled(): boolean {
+  try {
+    return localStorage.getItem(HIDE_COVERED_KEY) !== 'false'
+  } catch {
+    return true
+  }
+}
+
+export function setHideCovered(enabled: boolean): void {
+  try {
+    localStorage.setItem(HIDE_COVERED_KEY, String(enabled))
+  } catch {
+    /* ignore */
+  }
+}
+
 /** Whether the Sale Assistant should show a USD equivalent alongside AED. */
 export function isUsdShown(): boolean {
   try {

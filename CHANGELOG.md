@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.3.0]
+
+### Added
+- **Settings toggle for "Hide covered packages."** A new Settings switch controls whether the Sale Assistant hides packages already covered by the selection (introduced in 12.2.0). On by default; the choice is saved locally (`sic_hide_covered`) and persists across sessions — nothing leaves the device.
+
 ## [12.2.0]
 
 ### Added

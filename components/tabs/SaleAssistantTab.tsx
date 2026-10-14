@@ -61,7 +61,7 @@ import {
   type QuoteLine,
   type DiscountType,
 } from '@/lib/catalogueUtils'
-import { getFresh, setFresh, clearFresh, isUsdShown, getUsdRate } from '@/lib/storage'
+import { getFresh, setFresh, clearFresh, isUsdShown, getUsdRate, isHideCoveredEnabled } from '@/lib/storage'
 import { DEFAULT_USD_RATE } from '@/lib/config'
 
 const ALL = 'All'
@@ -121,6 +121,9 @@ export function SaleAssistantTab() {
   // on tab switch, so a change in Settings is picked up when returning here.
   const [showUsd, setShowUsd] = useState(false)
   const [usdRate, setUsdRate] = useState(DEFAULT_USD_RATE)
+  // Whether to hide packages already covered by the selection (Settings toggle,
+  // default on). Read on mount; this tab remounts on tab switch.
+  const [hideCovered, setHideCovered] = useState(true)
 
   // "Find package" marker picker: select markers (grouped by clinical profile)
   // and the finder shows the cheapest package covering all of them.
@@ -174,7 +177,7 @@ export function SaleAssistantTab() {
     // covered by a selected package — redundant to offer. Skipped while searching
     // so a by-name search still finds everything.
     let covered = 0
-    if (!query.trim()) {
+    if (hideCovered && !query.trim()) {
       const sel = lines.map((l) => l.service)
       if (sel.length) {
         const before = r.length
@@ -188,7 +191,7 @@ export function SaleAssistantTab() {
       map.get(s.category)!.push(s)
     }
     return { list: r, groups: [...map.entries()], covered }
-  }, [query, category, gender, filter, lines])
+  }, [query, category, gender, filter, lines, hideCovered])
 
   const selServices = useMemo(() => lines.map((l) => l.service), [lines])
   const totalsSel = useMemo(() => quoteTotals(lines), [lines])
@@ -248,6 +251,7 @@ export function SaleAssistantTab() {
     }
     setShowUsd(isUsdShown())
     setUsdRate(getUsdRate())
+    setHideCovered(isHideCoveredEnabled())
     setHydrated(true)
   }, [])
 

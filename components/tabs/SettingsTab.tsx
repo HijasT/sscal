@@ -7,7 +7,7 @@ import {
   backupStaffCenters, loadStaffCentersBackup, clearStaffCentersBackup,
 } from '@/lib/utils'
 import { CENTERS, STAFF_CENTERS, DEFAULT_TIERS, DEFAULT_USD_RATE, type Tier } from '@/lib/config'
-import { getFresh, isPersistEnabled, setPersistEnabled, isUsdShown, setUsdShown, getUsdRate, setUsdRate } from '@/lib/storage'
+import { getFresh, isPersistEnabled, setPersistEnabled, isUsdShown, setUsdShown, getUsdRate, setUsdRate, isHideCoveredEnabled, setHideCovered } from '@/lib/storage'
 import { extractEmployeeCode, stripEmployeeCode, type ExcelData } from '@/lib/excelUtils'
 import { SlidersIcon, SaveIcon, BarChartIcon, SunIcon } from '@/components/icons'
 import { notify } from '@/lib/notify'
@@ -73,11 +73,13 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
   const [codeToName, setCodeToName] = useState<Record<string, string>>({})
   const [persist, setPersist] = useState(false)
   const [showUsd, setShowUsd] = useState(false)
+  const [hideCovered, setHideCoveredState] = useState(true)
   const [usdRate, setUsdRateInput] = useState(String(DEFAULT_USD_RATE))
 
   useEffect(() => {
     setPersist(isPersistEnabled())
     setShowUsd(isUsdShown())
+    setHideCoveredState(isHideCoveredEnabled())
     setUsdRateInput(String(getUsdRate()))
     setTiers(loadTiers())
     setLastSavedAt(getTiersSavedAt())
@@ -167,6 +169,11 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
   const handleToggleUsd = (enabled: boolean) => {
     setUsdShown(enabled)
     setShowUsd(enabled)
+  }
+
+  const handleToggleHideCovered = (enabled: boolean) => {
+    setHideCovered(enabled)
+    setHideCoveredState(enabled)
   }
 
   const handleUsdRateChange = (value: string) => {
@@ -319,8 +326,26 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
           </div>
         </div>
       )}
+
+      <div className="settings-toggle-row">
+        <div>
+          <div className="settings-toggle-label">Hide covered packages</div>
+          <div className="settings-toggle-desc">In the Sale Assistant, hide any package whose full content (markers, BCA, ECG, DNA modules and gut kit) is already included in a selected package. Turn off to always show every package.</div>
+        </div>
+        <button
+          type="button"
+          className={`switch ${hideCovered ? 'on' : ''}`}
+          role="switch"
+          aria-checked={hideCovered}
+          aria-label="Hide covered packages"
+          onClick={() => handleToggleHideCovered(!hideCovered)}
+        >
+          <span className="switch-thumb" />
+        </button>
+      </div>
       </div>
     </details>
+
 
     <details className="card settings-section">
       <summary className="settings-summary">
