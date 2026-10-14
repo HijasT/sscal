@@ -79,12 +79,12 @@ body.light-mode {
      defined by their hairline border, not a fill contrast — so the UI reads as
      a single lavender surface rather than two colours. Recessed insets (inputs,
      inner boxes) step gently darker; a faint aura adds ambient depth. */
-  --bg-primary: #ebe4f5;
-  --bg-card: #ebe4f5;
-  --bg-secondary: #e6def3;
-  --bg-tertiary: #e4dcf1;
-  --surface: #f1ecf9;
-  --surface-hover: #e2d9f0;
+  --bg-primary: #f5f1fb;
+  --bg-card: #f5f1fb;
+  --bg-secondary: #ece5f6;
+  --bg-tertiary: #e8e1f4;
+  --surface: #faf7fe;
+  --surface-hover: #ece5f4;
   --aura-a: #ddd0f2;
   --aura-b: #e3d6fb;
   --aura-c: #f0d3e0;
@@ -334,37 +334,37 @@ body:not(.light-mode) .aura { mix-blend-mode: screen; opacity: 0.4; }
   gap: 4px;
 }
 
-/* MD3 tab chip: quiet by default, a violet-tonal pill when active, a faint
-   state layer on hover — brand colour spent only on the active state. */
+/* Quiet tab, accent underline when active — brand colour spent only on the
+   active indicator. */
 .nav-tab {
   flex: 0 0 auto;
-  padding: 8px 14px;
+  padding: 10px 8px;
   background: transparent;
   border: none;
-  border-radius: 999px;
+  border-bottom: 2px solid transparent;
   color: var(--text-secondary);
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: color 0.15s ease, border-color 0.15s ease;
   font-family: inherit;
 }
 
 .nav-tab:hover {
   color: var(--text-primary);
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 .nav-tab.active {
   color: var(--text-primary);
-  background: var(--accent-container);
+  border-bottom-color: var(--accent-primary);
 }
 
+/* No card chrome: tabs sit directly on the single page surface (the content's
+   own elements — notices, fields, rows — carry their tonal fills). */
 .card {
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  padding: 28px;
-  border: 1px solid var(--border-color);
+  background: transparent;
+  border: none;
+  padding: 8px 0 28px;
 }
 
 /* Matches the Sale Assistant tab's notice: neutral hairline surface, violet

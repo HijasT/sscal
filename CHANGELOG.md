@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.1.3]
+
+### Changed
+- **Single-surface layout (no cards).** Following `mockups/material-you.html`, each tab's content now sits directly on one continuous lavender page surface instead of inside a bordered card — the page lightened to an airy lavender and the card chrome (background, border, shadow) removed. Individual elements (notices, fields, package rows) keep their own tonal fills.
+- **Nav underline.** The active tab is marked by an accent underline again, not a filled pill.
+
 ## [12.1.2]
 
 ### Changed
