@@ -328,6 +328,53 @@ export function excludedMarkers(from: CatalogueService[], within: CatalogueServi
   return out
 }
 
+// ---------- bundle DNA-module summary ----------
+
+/** A service's DNA module names, without the "DNA - " prefix. */
+function dnaModuleSet(service: CatalogueService): Set<string> {
+  const out = new Set<string>()
+  for (const c of service.comps) {
+    if (c.group === 'DNA Modules') out.add(c.name.replace(/DNA\s*[-–]\s*/, '').trim())
+  }
+  return out
+}
+
+/**
+ * Chip label(s) for a bundle's DNA modules in the "Included packages" summary.
+ *
+ * When the bundle's DNA modules can be covered exactly by whole standalone DNA
+ * packages, those package names are used instead of a bare count — e.g. the
+ * Essentials bundles carry exactly DNA - Essentials' 6 modules → ["DNA -
+ * Essentials"]; HEALTHMAXXING carries All of You's 12 plus Hair and Acne →
+ * ["DNA - All of You", "DNA - Hair Loss Package", "DNA - Acne Package"]. If any
+ * module is left over that no DNA package accounts for (e.g. the 11-module
+ * Ultimate/Executive sets), it falls back to a single "DNA (N modules)" chip.
+ * Empty when the bundle has no DNA. Derived from the catalogue's own DNA
+ * packages, so it survives re-syncs.
+ */
+export function dnaPackageLabels(service: CatalogueService): string[] {
+  const set = dnaModuleSet(service)
+  if (set.size === 0) return []
+  // Standalone DNA packages, largest module-set first (greedy cover below).
+  const dnaPkgs = data.services
+    .filter((r) => r !== service && /^DNA\s*[-–]/.test(r.name))
+    .map((r) => ({ name: r.name, set: dnaModuleSet(r) }))
+    .filter((p) => p.set.size > 0)
+    .sort((a, b) => b.set.size - a.set.size)
+  // ponytail: greedy largest-first exact cover — fine for this tiny, nested
+  // catalogue (Essentials ⊂ All of You); not a general set-packing solver.
+  const remaining = new Set(set)
+  const picked: string[] = []
+  for (const p of dnaPkgs) {
+    if (p.set.size <= remaining.size && [...p.set].every((m) => remaining.has(m))) {
+      picked.push(p.name)
+      for (const m of p.set) remaining.delete(m)
+    }
+  }
+  if (remaining.size === 0 && picked.length > 0) return picked
+  return [`DNA (${set.size} module${set.size === 1 ? '' : 's'})`]
+}
+
 // ---------- marker-based package finder ----------
 
 export interface MarkerGroup {

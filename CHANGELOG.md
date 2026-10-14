@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.0.0]
+
+### Changed
+- **DNA modules shown as DNA package names in bundle details.** In a bundle's "Included packages" list, DNA modules now show the standalone DNA package name when they decompose exactly into whole DNA packages — Essentials bundles → "DNA - Essentials"; All of You / Dubai It → "DNA - All of You"; HEALTHMAXXING → "DNA - All of You · DNA - Hair Loss Package · DNA - Acne Package". Sets that don't map cleanly (Healthy Heart 4, Women's Clarity 7, Ultimate/Executive 11, Gut Health 4) keep the plain "DNA (N modules)" count. Matching is derived from the catalogue's own DNA packages, so it survives re-syncs.
+
 ## [11.15.0]
 
 ### Added

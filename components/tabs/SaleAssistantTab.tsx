@@ -32,6 +32,7 @@ import {
   serviceGender,
   suggestPackage,
   suggestPartialPackage,
+  dnaPackageLabels,
   markerCatalogue,
   findPackageForMarkers,
   getSuggestionExtras,
@@ -1376,12 +1377,13 @@ function ServiceRow({
   // out (shown under Components). Lets staff read the whole bundle at a glance.
   const included = useMemo(() => {
     const items = [...service.panels]
-    const dna = service.comps.filter((c) => c.group === 'DNA Modules')
     for (const c of service.comps) {
       if (c.group === 'Doctor & Vital Signs' || c.group === 'DNA Modules') continue
       items.push(c.name)
     }
-    if (dna.length) items.push(`DNA (${dna.length} module${dna.length === 1 ? '' : 's'})`)
+    // DNA modules collapse to DNA package name chip(s) when they fully decompose
+    // into standalone DNA packages, otherwise a single "DNA (N modules)" chip.
+    for (const lbl of dnaPackageLabels(service)) items.push(lbl)
     return items
   }, [service])
   // Kit components from the catalogue, plus the doctor consultation (tracked in a

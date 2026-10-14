@@ -157,6 +157,7 @@ export function AboutTab() {
         <summary className="about-summary">Version History<span className="about-chevron" aria-hidden="true" /></summary>
         <div style={{display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px'}}>
           {[
+            { ver: 'v12', desc: 'Sale Assistant deepened: a Package Picker that finds the cheapest package covering the markers you select, bundle "Included packages" summaries (panels, BCA/ECG, gut kit and DNA shown as its package name), and internal product SKUs.' },
             { ver: 'v11', desc: 'Per-package discount caps in the Sale Assistant, step-by-step Excel upload instructions, collapsible Settings sections, and full offline support — installable as an app that runs without a connection.' },
             { ver: 'v10', desc: 'Renamed to Kleon. Removed the Analytics feature; added 1-hour local data auto-expiry with a "keep on this device" option; Sale Assistant became the first tab; editorial design polish.' },
             { ver: 'v9', desc: 'Sale Assistant matured: the Package Ladder, cheapest-bundle suggestions via a package-composition graph, HEALTHMAXXING, a Men/Women toggle, and accessibility & focus fixes.' },
