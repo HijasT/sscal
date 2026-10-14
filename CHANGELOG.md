@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.1.0]
+
+### Changed
+- **Immersive Material You app shell.** The top app bar is now full-bleed — it spans the viewport with a translucent, blurred (frosted) background and a bottom hairline, while its brand/nav/theme toggle stay aligned to the centered content column. Added soft ambient "aura" blobs behind the content and a tonal lavender ground, so the area around the cards reads as a cohesive surface instead of a flat white frame. Follows `mockups/material-you.html`.
+
 ## [12.0.2]
 
 ### Changed

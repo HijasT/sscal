@@ -78,7 +78,11 @@ export default function Home() {
   }
 
   return (
-    <div className="container">
+    <>
+      {/* Ambient aura blobs behind everything (Material You immersion). */}
+      <div className="aura aura-1" aria-hidden="true" />
+      <div className="aura aura-2" aria-hidden="true" />
+      <div className="aura aura-3" aria-hidden="true" />
       {/* No robot on the Sale Assistant tab: it may be in front of a customer. */}
       {robotEnabled && activeTab !== 'sale-assistant' && <Robot />}
       <div className="topbar" ref={topbarRef}>
@@ -122,6 +126,7 @@ export default function Home() {
       </header>
       </div>
 
+      <div className="container">
       {activeTab === 'calculator' && (() => {
         // Shared card top for both calculator modes, mirroring the Sale Assistant
         // tab's order: tab name, then privacy notice, then the mode pill.
@@ -161,7 +166,8 @@ export default function Home() {
         <SettingsTab robotEnabled={robotEnabled} onToggleRobot={toggleRobot} />
       )}
       {activeTab === 'about'          && <AboutTab />}
+      </div>
       <MessageModal />
-    </div>
+    </>
   )
 }

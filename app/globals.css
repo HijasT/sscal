@@ -47,6 +47,11 @@
   --tier-3: #d8ab5a;
   --tier-4: #4caf8a;
 
+  /* Ambient aura blobs behind content (dark theme: faint accent glows). */
+  --aura-a: #332a57;
+  --aura-b: #2a2447;
+  --aura-c: #3a2730;
+
   /* Borders & shadows — hairline, not blurred/glowing */
   --border-color: #2b2f35;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
@@ -65,13 +70,19 @@
 
 /* Light Mode — v8.0 */
 body.light-mode {
-  /* Material You tonal surfaces (purple seed): one cohesive lavender family
-     instead of white cards on a warm ground. The page is the lightest tone,
-     cards and recessed surfaces step up gently from it. */
-  --bg-primary: #faf7fe;
+  /* Material You tonal surfaces (purple seed): one cohesive lavender family.
+     The page ground is a clear lavender (matching the Sale Assistant tab's
+     ground, --sa-sunk) so the area outside/around cards reads as lilac rather
+     than a white frame; cards are a lighter tone that lifts off it. Ambient
+     aura blobs (see .aura) add soft colour so the ground never reads as flat
+     white — matching the Material You mockup. */
+  --bg-primary: #f4eff9;
   --bg-secondary: #f1ebf9;
   --bg-tertiary: #efe8f6;
   --bg-card: #f5f0fb;
+  --aura-a: #e8def8;
+  --aura-b: #eaddff;
+  --aura-c: #f3d9e3;
   --surface: #fbf9fe;
   --surface-hover: #ece5f4;
 
@@ -129,30 +140,49 @@ body {
    the sticky topbar instead of behind it. */
 html { scroll-padding-top: calc(var(--topbar-h, 0px) + var(--sa-find-h, 0px) + 8px); }
 
-/* Keep the app heading + nav tabs pinned while the tab content scrolls. */
+/* Ambient aura blobs — soft blurred colour behind the content (Material You).
+   Fixed, non-interactive, and below everything; they tint the ground so it
+   never reads as flat white. */
+.aura {
+  position: fixed;
+  z-index: 0;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.5;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+body:not(.light-mode) .aura { mix-blend-mode: screen; opacity: 0.4; }
+.aura-1 { top: -180px; right: -140px; width: 520px; height: 520px; background: var(--aura-a); }
+.aura-2 { top: 40%; left: -220px; width: 460px; height: 460px; border-radius: 100px 100px 100px 20px; background: var(--aura-b); }
+.aura-3 { bottom: -200px; right: -120px; width: 420px; height: 420px; background: var(--aura-c); }
+@media (prefers-reduced-motion: no-preference) { .aura { transition: background-color 0.15s ease; } }
+
+/* Full-bleed frosted top app bar: spans the viewport, stays pinned while the
+   tab content scrolls under it; its content is centred to the content column. */
 .topbar {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: var(--bg-primary);
-  padding-top: 16px;
-  margin-top: -16px;
-  /* Spacing below the nav lives as padding (inside the painted box) so scrolled
-     content stays hidden behind the bar instead of peeking through a margin gap. */
-  padding-bottom: 32px;
+  background: color-mix(in srgb, var(--bg-primary) 72%, transparent);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  backdrop-filter: saturate(140%) blur(14px);
+  border-bottom: 1px solid var(--border-color);
 }
 .topbar .nav-tabs {
   margin-bottom: 0;
 }
 
-/* Single-line app bar: brand + version, nav tabs, then the theme toggle. */
+/* Single-line app bar: brand + version, nav tabs, then the theme toggle —
+   centred to the same max width as the content column. */
 .appbar {
   display: flex;
   align-items: flex-end;
   flex-wrap: wrap;
   gap: 4px 20px;
-  margin-bottom: 24px;
-  border-bottom: 1px solid var(--border-color);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px 20px;
 }
 .appbar-brand { display: flex; align-items: baseline; gap: 8px; padding: 4px 0 12px; margin-right: 4px; }
 .appbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; padding-bottom: 8px; }
