@@ -789,7 +789,7 @@ export function SaleAssistantTab() {
           </div>
           <button type="button" className="sa-btn sa-btn-secondary sa-find-btn" onClick={() => setFinderOpen(true)}>
             <Icon name="search" />
-            Find package
+            Package picker
           </button>
           <div
             className={`sa-seg sa-seg-compact${compactGender ? ' is-shown' : ''}`}
