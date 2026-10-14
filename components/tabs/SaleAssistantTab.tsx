@@ -905,9 +905,19 @@ export function SaleAssistantTab() {
                       : `${pickedIds.size} marker${pickedIds.size === 1 ? '' : 's'} selected`}
                   </p>
                 </div>
-                <button type="button" className="sa-icon-btn" onClick={() => setFinderOpen(false)} aria-label="Close">
-                  <Icon name="x" />
-                </button>
+                <div className="sa-finder-head-side">
+                  <div className="sa-seg" role="group" aria-label="Show packages for">
+                    <button type="button" aria-pressed={gender === 'M'} onClick={() => changeGender('M')}>
+                      Men
+                    </button>
+                    <button type="button" aria-pressed={gender === 'W'} onClick={() => changeGender('W')}>
+                      Women
+                    </button>
+                  </div>
+                  <button type="button" className="sa-icon-btn" onClick={() => setFinderOpen(false)} aria-label="Close">
+                    <Icon name="x" />
+                  </button>
+                </div>
               </div>
 
               <div className="sa-finder-search">
