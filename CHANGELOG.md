@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.2.0]
+
+### Added
+- **Hide already-covered packages.** Once a package is in your selection, the catalogue hides any package whose full content is already included in it — every marker AND every BCA/ECG/DNA-module/gut-kit item. If the selected package is missing even one of those, the other package stays visible (e.g. Dubai It hides almost everything, but not Ultimate Gut Health, which it lacks the gut kit for). The "Showing N of M" line notes how many are hidden; hiding is skipped while searching so a by-name search still finds everything, and it reverses when you change the selection.
+
 ## [12.1.3]
 
 ### Changed

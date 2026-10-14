@@ -32,6 +32,7 @@ import {
   serviceGender,
   suggestPackage,
   suggestPartialPackage,
+  isCoveredBySelection,
   dnaPackageLabels,
   dnaPackagePanelNames,
   markerCatalogue,
@@ -169,13 +170,25 @@ export function SaleAssistantTab() {
     })
     if (filter === 'blood') r = r.filter(isBloodTestOnly)
     else if (filter === 'noninvasive') r = r.filter(isNonInvasive)
+    // Hide packages whose full content (markers + BCA/ECG/DNA/gut) is already
+    // covered by a selected package — redundant to offer. Skipped while searching
+    // so a by-name search still finds everything.
+    let covered = 0
+    if (!query.trim()) {
+      const sel = lines.map((l) => l.service)
+      if (sel.length) {
+        const before = r.length
+        r = r.filter((s) => !isCoveredBySelection(s, sel))
+        covered = before - r.length
+      }
+    }
     const map = new Map<string, CatalogueService[]>()
     for (const s of r) {
       if (!map.has(s.category)) map.set(s.category, [])
       map.get(s.category)!.push(s)
     }
-    return { list: r, groups: [...map.entries()] }
-  }, [query, category, gender, filter])
+    return { list: r, groups: [...map.entries()], covered }
+  }, [query, category, gender, filter, lines])
 
   const selServices = useMemo(() => lines.map((l) => l.service), [lines])
   const totalsSel = useMemo(() => quoteTotals(lines), [lines])
@@ -860,6 +873,7 @@ export function SaleAssistantTab() {
             </div>
             <p className="sa-muted" aria-live="polite">
               Showing {grouped.list.length} of {totalCount} packages
+              {grouped.covered > 0 && ` · ${grouped.covered} hidden (already covered by your selection)`}
             </p>
           </div>
 

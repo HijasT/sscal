@@ -328,6 +328,40 @@ export function excludedMarkers(from: CatalogueService[], within: CatalogueServi
   return out
 }
 
+// ---------- "hide already-covered packages" ----------
+
+/**
+ * A package's full content for the hide rule: every lab test id (markers) plus
+ * its BCA / ECG / DNA-module / gut-kit comps. The Doctor & Vital Signs group is
+ * excluded (consult time varies and vital signs is near-universal).
+ */
+function coverageContent(service: CatalogueService): { tests: Set<number>; comps: Set<string> } {
+  const comps = new Set<string>()
+  for (const c of service.comps) if (c.group !== 'Doctor & Vital Signs') comps.add(c.name)
+  return { tests: serviceTestIds(service), comps }
+}
+
+/**
+ * True when some selected package fully contains everything `candidate` offers —
+ * all its markers AND all its BCA/ECG/DNA-module/gut comps. If a selected package
+ * is missing even one of them, it does not cover the candidate. Used to hide
+ * redundant packages from the catalogue once a superset is selected (e.g. picking
+ * Premium hides Standard and Household). A candidate that is itself selected, or
+ * that carries nothing to cover, is never hidden.
+ */
+export function isCoveredBySelection(candidate: CatalogueService, selected: CatalogueService[]): boolean {
+  if (selected.some((s) => s.id === candidate.id)) return false
+  const c = coverageContent(candidate)
+  if (c.tests.size === 0 && c.comps.size === 0) return false
+  return selected.some((s) => {
+    if (s.id === candidate.id) return false
+    const sc = coverageContent(s)
+    for (const id of c.tests) if (!sc.tests.has(id)) return false
+    for (const name of c.comps) if (!sc.comps.has(name)) return false
+    return true
+  })
+}
+
 // ---------- bundle DNA-module summary ----------
 
 /** A service's DNA module names, without the "DNA - " prefix. */
