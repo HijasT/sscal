@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.14.2]
+
+### Changed
+- **Package picker only lists pickable markers.** The marker picker now hides markers no sellable package for the selected gender covers (e.g. PSA for women, CA125 for men, standalone HIV/hepatitis screens), so every marker can actually lead to a package. The list updates when you switch Men/Women, and any now-hidden selected markers are dropped.
+- **Smaller Men/Women pill in the picker** header.
+
 ## [11.14.1]
 
 ### Changed

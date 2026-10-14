@@ -343,20 +343,33 @@ const FINDER_EXCLUDED_PANELS = ['Food Allergy Panel', 'Food Intolerance Panel', 
  * Every lab marker grouped by its clinical profile (`test.group` — Liver Profile,
  * Complete Blood Count, …), independent of which packages include it. Powers the
  * "Find package" marker picker. Allergy/intolerance markers are left out (see
- * FINDER_EXCLUDED_PANELS). Groups and markers are sorted by name.
+ * FINDER_EXCLUDED_PANELS), and — when `gender` is given — so are markers that no
+ * sellable package for that gender actually covers (e.g. PSA for women, or
+ * standalone HIV/hepatitis screens in no comprehensive package), since picking
+ * them could never yield a package. Groups and markers are sorted by name.
  */
-export function markerCatalogue(): MarkerGroup[] {
+export function markerCatalogue(gender?: 'M' | 'W'): MarkerGroup[] {
   const excluded = new Set<number>()
   for (const name of FINDER_EXCLUDED_PANELS) {
     const panel = data.panels[name]
     if (panel) for (const id of panel.tests) excluded.add(id)
   }
+  // Markers covered by at least one sellable package for this gender; only these
+  // are pickable. Mirrors findPackageForMarkers' candidate filter.
+  const covered = new Set<number>()
+  for (const s of data.services) {
+    if (s.price == null) continue
+    const g = serviceGender(s)
+    if (gender && g && g !== gender) continue
+    for (const id of serviceTestIds(s)) covered.add(id)
+  }
   const byGroup = new Map<string, { id: number; name: string }[]>()
   for (const [id, t] of Object.entries(data.tests)) {
-    if (excluded.has(Number(id))) continue
+    const nid = Number(id)
+    if (excluded.has(nid) || !covered.has(nid)) continue
     const g = t.group || 'Other'
     if (!byGroup.has(g)) byGroup.set(g, [])
-    byGroup.get(g)!.push({ id: Number(id), name: t.name })
+    byGroup.get(g)!.push({ id: nid, name: t.name })
   }
   return [...byGroup.entries()]
     .map(([group, markers]) => ({ group, markers: markers.sort((a, b) => a.name.localeCompare(b.name)) }))

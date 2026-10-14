@@ -124,7 +124,7 @@ export function SaleAssistantTab() {
   const [finderOpen, setFinderOpen] = useState(false)
   const [finderQuery, setFinderQuery] = useState('')
   const [pickedIds, setPickedIds] = useState<Set<number>>(new Set())
-  const markerGroups = useMemo(() => markerCatalogue(), [])
+  const markerGroups = useMemo(() => markerCatalogue(gender), [gender])
   const finderResult = useMemo(() => findPackageForMarkers(pickedIds, gender), [pickedIds, gender])
   const finderGroups = useMemo(() => {
     const q = finderQuery.trim().toLowerCase()
@@ -144,6 +144,15 @@ export function SaleAssistantTab() {
       next.has(id) ? next.delete(id) : next.add(id)
       return next
     })
+  // Switching gender can hide markers; drop any selected ones that are no longer shown.
+  useEffect(() => {
+    setPickedIds((prev) => {
+      const visible = new Set<number>()
+      for (const g of markerGroups) for (const m of g.markers) visible.add(m.id)
+      const next = new Set([...prev].filter((id) => visible.has(id)))
+      return next.size === prev.size ? prev : next
+    })
+  }, [markerGroups])
 
   const totalCount = getVisibleServices().length
   const categories = useMemo(() => [ALL, ...getCategories()], [])
