@@ -27,6 +27,8 @@ export interface CatalogueComp {
 /** A sellable package/service with its price and contents. */
 export interface CatalogueService {
   id: number
+  /** Internal product SKU; stored for reference, never shown in the UI. */
+  sku?: string
   category: string
   sub: string
   name: string
@@ -324,6 +326,70 @@ export function excludedMarkers(from: CatalogueService[], within: CatalogueServi
     }
   }
   return out
+}
+
+// ---------- marker-based package finder ----------
+
+export interface MarkerGroup {
+  group: string
+  markers: { id: number; name: string }[]
+}
+
+/**
+ * Every lab marker grouped by its clinical profile (`test.group` — Liver Profile,
+ * Complete Blood Count, …), independent of which packages include it. Powers the
+ * "Find package" marker picker. Groups and markers are sorted by name.
+ */
+export function markerCatalogue(): MarkerGroup[] {
+  const byGroup = new Map<string, { id: number; name: string }[]>()
+  for (const [id, t] of Object.entries(data.tests)) {
+    const g = t.group || 'Other'
+    if (!byGroup.has(g)) byGroup.set(g, [])
+    byGroup.get(g)!.push({ id: Number(id), name: t.name })
+  }
+  return [...byGroup.entries()]
+    .map(([group, markers]) => ({ group, markers: markers.sort((a, b) => a.name.localeCompare(b.name)) }))
+    .sort((a, b) => a.group.localeCompare(b.group))
+}
+
+/**
+ * Cheapest service whose lab markers cover every selected marker id. If none
+ * covers all, returns the closest (most markers covered, then cheapest) with the
+ * uncovered marker names in `missing`. Returns null only when nothing is selected.
+ */
+export function findPackageForMarkers(
+  ids: Set<number>,
+  gender?: 'M' | 'W'
+): { service: CatalogueService; missing: string[] } | null {
+  if (ids.size === 0) return null
+  const sel = [...ids]
+  const candidates = data.services.filter((p) => {
+    if (p.price == null) return false
+    const g = serviceGender(p)
+    return !gender || !g || g === gender
+  })
+  let best: CatalogueService | null = null
+  let closest: CatalogueService | null = null
+  let closestCov = -1
+  for (const p of candidates) {
+    const t = serviceTestIds(p)
+    const cov = sel.reduce((n, id) => n + (t.has(id) ? 1 : 0), 0)
+    if (cov === sel.length) {
+      if (!best || (p.price as number) < (best.price as number)) best = p
+    }
+    if (cov > closestCov || (cov === closestCov && closest && (p.price as number) < (closest.price as number))) {
+      closestCov = cov
+      closest = p
+    }
+  }
+  if (best) return { service: best, missing: [] }
+  if (!closest) return null
+  const covered = serviceTestIds(closest)
+  const missing = sel
+    .filter((id) => !covered.has(id))
+    .map((id) => data.tests[String(id)]?.name)
+    .filter((n): n is string => !!n)
+  return { service: closest, missing }
 }
 
 /**

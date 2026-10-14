@@ -32,6 +32,8 @@ import {
   serviceGender,
   suggestPackage,
   suggestPartialPackage,
+  markerCatalogue,
+  findPackageForMarkers,
   getSuggestionExtras,
   excludedMarkers,
   excludedDnaModules,
@@ -116,6 +118,32 @@ export function SaleAssistantTab() {
   // on tab switch, so a change in Settings is picked up when returning here.
   const [showUsd, setShowUsd] = useState(false)
   const [usdRate, setUsdRate] = useState(DEFAULT_USD_RATE)
+
+  // "Find package" marker picker: select markers (grouped by clinical profile)
+  // and the finder shows the cheapest package covering all of them.
+  const [finderOpen, setFinderOpen] = useState(false)
+  const [finderQuery, setFinderQuery] = useState('')
+  const [pickedIds, setPickedIds] = useState<Set<number>>(new Set())
+  const markerGroups = useMemo(() => markerCatalogue(), [])
+  const finderResult = useMemo(() => findPackageForMarkers(pickedIds, gender), [pickedIds, gender])
+  const finderGroups = useMemo(() => {
+    const q = finderQuery.trim().toLowerCase()
+    if (!q) return markerGroups
+    return markerGroups
+      .map((g) => ({
+        group: g.group,
+        markers: g.group.toLowerCase().includes(q)
+          ? g.markers
+          : g.markers.filter((m) => m.name.toLowerCase().includes(q)),
+      }))
+      .filter((g) => g.markers.length > 0)
+  }, [markerGroups, finderQuery])
+  const toggleMarker = (id: number) =>
+    setPickedIds((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
 
   const totalCount = getVisibleServices().length
   const categories = useMemo(() => [ALL, ...getCategories()], [])
@@ -759,6 +787,10 @@ export function SaleAssistantTab() {
               )}
             </div>
           </div>
+          <button type="button" className="sa-btn sa-btn-secondary sa-find-btn" onClick={() => setFinderOpen(true)}>
+            <Icon name="search" />
+            Find package
+          </button>
           <div
             className={`sa-seg sa-seg-compact${compactGender ? ' is-shown' : ''}`}
             role="group"
@@ -854,6 +886,129 @@ export function SaleAssistantTab() {
             {lines.length > 0 && <span className="sa-ladder-fab-n">{lines.length}</span>}
           </button>
         )}
+
+        {finderOpen && (
+          <div className="sa-finder-backdrop" onClick={() => setFinderOpen(false)} role="presentation">
+            <div
+              className="sa-finder"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Find package by markers"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sa-finder-head">
+                <div>
+                  <h3>Find package by markers</h3>
+                  <p className="sa-muted">
+                    {pickedIds.size === 0
+                      ? `Pick markers for ${gender === 'M' ? 'Men' : 'Women'} — the cheapest package covering them appears below.`
+                      : `${pickedIds.size} marker${pickedIds.size === 1 ? '' : 's'} selected`}
+                  </p>
+                </div>
+                <button type="button" className="sa-icon-btn" onClick={() => setFinderOpen(false)} aria-label="Close">
+                  <Icon name="x" />
+                </button>
+              </div>
+
+              <div className="sa-finder-search">
+                <div className="sa-input-wrap">
+                  <input
+                    className="sa-input"
+                    type="text"
+                    aria-label="Search markers"
+                    placeholder="Search markers or profiles…"
+                    autoComplete="off"
+                    value={finderQuery}
+                    onChange={(e) => setFinderQuery(e.target.value)}
+                  />
+                  {finderQuery && (
+                    <button type="button" className="sa-icon-btn" onClick={() => setFinderQuery('')} aria-label="Clear">
+                      <Icon name="x" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="sa-finder-body">
+                {finderGroups.length === 0 ? (
+                  <p className="sa-muted">No markers match your search.</p>
+                ) : (
+                  finderGroups.map((g) => {
+                    const sel = g.markers.filter((m) => pickedIds.has(m.id)).length
+                    return (
+                      <div key={g.group} className="sa-finder-group">
+                        <h4>
+                          {g.group}
+                          <span className="sa-muted sa-fig">
+                            {sel > 0 ? `${sel}/${g.markers.length}` : g.markers.length}
+                          </span>
+                        </h4>
+                        <div className="sa-markers">
+                          {g.markers.map((m) => (
+                            <button
+                              key={m.id}
+                              type="button"
+                              className={`sa-marker sa-marker-pick${pickedIds.has(m.id) ? ' is-on' : ''}`}
+                              aria-pressed={pickedIds.has(m.id)}
+                              onClick={() => toggleMarker(m.id)}
+                            >
+                              {m.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+
+              <div className="sa-finder-foot">
+                <div className="sa-finder-result" aria-live="polite">
+                  {!finderResult ? (
+                    <span className="sa-muted">Select one or more markers to see a suggestion.</span>
+                  ) : finderResult.missing.length === 0 ? (
+                    <span>
+                      Cheapest: <strong>{finderResult.service.name}</strong> ·{' '}
+                      <span className="sa-fig">{formatAED(finderResult.service.price)}</span> — covers all{' '}
+                      {pickedIds.size} selected marker{pickedIds.size === 1 ? '' : 's'}.
+                    </span>
+                  ) : (
+                    <span>
+                      No single package covers all {pickedIds.size}. Closest:{' '}
+                      <strong>{finderResult.service.name}</strong> ({pickedIds.size - finderResult.missing.length}/
+                      {pickedIds.size}) · <span className="sa-fig">{formatAED(finderResult.service.price)}</span>.{' '}
+                      <span className="sa-muted">Missing: {finderResult.missing.slice(0, 8).join(', ')}
+                      {finderResult.missing.length > 8 ? `, +${finderResult.missing.length - 8} more` : ''}.</span>
+                    </span>
+                  )}
+                </div>
+                <div className="sa-finder-actions">
+                  <button
+                    type="button"
+                    className="sa-btn sa-btn-quiet"
+                    onClick={() => setPickedIds(new Set())}
+                    disabled={pickedIds.size === 0}
+                  >
+                    Clear
+                  </button>
+                  <button
+                    type="button"
+                    className="sa-btn sa-btn-secondary"
+                    disabled={!finderResult}
+                    onClick={() => {
+                      if (finderResult) appendServices([finderResult.service])
+                      setLadderOpen(true)
+                      setFinderOpen(false)
+                    }}
+                  >
+                    <Icon name="plus" />
+                    Add to selection
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -867,6 +1022,12 @@ const ICON_SHAPES: Record<string, ReactNode> = {
     </>
   ),
   x: <path d="M6 6l12 12M18 6 6 18" />,
+  search: (
+    <>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </>
+  ),
   plus: <path d="M12 5v14M5 12h14" />,
   chevron: <path d="m6 9 6 6 6-6" />,
   undo: (
@@ -1283,6 +1444,19 @@ function ServiceRow({
             <p className="sa-muted">No breakdown available for this package.</p>
           ) : (
             <>
+              {service.panels.length > 0 && (
+                <div>
+                  <h4 className="sa-subhead">Included packages ({service.panels.length})</h4>
+                  <div className="sa-markers">
+                    {service.panels.map((p, i) => (
+                      <span key={i} className="sa-marker sa-marker-pkg">
+                        {p}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {components.length > 0 && (
                 <div>
                   <h4 className="sa-subhead">Components ({components.length})</h4>

@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.14.0]
+
+### Added
+- **Find package by markers.** A "Find package" button on the Sale Assistant opens a picker listing every lab marker grouped by its clinical profile (Complete Blood Count, Liver Profile, Thyroid Profile, …) — independent of any package. Select the markers you need and the finder names the cheapest package that includes all of them, respecting the Men/Women filter. When no single package covers everything, it shows the closest one and which markers it misses. "Add to selection" drops the found package into the Package Ladder.
+- **Associated packages listed first in bundle details.** A bundle's "Details" now opens with an "Included packages" section naming the panels it bundles (e.g. Premium PLUS Men's · Cancer Risk – Men's · Longevity …) before the components and marker breakdown, so staff can see at a glance what a bundle is built from.
+
+### Changed
+- **Internal product SKUs stored.** Each comprehensive-package record now carries its SKU in `lib/catalogue.json` (and the re-sync script preserves them). Reference only — never shown in the UI.
+
 ## [11.13.1]
 
 ### Changed

@@ -25,6 +25,27 @@ const SOURCE_URL =
 const OUT_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', 'lib', 'catalogue.json')
 
 /**
+ * Internal product SKUs, keyed by service name. Upstream DATA has no SKU field,
+ * so they're merged in here and survive re-syncs. Stored for reference only —
+ * never shown in the UI. Add a line when a new bundle gets a SKU.
+ */
+const SKU = {
+  'Healthy Heart Package': '0211001001',
+  "Women's Clarity Package": '0211002001',
+  "Essentials Men's Package": '0211003001',
+  "Essentials Women's Package": '0211003002',
+  "All of You Men's Package": '0211004001',
+  "All of You Women's Package": '0211004002',
+  'Ultimate Gut Health Package': '0211007001',
+  "Ultimate Men's Longevity Package": '0211005001',
+  "Ultimate Women's Longevity Package": '0211005002',
+  "Executive Men's Health Package": '0211006001',
+  "Executive Women's Health Package": '0211006002',
+  "Dubai It Men's Package": '0211008001',
+  "Dubai It Women's Package": '0211008002',
+}
+
+/**
  * Pull a `const NAME={...};` object literal out of the page source.
  * DATA sits on a single line; PRICES spans several lines and closes with `};`
  * on its own line — so we scan line-by-line rather than rely on line numbers,
@@ -69,6 +90,7 @@ async function main() {
     category: s.category,
     sub: s.sub,
     name: s.name,
+    ...(SKU[s.name] ? { sku: SKU[s.name] } : {}),
     price: PRICES[s.name] ?? null,
     currency: 'AED',
     biomarkers: s.count,
@@ -76,6 +98,12 @@ async function main() {
     panels: s.panels,
     comps: s.comps,
   }))
+
+  const names = new Set(services.map((s) => s.name))
+  const strayS = Object.keys(SKU).filter((n) => !names.has(n))
+  if (strayS.length) {
+    process.stderr.write(`Warning: ${strayS.length} SKU name(s) match no service: ${strayS.join(', ')}\n`)
+  }
 
   const missing = services.filter((s) => s.price == null).map((s) => s.name)
   if (missing.length) {
