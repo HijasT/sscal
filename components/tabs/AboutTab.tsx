@@ -23,6 +23,10 @@ export function AboutTab() {
             { title: 'Customizable Tiers', desc: 'Configure achievement thresholds and rates' },
             { title: 'Tier Ladder', desc: 'See requirements to reach next tier level' },
             { title: 'Sale Assistant', desc: 'Browse the package catalogue, compare packages and build the best-value quote' },
+            { title: 'Package Ladder', desc: 'Pick packages and get the cheapest single bundle that includes them all' },
+            { title: 'Compare Packages', desc: 'Put packages side by side to see what each one covers' },
+            { title: 'Sales Notes', desc: 'Per-package talking points — what it checks and why a customer would take it' },
+            { title: 'Package Picker', desc: 'Select the markers you need; see the cheapest package that covers them' },
           ].map((feature, i) => (
             <div key={i} style={{
               padding: '16px',

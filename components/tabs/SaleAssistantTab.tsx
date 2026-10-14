@@ -1370,6 +1370,20 @@ function ServiceRow({
   onToggleQuote: () => void
 }) {
   const groups = useMemo(() => groupComps(service), [service])
+  // "Included packages" summary: the lab panels, plus anything else that composes
+  // the bundle but isn't a panel — BCA, ECG, the gut microbiome kit — and the DNA
+  // modules collapsed to one "DNA (N modules)" chip. Consultation/vitals are left
+  // out (shown under Components). Lets staff read the whole bundle at a glance.
+  const included = useMemo(() => {
+    const items = [...service.panels]
+    const dna = service.comps.filter((c) => c.group === 'DNA Modules')
+    for (const c of service.comps) {
+      if (c.group === 'Doctor & Vital Signs' || c.group === 'DNA Modules') continue
+      items.push(c.name)
+    }
+    if (dna.length) items.push(`DNA (${dna.length} module${dna.length === 1 ? '' : 's'})`)
+    return items
+  }, [service])
   // Kit components from the catalogue, plus the doctor consultation (tracked in a
   // separate `doctor` field, so it never appears in the components list itself).
   const components = useMemo(() => {
@@ -1463,11 +1477,11 @@ function ServiceRow({
             <p className="sa-muted">No breakdown available for this package.</p>
           ) : (
             <>
-              {service.panels.length > 0 && (
+              {included.length > 0 && (
                 <div>
-                  <h4 className="sa-subhead">Included packages ({service.panels.length})</h4>
+                  <h4 className="sa-subhead">Included packages ({included.length})</h4>
                   <div className="sa-markers">
-                    {service.panels.map((p, i) => (
+                    {included.map((p, i) => (
                       <span key={i} className="sa-marker sa-marker-pkg">
                         {p}
                       </span>

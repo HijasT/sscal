@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [11.15.0]
+
+### Added
+- **About: Sale Assistant feature tiles.** The Core Features grid now calls out Package Ladder, Compare Packages, Sales Notes, and Package Picker individually.
+
+### Changed
+- **"Included packages" is now the full bundle summary.** A bundle's details list the lab panels plus the other things that compose it — BCA, ECG, the gut microbiome kit — and a single "DNA (N modules)" chip, instead of panels alone. BCA/ECG (and the gut kit) show as their own items when they aren't part of a panel, so staff can read the whole bundle at a glance (e.g. Ultimate Gut Health → Food Allergy & Intolerance panel · BCA · Gut microbiome kit · DNA (4 modules)).
+
 ## [11.14.2]
 
 ### Changed
