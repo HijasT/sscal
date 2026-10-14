@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.1.2]
+
+### Changed
+- **App-bar nav polish (Material You).** The active tab is now a violet-tonal pill with a faint hover state layer, instead of an underline — brand colour spent only on the active state. Inactive tab labels moved to a darker ink for AA contrast on the lavender ground.
+- **Flatter cards.** Dropped the card drop-shadow; with the page and cards sharing one tone, the hairline border alone defines a card (no redundant grey shadow).
+- **Yellow moon in dark mode.** The dark-mode theme toggle shows a solid yellow crescent with a soft glow, not a dim outline.
+
 ## [12.1.1]
 
 ### Changed

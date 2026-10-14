@@ -120,7 +120,7 @@ export default function Home() {
         <div className="appbar-right">
           <DataExpiryTimer />
           <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
-            {theme === 'dark' ? <MoonIcon large /> : <SunIcon large />}
+            {theme === 'dark' ? <MoonIcon large className="moon-glow" /> : <SunIcon large />}
           </button>
         </div>
       </header>

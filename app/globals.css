@@ -21,6 +21,8 @@
   --accent-secondary: #6f61a3;
   --accent-tertiary: #584c86;
   --accent-soft: rgba(145, 132, 201, 0.16);
+  /* Tonal "container" fill for selected/active chrome (e.g. the active nav pill). */
+  --accent-container: #322b53;
 
   /* Brand gradient — for larger surfaces (buttons, header) where a flat
      accent color isn't enough; derives from the accent scale above so it
@@ -91,6 +93,7 @@ body.light-mode {
   --accent-secondary: #372c5c;
   --accent-tertiary: #2b2248;
   --accent-soft: #efecf8;
+  --accent-container: #ded0f3;
 
   --text-primary: #171a1f;
   --text-secondary: #4b5057;
@@ -217,9 +220,9 @@ body:not(.light-mode) .aura { mix-blend-mode: screen; opacity: 0.4; }
 /* In dark mode the toggle shows the moon — make it glow like a bright moon
    (filled disc + soft halo) rather than a dim grey outline. */
 .theme-toggle .moon-glow {
-  fill: #f4f1dc;
-  stroke: #f4f1dc;
-  filter: drop-shadow(0 0 5px rgba(244, 241, 220, 0.65));
+  fill: #f6ce51;
+  stroke: #f6ce51;
+  filter: drop-shadow(0 0 5px rgba(246, 206, 81, 0.6));
 }
 
 /* Bulk / Individual switch inside the Calculator tab. */
@@ -327,44 +330,34 @@ body:not(.light-mode) .aura { mix-blend-mode: screen; opacity: 0.4; }
 
 .nav-tabs {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 4px;
 }
 
+/* MD3 tab chip: quiet by default, a violet-tonal pill when active, a faint
+   state layer on hover — brand colour spent only on the active state. */
 .nav-tab {
-  position: relative;
   flex: 0 0 auto;
-  padding: 12px 16px;
+  padding: 8px 14px;
   background: transparent;
   border: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  color: var(--text-muted);
+  border-radius: 999px;
+  color: var(--text-secondary);
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  transition: var(--transition-base);
+  transition: background-color 0.15s ease, color 0.15s ease;
   font-family: inherit;
 }
 
 .nav-tab:hover {
   color: var(--text-primary);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 .nav-tab.active {
   color: var(--text-primary);
-}
-
-/* Gradient underline via pseudo-element — a 2px border-bottom-color can't
-   itself be a gradient. */
-.nav-tab.active::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -2px;
-  height: 2px;
-  background: var(--accent-primary);
+  background: var(--accent-container);
 }
 
 .card {
@@ -372,7 +365,6 @@ body:not(.light-mode) .aura { mix-blend-mode: screen; opacity: 0.4; }
   border-radius: var(--radius-lg);
   padding: 28px;
   border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
 }
 
 /* Matches the Sale Assistant tab's notice: neutral hairline surface, violet
