@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.0.2]
+
+### Changed
+- **About tidy-up.** Removed the redundant "Sale Assistant" umbrella tile from Core Features (its sub-features are listed individually), and the About page's collapsible sections (Calculation Example, Version History) now start collapsed.
+
 ## [12.0.1]
 
 ### Fixed

@@ -22,7 +22,6 @@ export function AboutTab() {
             { title: 'Bulk Processing', desc: 'Upload Excel and process entire team at once' },
             { title: 'Customizable Tiers', desc: 'Configure achievement thresholds and rates' },
             { title: 'Tier Ladder', desc: 'See requirements to reach next tier level' },
-            { title: 'Sale Assistant', desc: 'Browse the package catalogue, compare packages and build the best-value quote' },
             { title: 'Package Ladder', desc: 'Pick packages and get the cheapest single bundle that includes them all' },
             { title: 'Compare Packages', desc: 'Put packages side by side to see what each one covers' },
             { title: 'Sales Notes', desc: 'Per-package talking points — what it checks and why a customer would take it' },
@@ -75,7 +74,7 @@ export function AboutTab() {
           </div>
         </div>
 
-        <details className="about-section" open>
+        <details className="about-section">
         <summary className="about-summary">Calculation Example<span className="about-chevron" aria-hidden="true" /></summary>
         <div style={{padding: '20px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', marginBottom: '24px', border: '1px solid var(--border-color)'}}>
           <div style={{color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.8', fontFamily: "'JetBrains Mono', monospace"}}>
@@ -153,7 +152,7 @@ export function AboutTab() {
           <p><strong style={{color: 'var(--text-primary)'}}>Theme:</strong> Flat • Dark/Light Mode</p>
         </div>
 
-        <details className="about-section" open>
+        <details className="about-section">
         <summary className="about-summary">Version History<span className="about-chevron" aria-hidden="true" /></summary>
         <div style={{display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px'}}>
           {[
