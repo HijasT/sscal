@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.1.1]
+
+### Changed
+- **One lavender surface (light mode).** The page and cards now share a single lavender tone, with cards defined by their hairline border instead of a white-vs-lavender fill contrast, so the UI no longer reads as two colours. Inner insets step gently darker for hierarchy, and the ambient aura is dialled down so it adds depth without acting as a second ground colour.
+
 ## [12.1.0]
 
 ### Changed

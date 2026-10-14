@@ -73,18 +73,19 @@ body.light-mode {
   /* Material You tonal surfaces (purple seed): one cohesive lavender family.
      The page ground is a clear lavender (matching the Sale Assistant tab's
      ground, --sa-sunk) so the area outside/around cards reads as lilac rather
-     than a white frame; cards are a lighter tone that lifts off it. Ambient
-     aura blobs (see .aura) add soft colour so the ground never reads as flat
-     white — matching the Material You mockup. */
-  --bg-primary: #f4eff9;
-  --bg-secondary: #f1ebf9;
-  --bg-tertiary: #efe8f6;
-  --bg-card: #f5f0fb;
-  --aura-a: #e8def8;
-  --aura-b: #eaddff;
-  --aura-c: #f3d9e3;
-  --surface: #fbf9fe;
-  --surface-hover: #ece5f4;
+     than a white frame. The page and cards share ONE lavender tone — cards are
+     defined by their hairline border, not a fill contrast — so the UI reads as
+     a single lavender surface rather than two colours. Recessed insets (inputs,
+     inner boxes) step gently darker; a faint aura adds ambient depth. */
+  --bg-primary: #ebe4f5;
+  --bg-card: #ebe4f5;
+  --bg-secondary: #e6def3;
+  --bg-tertiary: #e4dcf1;
+  --surface: #f1ecf9;
+  --surface-hover: #e2d9f0;
+  --aura-a: #ddd0f2;
+  --aura-b: #e3d6fb;
+  --aura-c: #f0d3e0;
 
   --accent-primary: #4a3d7a;
   --accent-secondary: #372c5c;
@@ -104,7 +105,7 @@ body.light-mode {
   --tier-3: #c08a2e;
   --tier-4: #1f7a5c;
 
-  --border-color: #e5dff0;
+  --border-color: #dcd2ee;
   --shadow-sm: 0 1px 2px rgba(23, 26, 31, 0.05);
   --shadow-md: 0 1px 3px rgba(23, 26, 31, 0.07);
   --shadow-lg: 0 2px 6px rgba(23, 26, 31, 0.08);
@@ -148,7 +149,7 @@ html { scroll-padding-top: calc(var(--topbar-h, 0px) + var(--sa-find-h, 0px) + 8
   z-index: 0;
   border-radius: 9999px;
   filter: blur(80px);
-  opacity: 0.5;
+  opacity: 0.3;
   pointer-events: none;
   mix-blend-mode: multiply;
 }
