@@ -2005,3 +2005,22 @@ body.light-mode .sa {
 
 .sa-compare-diff > .sa-cmp-overview,
 .sa-compare-diff > .sa-cmp-common { grid-column: 1 / -1; }
+
+
+/* Ranking average follows the currently sorted numeric column. */
+.rank-average-divider td {
+  padding: 9px 12px;
+  background: color-mix(in srgb, var(--accent-primary) 12%, var(--bg-card));
+  color: var(--text-primary);
+  border-top: 2px solid var(--accent-primary);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: normal;
+}
+.rank-average-divider td strong { color: var(--accent-primary); font-family: 'JetBrains Mono', monospace; }
+.rank-average-hint { margin-left: 14px; color: var(--text-secondary); }
+@media (max-width: 640px) {
+  .rank-average-divider td { line-height: 1.6; }
+  .rank-average-hint { display: block; margin-left: 0; }
+}

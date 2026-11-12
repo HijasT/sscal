@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { Fragment, useState, useEffect, useRef } from 'react'
 import { aggregateSheets, extractEmployeeCode, type ExcelData, type StaffData } from '@/lib/excelUtils'
 import { calculateIncentive, formatCurrency, getTier, loadTiers, loadStaffCenters } from '@/lib/utils'
 import { exportBulkToPDF } from '@/lib/pdfUtils'
@@ -8,6 +8,7 @@ import { getFresh, setFresh, clearFresh } from '@/lib/storage'
 import { notify } from '@/lib/notify'
 import { DownloadIcon } from '@/components/icons'
 import { CenterBadge } from '@/components/CenterBadge'
+import { averageDivider } from '@/lib/rankAverage'
 
 interface BulkResult extends StaffData {
   achievement: number
@@ -248,11 +249,43 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     setSortDir('desc')
   }
 
-  const sortedResults = [...results].sort((a,b) => {
-    const av = a[sortColumn], bv = b[sortColumn]
+  const sortedResults = [...results].sort((a, b) => {
+    const av = a[sortColumn] ?? (sortColumn === 'name' ? '' : 0)
+    const bv = b[sortColumn] ?? (sortColumn === 'name' ? '' : 0)
     const m = sortDir === 'asc' ? 1 : -1
     return (av < bv ? -1 : av > bv ? 1 : 0) * m
   })
+
+  // Name has no meaningful average. For every numeric sort, calculate the mean
+  // from exactly the staff shown, and keep equal-to-average staff in the
+  // at-or-above group (regardless of ascending or descending order).
+  const divider = sortColumn === 'name'
+    ? null
+    : averageDivider(sortedResults, (person) => Number(person[sortColumn] ?? 0), sortDir)
+  const averageLabel: Partial<Record<SortCol, string>> = {
+    sales: 'Sales', totalIncentive: 'Total incentive', packages: 'Packages',
+    clients: 'Clients', workingDays: 'Days', avgPackagesPerDay: 'Packages/day',
+    avgSalesPerDay: 'Sales/day', avgClientsPerDay: 'Clients/day',
+    maxKpiClients: 'Max KPI clients', contribution: 'Revenue share',
+    p1: 'P1', p2: 'P2',
+  }
+  const averageValue = divider ? (
+    ['sales', 'totalIncentive', 'avgSalesPerDay', 'p1', 'p2'].includes(sortColumn)
+      ? `AED ${formatCurrency(divider.average)}`
+      : sortColumn === 'contribution'
+        ? `${divider.average.toFixed(2)}%`
+        : divider.average.toFixed(2)
+  ) : ''
+  const averageRow = divider && (
+    <tr className="rank-average-divider">
+      <td colSpan={15}>
+        <span>Average {averageLabel[sortColumn]}: <strong>{averageValue}</strong></span>
+        <span className="rank-average-hint">
+          {sortDir === 'desc' ? 'At or above average ↑  ·  Below average ↓' : 'Below average ↑  ·  At or above average ↓'}
+        </span>
+      </td>
+    </tr>
+  )
 
   const handleSort = (col: SortCol) => {
     if (sortColumn === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -514,7 +547,9 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                     const isTop3 = rank <= 3
                     const nc     = isTop3 ? 'var(--accent-primary)' : 'var(--text-secondary)'
                     return (
-                      <tr key={person.name} style={{borderBottom:'1px solid var(--border-color)',background:isTop3?'var(--accent-soft)':undefined}}>
+                      <Fragment key={person.name}>
+                        {divider?.index === i && averageRow}
+                      <tr style={{borderBottom:'1px solid var(--border-color)',background:isTop3?'var(--accent-soft)':undefined}}>
                         <td style={{...TD,fontWeight:isTop3?'700':'normal',color:nc,fontFamily:"'JetBrains Mono', monospace"}}>#{rank}</td>
                         <td style={tdHl('name',{fontWeight:isTop3?'700':'normal',color:nc})}>{person.name}<CenterBadge name={person.name} /></td>
                         <td style={tdHl('totalIncentive',{fontWeight:'600',color:isTop3?'var(--accent-primary)':'var(--success)'})}>AED {formatCurrency(person.totalIncentive)}</td>
@@ -539,8 +574,10 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                           >×</button>
                         </td>
                       </tr>
+                      </Fragment>
                     )
                   })}
+                  {divider?.index === sortedResults.length && averageRow}
                 </tbody>
               </table>
             </div>

@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.6.0]
+
+### Added
+- Calculator's staff ranking table now displays an average divider for the actively sorted numeric column, including sales (the default), incentives, packages, clients, days, per-day averages and revenue share.
+- Divider recalculates from active staff and follows ascending or descending sort order; an employee exactly at the mean is always included in the at-or-above-average group.
+- Unit tests cover ascending and descending ranking, ties at the average and empty datasets.
+
+### Notes
+- Alphabetical name sorting has no meaningful arithmetic average, so the divider is omitted for that column. Existing default Sales descending sort is preserved.
+
 ## [12.5.2]
 
 ### Changed
