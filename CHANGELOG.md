@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.5.0]
+
+### Added
+- Package comparison highlights prices, price difference, shared markers and markers or procedures unique to each package; comparisons use test IDs to distinguish food allergy from food intolerance tests with the same name.
+- Marker finder now displays the two best matching packages, prioritising complete coverage and lower price, and explicitly marking incomplete matches.
+
+### Changed
+- Replaced the Sale Assistant's Sales Notes popover with a short client-friendly Package Summary. Removed sales-angle bullets and revised sensitive screening descriptions.
+- Added regression coverage for summaries, comparison and two-option marker matching.
+
 ## [12.4.3]
 
 ### Added

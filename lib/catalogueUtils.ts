@@ -502,39 +502,98 @@ export function markerCatalogue(gender?: 'M' | 'W'): MarkerGroup[] {
  * covers all, returns the closest (most markers covered, then cheapest) with the
  * uncovered marker names in `missing`. Returns null only when nothing is selected.
  */
+export interface MarkerPackageMatch {
+  service: CatalogueService
+  missing: string[]
+  covered: number
+  total: number
+  complete: boolean
+}
+
+/**
+ * Two best marker matches: complete coverage first (cheapest first), then
+ * highest partial coverage (cheapest first). Never imply a partial match
+ * covers all requested tests.
+ */
+export function findTopPackagesForMarkers(
+  ids: Set<number>,
+  gender?: 'M' | 'W',
+  limit = 2
+): MarkerPackageMatch[] {
+  if (ids.size === 0 || limit <= 0) return []
+  const selected = [...ids]
+  const matches: MarkerPackageMatch[] = []
+  for (const service of data.services) {
+    if (service.price == null || isHiddenFromCatalogue(service)) continue
+    const g = serviceGender(service)
+    if (gender && g && g !== gender) continue
+    const tests = serviceTestIds(service)
+    const covered = selected.filter((id) => tests.has(id)).length
+    if (covered === 0) continue
+    const missing = selected.filter((id) => !tests.has(id))
+      .map((id) => data.tests[String(id)]?.name)
+      .filter((name): name is string => Boolean(name))
+    matches.push({ service, missing, covered, total: selected.length, complete: covered === selected.length })
+  }
+  matches.sort((a, b) =>
+    Number(b.complete) - Number(a.complete) ||
+    b.covered - a.covered ||
+    (a.service.price as number) - (b.service.price as number) ||
+    a.service.id - b.service.id
+  )
+  return matches.slice(0, limit)
+}
+
+/** Backward-compatible single-result helper. */
 export function findPackageForMarkers(
   ids: Set<number>,
   gender?: 'M' | 'W'
 ): { service: CatalogueService; missing: string[] } | null {
-  if (ids.size === 0) return null
-  const sel = [...ids]
-  const candidates = data.services.filter((p) => {
-    if (p.price == null) return false
-    const g = serviceGender(p)
-    return !gender || !g || g === gender
-  })
-  let best: CatalogueService | null = null
-  let closest: CatalogueService | null = null
-  let closestCov = -1
-  for (const p of candidates) {
-    const t = serviceTestIds(p)
-    const cov = sel.reduce((n, id) => n + (t.has(id) ? 1 : 0), 0)
-    if (cov === sel.length) {
-      if (!best || (p.price as number) < (best.price as number)) best = p
-    }
-    if (cov > closestCov || (cov === closestCov && closest && (p.price as number) < (closest.price as number))) {
-      closestCov = cov
-      closest = p
-    }
+  const best = findTopPackagesForMarkers(ids, gender, 1)[0]
+  return best ? { service: best.service, missing: best.missing } : null
+}
+
+export interface PackageMarkerComparison {
+  common: string[]
+  onlyA: string[]
+  onlyB: string[]
+  onlyAComponents: string[]
+  onlyBComponents: string[]
+}
+
+/**
+ * Compare actual test IDs rather than display names: Apple in a food-allergy
+ * panel is a different test from Apple in a food-intolerance panel.
+ */
+export function comparePackageMarkers(a: CatalogueService, b: CatalogueService): PackageMarkerComparison {
+  const aTests = serviceTestIds(a)
+  const bTests = serviceTestIds(b)
+  const label = (id: number) => {
+    const test = data.tests[String(id)]
+    if (!test) return String(id)
+    if (test.method === 'Food allergy') return `${test.name} (food allergy)`
+    if (test.method === 'Food intolerance') return `${test.name} (food intolerance)`
+    if (test.method === 'Respiratory allergy') return `${test.name} (respiratory allergy)`
+    return test.name
   }
-  if (best) return { service: best, missing: [] }
-  if (!closest) return null
-  const covered = serviceTestIds(closest)
-  const missing = sel
-    .filter((id) => !covered.has(id))
-    .map((id) => data.tests[String(id)]?.name)
-    .filter((n): n is string => !!n)
-  return { service: closest, missing }
+  const componentLabels = (service: CatalogueService) => {
+    const names = new Set(packageComponents(service))
+    for (const comp of service.comps) {
+      if (comp.group === 'DNA Modules' || comp.group === 'Microbiome' || comp.group === 'BCA / ECG') {
+        names.add(comp.name)
+      }
+    }
+    return names
+  }
+  const ca = componentLabels(a)
+  const cb = componentLabels(b)
+  return {
+    common: [...aTests].filter((id) => bTests.has(id)).map(label),
+    onlyA: [...aTests].filter((id) => !bTests.has(id)).map(label),
+    onlyB: [...bTests].filter((id) => !aTests.has(id)).map(label),
+    onlyAComponents: [...ca].filter((name) => !cb.has(name)),
+    onlyBComponents: [...cb].filter((name) => !ca.has(name)),
+  }
 }
 
 /**

@@ -1981,3 +1981,27 @@ body.light-mode .sa {
 .sa-finder-result { font-size: 0.8125rem; color: var(--sa-ink-soft); line-height: 1.5; }
 .sa-finder-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .sa-finder-actions .sa-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+
+/* Package comparison: quickly show shared markers, true differences and price delta. */
+.sa-cmp-overview { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--sa-hairline); border-radius: 8px; background: var(--sa-sunk); }
+.sa-cmp-overview > div { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.sa-cmp-overview > div strong { min-width: 0; font-weight: 600; }
+.sa-cmp-overview > p { margin: 2px 0 0; color: var(--sa-ink-soft); font-size: 0.8125rem; }
+.sa-cmp-common { padding: 12px; border: 1px solid var(--sa-hairline); border-radius: 8px; }
+.sa-cmp-common details summary { cursor: pointer; color: var(--sa-ink-soft); font-size: 0.8125rem; margin-bottom: 8px; }
+.sa-cmp-column { min-width: 0; }
+.sa-cmp-column .sa-subhead { overflow-wrap: anywhere; }
+/* Marker finder: each candidate has its own coverage state and add button. */
+.sa-finder-results { display: grid; gap: 10px; min-width: 0; max-height: 29vh; overflow-y: auto; }
+.sa-finder-option { padding: 10px; border: 1px solid var(--sa-hairline); border-radius: 8px; display: grid; gap: 6px; }
+.sa-finder-option-head { display: flex; gap: 10px; justify-content: space-between; flex-wrap: wrap; }
+.sa-finder-option-head strong { font-weight: 600; }
+.sa-finder-option .sa-btn { justify-self: start; }
+.sa-finder-option p { margin: 0; overflow-wrap: anywhere; }
+.sa-match-complete, .sa-match-partial { font-weight: 600; font-size: 0.75rem; }
+.sa-match-complete { color: var(--success); }
+.sa-match-partial { color: var(--warning); }
+
+.sa-compare-diff > .sa-cmp-overview,
+.sa-compare-diff > .sa-cmp-common { grid-column: 1 / -1; }

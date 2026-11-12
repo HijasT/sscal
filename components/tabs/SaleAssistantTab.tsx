@@ -37,7 +37,8 @@ import {
   dnaPackageLabels,
   dnaPackagePanelNames,
   markerCatalogue,
-  findPackageForMarkers,
+  findTopPackagesForMarkers,
+  comparePackageMarkers,
   getSuggestionExtras,
   excludedMarkers,
   excludedDnaModules,
@@ -56,7 +57,7 @@ import {
   expandForQuote,
   type CatalogueService,
 } from '@/lib/catalogueUtils'
-import { pitchNote } from '@/lib/pitchNotes'
+import { packageSummary } from '@/lib/packageSummaries'
 import { clinicalMarkerInsight } from '@/lib/markerInsights'
 import { ClinicalMarkerPopover, type ActiveClinicalMarker } from '@/components/ClinicalMarkerPopover'
 import {
@@ -134,7 +135,7 @@ export function SaleAssistantTab() {
   const [finderQuery, setFinderQuery] = useState('')
   const [pickedIds, setPickedIds] = useState<Set<number>>(new Set())
   const markerGroups = useMemo(() => markerCatalogue(gender), [gender])
-  const finderResult = useMemo(() => findPackageForMarkers(pickedIds, gender), [pickedIds, gender])
+  const finderResults = useMemo(() => findTopPackagesForMarkers(pickedIds, gender), [pickedIds, gender])
   const finderGroups = useMemo(() => {
     const q = finderQuery.trim().toLowerCase()
     if (!q) return markerGroups
@@ -939,7 +940,7 @@ export function SaleAssistantTab() {
                   <h3>Find package by markers</h3>
                   <p className="sa-muted">
                     {pickedIds.size === 0
-                      ? `Pick markers for ${gender === 'M' ? 'Men' : 'Women'} — the cheapest package covering them appears below.`
+                      ? `Pick markers for ${gender === 'M' ? 'Men' : 'Women'} — the two best matching packages appear below.`
                       : `${pickedIds.size} marker${pickedIds.size === 1 ? '' : 's'} selected`}
                   </p>
                 </div>
@@ -1011,46 +1012,43 @@ export function SaleAssistantTab() {
               </div>
 
               <div className="sa-finder-foot">
-                <div className="sa-finder-result" aria-live="polite">
-                  {!finderResult ? (
-                    <span className="sa-muted">Select one or more markers to see a suggestion.</span>
-                  ) : finderResult.missing.length === 0 ? (
-                    <span>
-                      Cheapest: <strong>{finderResult.service.name}</strong> ·{' '}
-                      <span className="sa-fig">{formatAED(finderResult.service.price)}</span> — covers all{' '}
-                      {pickedIds.size} selected marker{pickedIds.size === 1 ? '' : 's'}.
-                    </span>
+                <div className="sa-finder-results" aria-live="polite">
+                  {finderResults.length === 0 ? (
+                    <span className="sa-muted">{pickedIds.size === 0
+                      ? 'Select markers to see the two best packages.'
+                      : 'No available package covers any selected marker.'}</span>
                   ) : (
-                    <span>
-                      No single package covers all {pickedIds.size}. Closest:{' '}
-                      <strong>{finderResult.service.name}</strong> ({pickedIds.size - finderResult.missing.length}/
-                      {pickedIds.size}) · <span className="sa-fig">{formatAED(finderResult.service.price)}</span>.{' '}
-                      <span className="sa-muted">Missing: {finderResult.missing.slice(0, 8).join(', ')}
-                      {finderResult.missing.length > 8 ? `, +${finderResult.missing.length - 8} more` : ''}.</span>
-                    </span>
+                    finderResults.map((match, index) => (
+                      <div className="sa-finder-option" key={match.service.id}>
+                        <div className="sa-finder-option-head">
+                          <strong>{index + 1}. {match.service.name}</strong>
+                          <span className="sa-fig">{formatAED(match.service.price)}</span>
+                        </div>
+                        <span className={match.complete ? 'sa-match-complete' : 'sa-match-partial'}>
+                          {match.complete ? 'Full coverage' : 'Partial coverage'} · {match.covered}/{match.total} markers
+                        </span>
+                        {match.missing.length > 0 && (
+                          <p className="sa-muted sa-small">Not included: {match.missing.slice(0, 8).join(', ')}
+                            {match.missing.length > 8 ? `, +${match.missing.length - 8} more` : ''}
+                          </p>
+                        )}
+                        <button type="button" className="sa-btn sa-btn-secondary sa-btn-sm"
+                          onClick={() => {
+                            appendServices([match.service])
+                            setLadderOpen(true)
+                            setFinderOpen(false)
+                          }}>
+                          <Icon name="plus" small />
+                          Add this package
+                        </button>
+                      </div>
+                    ))
                   )}
                 </div>
                 <div className="sa-finder-actions">
-                  <button
-                    type="button"
-                    className="sa-btn sa-btn-quiet"
-                    onClick={() => setPickedIds(new Set())}
-                    disabled={pickedIds.size === 0}
-                  >
-                    Clear
-                  </button>
-                  <button
-                    type="button"
-                    className="sa-btn sa-btn-secondary"
-                    disabled={!finderResult}
-                    onClick={() => {
-                      if (finderResult) appendServices([finderResult.service])
-                      setLadderOpen(true)
-                      setFinderOpen(false)
-                    }}
-                  >
-                    <Icon name="plus" />
-                    Add to selection
+                  <button type="button" className="sa-btn sa-btn-quiet"
+                    onClick={() => setPickedIds(new Set())} disabled={pickedIds.size === 0}>
+                    Clear markers
                   </button>
                 </div>
               </div>
@@ -1142,14 +1140,9 @@ function ComparePanel() {
   const a = aId != null ? getServiceById(aId) : undefined
   const b = bId != null ? getServiceById(bId) : undefined
 
-  // What the first package has that the second is missing — collapsing any
-  // complete individual package into its name (the same helper the suggestion
-  // uses), with the leftover markers/DNA modules listed individually.
-  const diffItems = (from?: CatalogueService, within?: CatalogueService): ExtraItem[] =>
-    from && within ? getSuggestionExtras([within], from) : []
-  const aItems = diffItems(a, b)
-  const bItems = diffItems(b, a)
   const same = Boolean(a && b && a.id === b.id)
+  const comparison = useMemo(() => a && b && !same ? comparePackageMarkers(a, b) : null, [a, b, same])
+  const priceDifference = a && b && a.price != null && b.price != null ? b.price - a.price : null
 
   const picker = (
     label: string,
@@ -1179,34 +1172,26 @@ function ComparePanel() {
     </div>
   )
 
-  const diffColumn = (self?: CatalogueService, other?: CatalogueService, items?: ExtraItem[]) => {
-    const pkgs = items!.filter((it) => it.complete)
-    const loose = items!.filter((it) => !it.complete).flatMap((it) => it.markers)
-    const count = pkgs.length + loose.length
-    return (
-    <div>
-      <h4 className="sa-subhead">
-        Only in {self!.name} <span className="sa-muted sa-fig">{count}</span>
-      </h4>
-      {count === 0 ? (
-        <p className="sa-muted">{other!.name} already covers everything in {self!.name}.</p>
+  const diffColumn = (label: string, markers: string[], components: string[]) => (
+    <div className="sa-cmp-column">
+      <h4 className="sa-subhead">{label} <span className="sa-muted sa-fig">{markers.length} markers</span></h4>
+      {markers.length === 0 && components.length === 0 ? (
+        <p className="sa-muted">No additional markers or components.</p>
       ) : (
-        <div className="sa-markers">
-          {pkgs.map((it, i) => (
-            <span key={`p${i}`} className="sa-marker sa-marker-pkg">
-              {it.label}
-            </span>
-          ))}
-          {loose.map((m, i) => (
-            <span key={`m${i}`} className="sa-marker">
-              {m}
-            </span>
-          ))}
-        </div>
+        <>
+          {markers.length > 0 && <div className="sa-markers">
+            {markers.map((name, i) => <span key={i} className="sa-marker">{name}</span>)}
+          </div>}
+          {components.length > 0 && <>
+            <p className="sa-muted sa-small">Additional procedures / modules</p>
+            <div className="sa-markers">
+              {components.map((name) => <span key={name} className="sa-marker sa-marker-pkg">{name}</span>)}
+            </div>
+          </>}
+        </>
       )}
     </div>
-    )
-  }
+  )
 
   return (
     <div className="sa-compare-body">
@@ -1216,13 +1201,30 @@ function ComparePanel() {
       </div>
 
       {!a || !b ? (
-        <p className="sa-muted">Choose two packages to see which markers each one is missing.</p>
+        <p className="sa-muted">Choose two packages to compare shared tests, differences and prices.</p>
       ) : same ? (
         <p className="sa-muted">Those are the same package — pick two different ones to compare.</p>
       ) : (
         <div className="sa-compare-diff">
-          {diffColumn(a, b, aItems)}
-          {diffColumn(b, a, bItems)}
+          <div className="sa-cmp-overview">
+            <div><strong>{a.name}</strong><span className="sa-fig">{formatAED(a.price)}</span></div>
+            <div><strong>{b.name}</strong><span className="sa-fig">{formatAED(b.price)}</span></div>
+            {priceDifference !== null && (
+              <p>Package B is {priceDifference === 0 ? 'the same price as A' :
+                `${formatAED(Math.abs(priceDifference))} ${priceDifference > 0 ? 'more' : 'less'} than A`}.</p>
+            )}
+          </div>
+          <div className="sa-cmp-common">
+            <h4 className="sa-subhead">Included in both packages <span className="sa-muted sa-fig">{comparison!.common.length} markers</span></h4>
+            <details>
+              <summary>View shared markers</summary>
+              <div className="sa-markers">
+                {comparison!.common.map((name, i) => <span key={i} className="sa-marker">{name}</span>)}
+              </div>
+            </details>
+          </div>
+          {diffColumn(`Only in ${a.name}`, comparison!.onlyA, comparison!.onlyAComponents)}
+          {diffColumn(`Only in ${b.name}`, comparison!.onlyB, comparison!.onlyBComponents)}
         </div>
       )}
     </div>
@@ -1432,10 +1434,10 @@ function ServiceRow({
   const sections = useMemo(() => (expanded ? markerSections(service) : []), [service, expanded])
   const panelCount = useMemo(() => sections.reduce((n, s) => n + s.groups.length, 0), [sections])
   const detailId = `sa-d-${service.id}`
-  // Staff-facing sales notes (lib/pitchNotes.ts), shown via the "i" button.
-  const pitch = pitchNote(service.name)
-  const [pitchOpen, setPitchOpen] = useState(false)
-  const pitchId = `sa-p-${service.id}`
+  // Client-friendly package overview, shown through the information button.
+  const summary = packageSummary(service)
+  const [summaryOpen, setSummaryOpen] = useState(false)
+  const summaryId = `sa-summary-${service.id}`
   const [openMarker, setOpenMarker] = useState<ActiveClinicalMarker | null>(null)
   const markerTooltipId = `sa-marker-insight-${service.id}`
   useEffect(() => { if (!expanded) setOpenMarker(null) }, [expanded])
@@ -1458,19 +1460,17 @@ function ServiceRow({
         </div>
         <div className="sa-pkg-side">
           <span className="sa-fig sa-pkg-price">{formatAED(service.price)}</span>
-          {pitch && (
-            <button
-              type="button"
-              className={`sa-icon-btn${pitchOpen ? ' is-on' : ''}`}
-              aria-expanded={pitchOpen}
-              aria-controls={pitchId}
-              aria-label={`Sales notes for ${service.name}`}
-              title="Sales notes"
-              onClick={() => setPitchOpen((v) => !v)}
-            >
-              <Icon name="info" />
-            </button>
-          )}
+          <button
+            type="button"
+            className={`sa-icon-btn${summaryOpen ? ' is-on' : ''}`}
+            aria-expanded={summaryOpen}
+            aria-controls={summaryId}
+            aria-label={`Package summary for ${service.name}`}
+            title="Package summary"
+            onClick={() => setSummaryOpen((v) => !v)}
+          >
+            <Icon name="info" />
+          </button>
           <button
             type="button"
             className="sa-btn sa-btn-quiet"
@@ -1492,18 +1492,13 @@ function ServiceRow({
         </div>
       </div>
 
-      {pitch && pitchOpen && (
-        <div id={pitchId} className="sa-pitch" role="note">
+      {summaryOpen && (
+        <div id={summaryId} className="sa-pitch" role="note">
           <div className="sa-pitch-head">
             <Icon name="info" small />
-            <span>Sales notes</span>
+            <span>Package summary</span>
           </div>
-          <p className="sa-pitch-what">{pitch.whatFor}</p>
-          <ul className="sa-pitch-angles">
-            {pitch.angles.map((a, i) => (
-              <li key={i}>{a}</li>
-            ))}
-          </ul>
+          <p className="sa-pitch-what">{summary}</p>
         </div>
       )}
 
