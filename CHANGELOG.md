@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.5.2]
+
+### Changed
+- Revised all 53 Sale Assistant package summaries to describe broad screening coverage and what clients can expect to learn, without routine visit details (vital signs, consent, questionnaires or doctor consultations).
+- Clarified ECG as a heart electrical activity/rhythm recording and BCA as an estimate of body fat, muscle mass and their distribution. Marker-specific definitions remain in the separate Marker Insights bubbles.
+- Added regression checks for summary scope, length and excluded administrative details.
+
 ## [12.5.1]
 
 ### Changed

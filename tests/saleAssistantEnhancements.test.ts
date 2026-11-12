@@ -14,13 +14,18 @@ test('every visible package has a concise client-facing summary', () => {
     const summary = packageSummary(service)
     assert.ok(summary.trim().length >= 20, service.name)
     assert.ok(!/Sales notes/i.test(summary), service.name)
+    assert.doesNotMatch(summary, /vital signs?|consent|questionnaire|doctor consultation/i, service.name)
+    assert.ok(summary.trim().split(/\s+/).length <= 45, service.name)
   }
-  assert.match(packageSummary(svc(32)), /BRCA hereditary cancer-risk genetic panel/)
+  assert.match(packageSummary(svc(32)), /BRCA-related inherited genetic variants/)
   assert.match(packageSummary(svc(38)), /blood screening.*genetic insights.*ECG.*body composition/i)
   assert.match(packageSummary(svc(48)), /food allergy.*gut microbiome.*genetic wellness/i)
   assert.match(packageSummary(svc(1)), /blood counts.*cholesterol.*blood sugar/i)
   assert.equal(Object.keys(PACKAGE_SUMMARIES).length, 53)
   assert.ok(!packageSummary(svc(2)).includes('Alanine aminotransferase'))
+  assert.match(packageSummary(svc(25)), /body fat.*muscle mass.*distribution/i)
+  assert.match(packageSummary(svc(26)), /heart.*electrical activity.*heart rate and rhythm/i)
+  assert.match(packageSummary(svc(38)), /ECG heart-rhythm assessment.*body composition/i)
 })
 
 test('package comparison keeps shared and unique lab markers separate', () => {
