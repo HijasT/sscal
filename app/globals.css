@@ -1756,6 +1756,46 @@ body.light-mode .sa {
 
 .sa-markers { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 0 12px; }
 .sa-marker { font-size: 0.8125rem; padding: 3px 9px; border-radius: 6px; background: var(--sa-sunk); border: 1px solid var(--sa-hairline); color: var(--sa-ink-soft); }
+/* Only clinical blood-marker chips open a short explanation. */
+.sa-clinical-marker { font: inherit; font-size: 0.8125rem; cursor: pointer; text-align: left; }
+.sa-clinical-marker:hover,
+.sa-clinical-marker[aria-expanded='true'] { border-color: var(--accent-primary); background: var(--accent-soft); color: var(--text-primary); }
+.sa-clinical-marker:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+.sa-marker-insight {
+  z-index: 10000;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-xl);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  max-height: min(55vh, 240px);
+  overflow: visible;
+  pointer-events: auto;
+}
+.sa-marker-insight-name { display: block; font-weight: 600; margin-bottom: 3px; }
+.sa-marker-insight-expansion { color: var(--text-secondary); font-size: 0.75rem; margin-bottom: 6px; }
+.sa-marker-insight-description { margin: 0; }
+.sa-marker-insight-arrow {
+  position: absolute;
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  transform: translateX(-50%) rotate(45deg);
+  background: var(--surface);
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+.sa-marker-insight-arrow.is-above {
+  top: -6px;
+  bottom: auto;
+  border: 0;
+  border-top: 1px solid var(--border-color);
+  border-left: 1px solid var(--border-color);
+}
 /* A diff chip that stands for a whole individual package, not a single marker. */
 .sa-marker-pkg { background: var(--sa-violet-wash); border-color: var(--sa-violet-text); color: var(--sa-violet-text); font-weight: 600; }
 

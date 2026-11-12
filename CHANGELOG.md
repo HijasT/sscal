@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.4.3]
+
+### Added
+- Clinical Marker Insights: tap any of the 130 clinical blood-marker chips under package details to see a short, locally stored explanation and an abbreviation expansion where relevant.
+- One anchored overhead bubble at a time; tap the same or another marker, tap outside, or press Escape to dismiss or switch. On narrow screens the bubble adjusts its position. Food allergy, intolerance and respiratory allergy chips remain unchanged.
+- Added regression tests for complete clinical marker coverage and allergy marker exclusions.
+
 ## [12.4.2]
 
 ### Fixed

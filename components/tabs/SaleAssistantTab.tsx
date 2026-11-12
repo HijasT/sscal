@@ -57,6 +57,8 @@ import {
   type CatalogueService,
 } from '@/lib/catalogueUtils'
 import { pitchNote } from '@/lib/pitchNotes'
+import { clinicalMarkerInsight } from '@/lib/markerInsights'
+import { ClinicalMarkerPopover, type ActiveClinicalMarker } from '@/components/ClinicalMarkerPopover'
 import {
   type ExtraItem,
   type QuoteLine,
@@ -1434,6 +1436,9 @@ function ServiceRow({
   const pitch = pitchNote(service.name)
   const [pitchOpen, setPitchOpen] = useState(false)
   const pitchId = `sa-p-${service.id}`
+  const [openMarker, setOpenMarker] = useState<ActiveClinicalMarker | null>(null)
+  const markerTooltipId = `sa-marker-insight-${service.id}`
+  useEffect(() => { if (!expanded) setOpenMarker(null) }, [expanded])
   // On expand, bring this row to the top so its details unfold downward into view.
   const rowRef = useRef<HTMLElement>(null)
   useEffect(() => {
@@ -1562,11 +1567,27 @@ function ServiceRow({
                               {p.group} <span className="sa-muted sa-fig">{p.tests.length}</span>
                             </h4>
                             <div className="sa-markers">
-                              {p.tests.map((t, i) => (
-                                <span key={i} className="sa-marker">
-                                  {t.name}
-                                </span>
-                              ))}
+                              {p.tests.map((t, i) => {
+                                const insight = clinicalMarkerInsight(t.name)
+                                return insight ? (
+                                  <button
+                                    type="button"
+                                    key={i}
+                                    className="sa-marker sa-clinical-marker"
+                                    aria-label={`Explain ${t.name}`}
+                                    aria-expanded={openMarker?.name === t.name}
+                                    aria-describedby={openMarker?.name === t.name ? markerTooltipId : undefined}
+                                    onClick={(event) => {
+                                      const anchor = event.currentTarget
+                                      setOpenMarker((current) => current?.name === t.name ? null : { name: t.name, anchor })
+                                    }}
+                                  >
+                                    {t.name}
+                                  </button>
+                                ) : (
+                                  <span key={i} className="sa-marker">{t.name}</span>
+                                )
+                              })}
                             </div>
                           </div>
                         ))}
@@ -1578,6 +1599,13 @@ function ServiceRow({
             </>
           )}
         </div>
+      )}
+      {expanded && (
+        <ClinicalMarkerPopover
+          id={markerTooltipId}
+          active={openMarker}
+          onClose={() => setOpenMarker(null)}
+        />
       )}
     </article>
   )
