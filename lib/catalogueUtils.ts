@@ -1007,6 +1007,7 @@ export function formatUSD(aed: number | null, rate: number): string {
  * Consultation appended last by buildJourney.
  */
 export const JOURNEY_COMPONENT_ORDER = [
+  'BRCA Consent Form',
   'Blood Collection',
   'Swab',
   'BCA',
