@@ -928,6 +928,7 @@
    ],
    "components": [
     "Blood Collection",
+    "BRCA Consent Form",
     "Vital Signs"
    ]
   },
@@ -1899,6 +1900,7 @@
    ],
    "components": [
     "Blood Collection",
+    "BRCA Consent Form",
     "Swab",
     "BCA",
     "ECG",
@@ -2001,6 +2003,7 @@
    ],
    "components": [
     "Blood Collection",
+    "BRCA Consent Form",
     "Swab",
     "BCA",
     "ECG",
@@ -2174,6 +2177,7 @@
    ],
    "components": [
     "Blood Collection",
+    "BRCA Consent Form",
     "Swab",
     "BCA",
     "ECG",
@@ -2283,6 +2287,7 @@
    ],
    "components": [
     "Blood Collection",
+    "BRCA Consent Form",
     "Swab",
     "BCA",
     "ECG",
