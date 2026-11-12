@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { comparePackageMarkers, findTopPackagesForMarkers, getServiceById, getVisibleServices } from '../lib/catalogueUtils.ts'
-import { packageSummary } from '../lib/packageSummaries.ts'
+import { packageSummary, PACKAGE_SUMMARIES } from '../lib/packageSummaries.ts'
 
 const svc = (id: number) => {
   const s = getServiceById(id)
@@ -15,7 +15,12 @@ test('every visible package has a concise client-facing summary', () => {
     assert.ok(summary.trim().length >= 20, service.name)
     assert.ok(!/Sales notes/i.test(summary), service.name)
   }
-  assert.match(packageSummary(svc(32)), /BRCA1 and BRCA2/)
+  assert.match(packageSummary(svc(32)), /BRCA hereditary cancer-risk genetic panel/)
+  assert.match(packageSummary(svc(38)), /blood screening.*genetic insights.*ECG.*body composition/i)
+  assert.match(packageSummary(svc(48)), /food allergy.*gut microbiome.*genetic wellness/i)
+  assert.match(packageSummary(svc(1)), /blood counts.*cholesterol.*blood sugar/i)
+  assert.equal(Object.keys(PACKAGE_SUMMARIES).length, 53)
+  assert.ok(!packageSummary(svc(2)).includes('Alanine aminotransferase'))
 })
 
 test('package comparison keeps shared and unique lab markers separate', () => {

@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.5.1]
+
+### Changed
+- Rewrote all 53 Sale Assistant package summaries as brief, plain-language overviews of included screening areas and procedures rather than explanations of individual biomarkers or promotional sales notes.
+- Preserved detailed biomarker definitions exclusively in Marker Insights; added coverage tests for package summary content.
+
 ## [12.5.0]
 
 ### Added
