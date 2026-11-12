@@ -74,7 +74,7 @@ const CATEGORY_TONE: Record<string, string> = {
   'Core Health Screening': 'a',
   'Specialised Screening': 'b',
   'DNA Insights': 'c',
-  'Other Screenings & Consults': 'd',
+  'Follow-ups': 'd',
   'Comprehensive Packages / Bundles': 'e',
 }
 const TONE_CYCLE = ['a', 'b', 'c', 'd', 'e']
@@ -190,7 +190,8 @@ export function SaleAssistantTab() {
       if (!map.has(s.category)) map.set(s.category, [])
       map.get(s.category)!.push(s)
     }
-    return { list: r, groups: [...map.entries()], covered }
+    const order = getCategories()
+    return { list: r, groups: [...map.entries()].sort(([a], [b]) => order.indexOf(a) - order.indexOf(b)), covered }
   }, [query, category, gender, filter, lines, hideCovered])
 
   const selServices = useMemo(() => lines.map((l) => l.service), [lines])

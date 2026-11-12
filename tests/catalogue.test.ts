@@ -8,6 +8,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   getServiceById,
+  getCategories,
   getVisibleServices,
   buildJourney,
   bloodTubes,
@@ -100,4 +101,27 @@ test("getSuggestionExtras: a bundle only lists packages it genuinely includes", 
   assert.ok(!complete.some((n) => /Acne/.test(n)), 'must not claim DNA Acne (its DNA module is absent)')
   // A package the bundle really does include still shows.
   assert.ok(complete.some((n) => /Premium PLUS Women/.test(n)), 'should still list Premium PLUS Women')
+})
+
+// ---------- Sale Assistant category reorganisation ----------
+test('categories: Follow-ups appears after Comprehensive Packages', () => {
+  const cats = getCategories()
+  assert.equal(cats.at(-1), 'Follow-ups')
+  assert.ok(cats.indexOf('Follow-ups') > cats.indexOf('Comprehensive Packages / Bundles'))
+  assert.ok(!cats.includes('Other Screenings & Consults'))
+})
+
+test('category moves and ECG rename preserve package IDs', () => {
+  assert.equal(svc(25).name, 'Body Composition Analysis')
+  assert.equal(svc(25).category, 'Specialised Screening')
+  assert.equal(svc(26).name, 'ECG')
+  assert.equal(svc(26).category, 'Specialised Screening')
+  for (const id of [15, 19, 20, 21, 22, 23]) {
+    assert.equal(svc(id).category, 'Follow-ups')
+  }
+})
+
+test('composition: Healthy Heart covers BCA and renamed ECG', () => {
+  const suggestion = suggestPackage([named('Body Composition Analysis'), named('ECG')], 'M')
+  assert.equal(suggestion?.name, 'Healthy Heart Package')
 })

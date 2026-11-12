@@ -90,11 +90,11 @@ export function getServices(): CatalogueService[] {
   return data.services
 }
 
-/** Category display order = order of first appearance in the source sheet. */
+/** Category display order: Follow-ups always appears after comprehensive packages. */
 export function getCategories(): string[] {
   const seen: string[] = []
   for (const s of data.services) if (!seen.includes(s.category)) seen.push(s.category)
-  return seen
+  return [...seen.filter((category) => category !== 'Follow-ups'), ...seen.filter((category) => category === 'Follow-ups')]
 }
 
 export function getServiceById(id: number): CatalogueService | undefined {
@@ -571,7 +571,7 @@ const COMPOSITION: Record<string, string[]> = {
     'Liver Profile',
     'Thyroid, Hormone & Vitamin Profile',
   ],
-  'Healthy Heart Package': ['Body Composition Analysis', 'ECG & Consult'],
+  'Healthy Heart Package': ['Body Composition Analysis', 'ECG'],
   "Women's Clarity Package": ["Premium PLUS Women's Health Screening", 'Body Composition Analysis'],
   // Essentials & All of You do NOT include Body Composition Analysis (their
   // contents carry no BCA), so BCA is not listed here — otherwise they'd be
@@ -586,7 +586,7 @@ const COMPOSITION: Record<string, string[]> = {
   "Ultimate Women's Longevity Package": ["All of You Women's Package", 'Longevity Profile', 'Body Composition Analysis'],
   "Executive Men's Health Package": [
     "All of You Men's Package",
-    'ECG & Consult',
+    'ECG',
     'Cancer Risk Profile - Men',
     'Blood Group Test',
     'Cancer Risk - BRCA Genetic Test',
@@ -594,7 +594,7 @@ const COMPOSITION: Record<string, string[]> = {
   ],
   "Executive Women's Health Package": [
     "All of You Women's Package",
-    'ECG & Consult',
+    'ECG',
     "Cancer Risk Profile - Women's",
     'Blood Group Test',
     'Cancer Risk - BRCA Genetic Test',
@@ -946,7 +946,7 @@ export function getSuggestionExtras(
   const addonPackage = (comp: CatalogueComp): CatalogueService | undefined => {
     if (comp.group === 'Microbiome') return byName.get('Gut Microbiome Test')
     if (comp.name === 'BCA') return byName.get('Body Composition Analysis')
-    if (comp.name === 'ECG') return byName.get('ECG & Consult')
+    if (comp.name === 'ECG') return byName.get('ECG')
     return undefined
   }
   const addGroups = new Set(['BCA / ECG', 'Microbiome'])

@@ -437,8 +437,8 @@
   },
   {
    "id": 15,
-   "category": "Specialised Screening",
-   "sub": "Other",
+   "category": "Follow-ups",
+   "sub": "Follow Up Panel",
    "name": "Cortisol Test",
    "price": 150,
    "currency": "AED",
@@ -523,7 +523,7 @@
   },
   {
    "id": 19,
-   "category": "Specialised Screening",
+   "category": "Follow-ups",
    "sub": "Follow Up Panel",
    "name": "Cardiometabolic Risk Profile",
    "price": 600,
@@ -552,7 +552,7 @@
   },
   {
    "id": 20,
-   "category": "Specialised Screening",
+   "category": "Follow-ups",
    "sub": "Follow Up Panel",
    "name": "Nutrition, Inflammation & Immune Health Profile",
    "price": 600,
@@ -581,7 +581,7 @@
   },
   {
    "id": 21,
-   "category": "Specialised Screening",
+   "category": "Follow-ups",
    "sub": "Follow Up Panel",
    "name": "Liver Profile",
    "price": 400,
@@ -610,7 +610,7 @@
   },
   {
    "id": 22,
-   "category": "Specialised Screening",
+   "category": "Follow-ups",
    "sub": "Follow Up Panel",
    "name": "Kidney & Metabolic Profile",
    "price": 500,
@@ -639,7 +639,7 @@
   },
   {
    "id": 23,
-   "category": "Specialised Screening",
+   "category": "Follow-ups",
    "sub": "Follow Up Panel",
    "name": "Thyroid, Hormone & Vitamin Profile",
    "price": 900,
@@ -706,7 +706,7 @@
   },
   {
    "id": 25,
-   "category": "Other Screenings & Consults",
+   "category": "Specialised Screening",
    "sub": "BCA",
    "name": "Body Composition Analysis",
    "price": 190,
@@ -727,9 +727,9 @@
   },
   {
    "id": 26,
-   "category": "Other Screenings & Consults",
+   "category": "Specialised Screening",
    "sub": "ECG",
-   "name": "ECG & Consult",
+   "name": "ECG",
    "price": 500,
    "currency": "AED",
    "biomarkers": null,
@@ -759,7 +759,7 @@
   },
   {
    "id": 27,
-   "category": "Other Screenings & Consults",
+   "category": "Follow-ups",
    "sub": "Consults & Certificates",
    "name": "Doctor Consultation",
    "price": 500,
@@ -785,7 +785,7 @@
   },
   {
    "id": 28,
-   "category": "Other Screenings & Consults",
+   "category": "Follow-ups",
    "sub": "Consults & Certificates",
    "name": "Travel Fit Assessment",
    "price": 550,
@@ -811,7 +811,7 @@
   },
   {
    "id": 29,
-   "category": "Other Screenings & Consults",
+   "category": "Follow-ups",
    "sub": "Vaccinations",
    "name": "Seasonal Flu Vaccination",
    "price": 150,
@@ -837,7 +837,7 @@
   },
   {
    "id": 30,
-   "category": "Other Screenings & Consults",
+   "category": "Follow-ups",
    "sub": "Vaccinations",
    "name": "Hajj & Umrah Vaccination Package (Below 65 years)",
    "price": 790,
@@ -868,7 +868,7 @@
   },
   {
    "id": 31,
-   "category": "Other Screenings & Consults",
+   "category": "Follow-ups",
    "sub": "Vaccinations",
    "name": "Hajj & Umrah Vaccination Package (Above 65 years)",
    "price": 790,

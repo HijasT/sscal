@@ -219,7 +219,7 @@ export const PITCH_NOTES: Record<string, PitchNote> = {
     ],
   },
 
-  // ---- Other Screenings & Consults ----
+  // ---- Specialised Screening (BCA / ECG) and Follow-ups ----
   'Body Composition Analysis': {
     whatFor: 'Measures body fat, muscle and distribution — beyond just weight.',
     angles: [
@@ -228,7 +228,7 @@ export const PITCH_NOTES: Record<string, PitchNote> = {
       'A clear starting point for a health plan.',
     ],
   },
-  'ECG & Consult': {
+  'ECG': {
     whatFor: 'A heart-rhythm trace with a doctor review.',
     angles: [
       'Check your heart’s rhythm with a doctor’s review.',

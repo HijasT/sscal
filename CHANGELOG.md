@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.4.0]
+
+### Changed
+- Renamed **Other Screenings & Consults** to **Follow-ups** and moved it after Comprehensive Packages / Bundles in the Sale Assistant.
+- Moved Body Composition Analysis (BCA) and ECG into Specialised Screening, and renamed **ECG & Consult** to **ECG** without changing its clinical contents.
+- Moved Cortisol, Cardiometabolic Risk, Nutrition/Inflammation/Immune Health, Liver, Kidney/Metabolic, and Thyroid/Hormone/Vitamin profiles into Follow-ups.
+- Updated package composition, add-on lookup, and sales notes for the ECG rename; aligned the displayed version and npm metadata.
+
 ## [12.3.0]
 
 ### Added
