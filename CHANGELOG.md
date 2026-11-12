@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.4.2]
+
+### Fixed
+- The Blood Tests Only filter now includes the standalone Cancer Risk – BRCA Genetic Test. Its required BRCA Consent Form is an administrative step, not a disqualifying procedure; multi-procedure BRCA bundles remain excluded.
+
 ## [12.4.1]
 
 ### Changed

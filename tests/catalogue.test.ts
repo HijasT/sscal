@@ -62,7 +62,9 @@ test('bloodTubes: known counts, and undefined for non-blood packages', () => {
 test('isBloodTestOnly: blood draw with nothing but vitals/consult', () => {
   assert.equal(isBloodTestOnly(STANDARD), true)
   assert.equal(isBloodTestOnly(COELIAC), true)
+  assert.equal(isBloodTestOnly(svc(32)), true) // BRCA consent is administrative, not another test procedure
   assert.equal(isBloodTestOnly(DUBAI_M), false) // has swab, BCA, ECG, …
+  assert.equal(isBloodTestOnly(svc(46)), false) // BRCA consent does not override other procedures
   assert.equal(isBloodTestOnly(GUT), false) // no blood draw at all
 })
 

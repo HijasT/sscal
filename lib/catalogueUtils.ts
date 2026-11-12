@@ -308,12 +308,12 @@ export function hasLabTests(service: CatalogueService): boolean {
 /** Components allowed alongside Blood Collection in a "blood tests only" package.
  *  (Doctor Consultation lives in the `doctor` field, not the components list, so
  *  it's always permitted.) */
-const BLOOD_ONLY_COMPONENTS = new Set(['Blood Collection', 'Vital Signs'])
+const BLOOD_ONLY_COMPONENTS = new Set(['Blood Collection', 'Vital Signs', 'BRCA Consent Form'])
 
 /**
  * A pure blood-test package: it draws blood and carries nothing else except a
- * doctor consultation and vital signs — no swab, BCA, ECG, gut kit or
- * questionnaire. Used by the "Blood tests only" filter.
+ * doctor consultation, vital signs or administrative BRCA consent form — no swab,
+ * BCA, ECG, gut kit or questionnaire. Used by the "Blood tests only" filter.
  */
 export function isBloodTestOnly(service: CatalogueService): boolean {
   const comps = packageComponents(service)
