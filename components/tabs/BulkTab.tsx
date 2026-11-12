@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, useEffect, useRef, type ReactNode } from 'react'
 import { parseExcelFile, pickDefaultMonth, type ExcelData } from '@/lib/excelUtils'
 import { BulkResultsView } from './BulkResultsView'
 import { BarChartIcon, UploadIcon } from '@/components/icons'
@@ -57,6 +57,20 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
     })
   const [availableYears, setAvailableYears] = useState<string[]>([])
   const [hasHydrated, setHasHydrated] = useState(false)
+  // Discreet five-tap entry for experimental insights. This only obscures the
+  // entry point; it is not authentication and cannot restrict source access.
+  const [betaUnlocked, setBetaUnlocked] = useState(false)
+  const headingTaps = useRef({ count: 0, last: 0 })
+  const onHeadingTap = () => {
+    const now = Date.now()
+    const previous = headingTaps.current
+    const count = now - previous.last < 950 ? previous.count + 1 : 1
+    headingTaps.current = { count, last: now }
+    if (count >= 5) {
+      setBetaUnlocked(true)
+      headingTaps.current = { count: 0, last: 0 }
+    }
+  }
 
   // Apply whatever was persisted from a previous session, once, after mount.
   useEffect(() => {
@@ -144,7 +158,7 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
       {modeSwitch}
 
       <div className="card-header">
-        <h2 className="card-title"><BarChartIcon className="icon-lg" />Bulk Calculations</h2>
+        <h2 className="card-title"><BarChartIcon className="icon-lg" /><button type="button" className="bulk-stealth-heading" onClick={onHeadingTap}>Bulk Calculations</button></h2>
         <div className="card-description">Upload your Excel file to calculate bulk incentives for the whole team</div>
       </div>
 
@@ -358,6 +372,8 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
             viewMode={viewMode}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
+            betaUnlocked={betaUnlocked}
+            onHideBeta={() => setBetaUnlocked(false)}
           />
         </>
       )}

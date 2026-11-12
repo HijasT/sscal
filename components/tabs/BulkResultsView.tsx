@@ -10,6 +10,7 @@ import { DownloadIcon } from '@/components/icons'
 import { CenterBadge } from '@/components/CenterBadge'
 import { projectMonthlySales } from '@/lib/salesProjection'
 import { averageDivider } from '@/lib/rankAverage'
+import { BulkInsightsBeta } from '@/components/tabs/BulkInsightsBeta'
 
 interface BulkResult extends StaffData {
   achievement: number
@@ -34,6 +35,8 @@ interface Props {
   viewMode: ViewMode
   selectedMonth: string
   selectedYear: string
+  betaUnlocked?: boolean
+  onHideBeta?: () => void
 }
 
 const TH: React.CSSProperties = {
@@ -84,7 +87,7 @@ function loadPersistedResults(): Partial<PersistedResults> {
   }
 }
 
-export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYear }: Props) {
+export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYear, betaUnlocked = false, onHideBeta }: Props) {
   const persisted = loadPersistedResults()
   const [target, setTarget]           = useState(persisted.target ?? '')
   const [autoTarget, setAutoTarget]   = useState(persisted.autoTarget ?? 0)
@@ -94,6 +97,10 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   const [calculatedData, setCalcData] = useState<any>(persisted.calculatedData ?? null)
   const [sortColumn, setSortCol]      = useState<SortCol>('sales')
   const [sortDir, setSortDir]         = useState<'asc' | 'desc'>('desc')
+  const [bulkSubtab, setBulkSubtab]   = useState<'calculator' | 'beta'>('calculator')
+  useEffect(() => {
+    setBulkSubtab(betaUnlocked ? 'beta' : 'calculator')
+  }, [betaUnlocked])
   const [excludedStaff, setExcluded]  = useState<Set<string>>(new Set(persisted.excludedStaff ?? []))
 
   // Persist the last calculation so it survives a tab switch/remount.
@@ -438,7 +445,19 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
       )}
 
       {results.length > 0 && calculatedData && (
-        <div style={{marginTop:'24px'}}>
+        <>
+        <div className="bulk-subtabs" role="tablist" aria-label="Bulk Calculator sections">
+          <button type="button" role="tab" id="bulk-tab-calculator"
+            aria-selected={bulkSubtab === 'calculator'} aria-controls="bulk-panel-calculator"
+            onClick={() => setBulkSubtab('calculator')}>Calculator & Rankings</button>
+          {betaUnlocked && (
+            <button type="button" role="tab" id="bulk-tab-beta"
+              aria-selected={bulkSubtab === 'beta'} aria-controls="bulk-panel-beta"
+              onClick={() => setBulkSubtab('beta')}>Insights <span className="beta-label">BETA</span></button>
+          )}
+        </div>
+        <div id="bulk-panel-calculator" role="tabpanel" aria-labelledby="bulk-tab-calculator"
+          hidden={bulkSubtab !== 'calculator'} style={{marginTop:'18px'}}>
 
           {/* Title */}
           <div style={{display:'flex',alignItems:'center',padding:'16px',background:'var(--bg-tertiary)',borderRadius:'var(--radius-md)',marginBottom:'16px'}}>
@@ -652,6 +671,24 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
             <button className="btn btn-secondary" onClick={()=>exportBulkToPDF({ ...calculatedData, p1Split: calculatedData.p1Split ?? p1Split },results)}><><DownloadIcon />Download PDF</></button>
           </div>
         </div>
+        {betaUnlocked && bulkSubtab === 'beta' && (
+          <div id="bulk-panel-beta" role="tabpanel" aria-labelledby="bulk-tab-beta">
+            <div className="beta-exit"><button type="button" onClick={onHideBeta}>Hide Beta Insights</button></div>
+            <BulkInsightsBeta
+              staff={results}
+              excelData={excelData}
+              viewMode={viewMode}
+              selectedMonth={selectedMonth}
+              selectedYear={selectedYear}
+              excludedNames={excludedStaff}
+              teamTarget={calculatedData.target}
+              teamSales={calculatedData.teamSales}
+              p1Split={p1Split}
+              projection={projection}
+            />
+          </div>
+        )}
+        </>
       )}
     </>
   )

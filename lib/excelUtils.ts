@@ -1,11 +1,20 @@
 // Excel processing utilities for Bulk tab
 
+export interface DailyStaffValue {
+  day: number
+  sales: number
+  packages: number
+  clients: number
+}
+
 export interface StaffData {
   name: string
   packages: number
   sales: number
   workingDays: number
   clients?: number
+  /** Daily figures from uploaded workbook; absent on older cached data. */
+  daily?: DailyStaffValue[]
 }
 
 export interface ExcelData {
@@ -316,6 +325,14 @@ function extractStaffFromSheet(
     return sumDaily(r, ctx)
   }
 
+  // Read an individual daily count/amount safely for Beta Insights.
+  const dailyNumber = (r: number, col: number): number => {
+    const cell = worksheet[XLSX.utils.encode_cell({ r, c: col })]
+    if (!cell || cell.v == null || cell.v === '' || isErrorCell(cell) || /^n\/?a$/i.test(String(cell.v))) return 0
+    const number = typeof cell.v === 'number' ? cell.v : Number(cell.v)
+    return Number.isFinite(number) ? number : 0
+  }
+
   // Walk staff rows starting at row 4
   let row = 4
 
@@ -338,6 +355,7 @@ function extractStaffFromSheet(
 
       if (name && !['STAFF', 'p25', '`', 'Grand totals'].includes(name)) {
         let workingDays = 0
+        const daily: DailyStaffValue[] = []
 
         const who = stripEmployeeCode(name) || name
         const packages = readTotal(row - 1, `${who} (packages)`)
@@ -360,7 +378,15 @@ function extractStaffFromSheet(
 
           workingDays++
           // Only a populated sales cell establishes a reporting cutoff.
-          if (!isErrorCell(dailyCell)) lastReportedDay = Math.max(lastReportedDay ?? 0, day)
+          if (!isErrorCell(dailyCell)) {
+            lastReportedDay = Math.max(lastReportedDay ?? 0, day)
+            daily.push({
+              day,
+              sales: dailyNumber(row - 1 + salesRowOffset, col),
+              packages: dailyNumber(row - 1, col),
+              clients: hasClientsRow ? dailyNumber(row, col) : 0,
+            })
+          }
         }
 
         // Fallback: if the sheet has no day-header columns but has sales data,
@@ -374,6 +400,7 @@ function extractStaffFromSheet(
           packages: Math.round(packages),
           sales:    Math.round(sales * 100) / 100,
           workingDays,
+          daily,
         }
 
         if (hasClientsRow && clients > 0) {

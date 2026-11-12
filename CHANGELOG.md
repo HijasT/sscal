@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.8.0]
+
+### Added — Bulk Calculator: Beta Insights
+- Added seven experimental analyses within Bulk Calculator, concealed from the ordinary interface. Insights BETA becomes visible only after a discreet multi-tap interaction with the Bulk Calculations heading and can be hidden again. This is a convenience-level hidden entry, not authentication. Calculator & Rankings remains the default; official exports/calculations are unchanged.
+- Daily sales pace needed to reach 100% of target, comparing required remaining calendar-day sales with the recorded pace.
+- Interactive incentive scenario simulator for 85%, 100%, 110%, or a custom additional-sales amount, including estimated pool, average payout and hypothetical P1/P2 for a selected staff member.
+- Separate productivity ranking based on sales per actual working day, plus days and sales totals.
+- Month-to-month comparisons for sales, packages, clients and sales per staff-day, with equivalent elapsed-day comparisons for the in-progress current month.
+- Three-segment revenue contribution analysis (top 20%, middle 30%, remaining 50% of staff), showing team shares and sales.
+- Cumulative actual daily sales versus straight-line required target pace.
+- Parser retains individual daily sales/packages/clients per staff for the beta charts; old cached workbooks may require re-upload.
+- Added automated tests for per-day aggregation, productivity, concentration, comparison and incomplete historical daily data.
+- Added staff-by-staff incentive comparison: official payout versus a hypothetical 0% P1 / 100% P2 sales-weighted distribution using the same pool, with signed AED differences and team totals.
+
+### Notes
+- Forecasts and scenarios are hypothetical and local to the uploaded data, and do not alter actual incentive calculations.
+- Current-month insights needing daily data are unavailable when the workbook lacks reporting-day information. Historical and non-monthly views still support applicable team analyses.
+
 ## [12.7.0]
 
 ### Added
