@@ -8,6 +8,7 @@ import { getFresh, setFresh, clearFresh } from '@/lib/storage'
 import { notify } from '@/lib/notify'
 import { DownloadIcon } from '@/components/icons'
 import { CenterBadge } from '@/components/CenterBadge'
+import { projectMonthlySales } from '@/lib/salesProjection'
 import { averageDivider } from '@/lib/rankAverage'
 
 interface BulkResult extends StaffData {
@@ -371,6 +372,21 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     a.click()
   }
 
+  // Forecast the CURRENT month only. The parser's last populated daily-sales
+  // column determines the cutoff (never assume the upload includes today).
+  const projection = (() => {
+    if (viewMode !== 'monthly' || !calculatedData) return null
+    const sheets = getSheetsForView()
+    if (sheets.length !== 1) return null
+    const year = selectedYear.length === 2 ? 2000 + Number(selectedYear) : Number(selectedYear)
+    const month = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].indexOf(selectedMonth) + 1
+    return projectMonthlySales({
+      sales: calculatedData.teamSales, target: calculatedData.target,
+      year, month, lastReportedDay: sheets[0].lastReportedDay,
+      now: new Date(),
+    })
+  })()
+
   const getViewTitle = () => {
     if (viewMode === 'monthly') {
       const nm: Record<string,string> = {Jan:'January',Feb:'February',Mar:'March',Apr:'April',May:'May',Jun:'June',Jul:'July',Aug:'August',Sep:'September',Oct:'October',Nov:'November',Dec:'December'}
@@ -491,6 +507,53 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                 </div>
               </div>
             )
+          )}
+
+          {/* Projection remains visible even after the maximum tier is reached. */}
+          {projection && (
+            <section className="bulk-projection" aria-label="Projected sales achievement">
+              <div className="bulk-projection-heading">
+                <strong>Projected target achievement</strong>
+                <span>As of {projection.cutoff} {selectedMonth} {selectedYear.length === 2 ? '20' + selectedYear : selectedYear}</span>
+              </div>
+              <div className="bulk-projection-stats">
+                <div><span>Achieved as of reporting date</span><strong>{projection.currentPercent.toFixed(1)}%</strong></div>
+                <div><span>Projected month-end</span><strong>{projection.projectedPercent.toFixed(1)}%</strong></div>
+                <div><span>Estimated 100% target date</span><strong>{
+                  projection.targetReached ? 'Already reached'
+                    : projection.dailySales === 0 ? 'No sales pace yet'
+                      : projection.targetDay
+                        ? `${projection.targetDay} ${selectedMonth}`
+                        : 'Not at current pace'
+                }</strong></div>
+              </div>
+              <div className="bulk-projection-chart">
+                <div className="bulk-projection-bar">
+                  <div className="bulk-projection-actual" style={{
+                    width: `${Math.min(100, projection.currentPercent / projection.scaleMax * 100)}%`,
+                  }} />
+                  <div className="bulk-projection-forecast" style={{
+                    left: `${Math.min(100, projection.currentPercent / projection.scaleMax * 100)}%`,
+                    width: `${Math.max(0, (projection.projectedPercent - projection.currentPercent) / projection.scaleMax * 100)}%`,
+                  }} />
+                  <div className="bulk-projection-target" style={{ left: `${100 / projection.scaleMax * 100}%` }}>
+                    <span>100% target</span>
+                  </div>
+                  <span className="bulk-projection-today" style={{
+                    left: `${Math.min(100, projection.currentPercent / projection.scaleMax * 100)}%`,
+                  }}>{projection.cutoff === new Date().getDate() ? "Today" : "Reported"}</span>
+                </div>
+                <div className="bulk-projection-axis"><span>0%</span><span>{projection.scaleMax}%</span></div>
+                <div className="bulk-projection-legend">
+                  <span><i className="bulk-projection-key-actual" />Actual · AED {formatCurrency(calculatedData.teamSales)}</span>
+                  <span><i className="bulk-projection-key-forecast" />Projected total · AED {formatCurrency(projection.projectedSales)}</span>
+                </div>
+              </div>
+              <p className="bulk-projection-note">
+                Actual through the latest recorded sales day ({projection.cutoff} {selectedMonth}), not necessarily today.
+                Projection assumes the same average calendar-day pace (AED {formatCurrency(projection.dailySales)}/day) to month-end.
+              </p>
+            </section>
           )}
 
           {/* Center-wise Stats — just below the tier ladder */}

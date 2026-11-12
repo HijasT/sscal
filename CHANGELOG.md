@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.7.0]
+
+### Added
+- The Calculator Tier Ladder now includes an actual-versus-projected achievement bar for the current month, with a 100% target marker, actual sales, projected month-end sales and estimated target date when reachable.
+- Forecast uses the latest populated sales-day column from the uploaded workbook rather than assuming sales are complete through today; a simple calendar-day run rate estimates the remainder of the month.
+- When reporting dates are unavailable or the selected period is not the current month, projections are omitted rather than invented.
+- Added tests for reporting cutoffs, reached/missed targets and historical periods.
+
 ## [12.6.0]
 
 ### Added

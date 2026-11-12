@@ -19,6 +19,8 @@ export interface ExcelData {
   /** Data-quality warnings (e.g. a broken "#REF!" total cell). Blank = 0 sales
    * and NA/N/A = absent are per the SOP and never warned about. */
   warnings?: string[]
+  /** Latest day of month containing an entered staff sales figure (including zero). */
+  lastReportedDay?: number
 }
 
 // Matches an employee code like "AE01-227" embedded in a staff name cell
@@ -71,6 +73,7 @@ export async function parseExcelFile(file: File): Promise<ExcelData[]> {
               sales: extracted.staff.reduce((sum, s) => sum + s.sales, 0),
             },
             warnings: extracted.warnings,
+            lastReportedDay: extracted.lastReportedDay,
           })
         }
 
@@ -157,12 +160,13 @@ function extractStaffFromSheet(
   worksheet: any,
   sheetName: string,
   XLSX: any,
-): { staff: StaffData[]; target: number; warnings: string[] } {
+): { staff: StaffData[]; target: number; warnings: string[]; lastReportedDay?: number } {
   if (!worksheet) return { staff: [], target: 0, warnings: [] }
 
   const staff: StaffData[] = []
   const warnings: string[] = []
   let target = 0
+  let lastReportedDay: number | undefined
 
   // An Excel error cell (#REF!, #DIV/0!, #VALUE!, …), whether stored as a true
   // error (t === 'e') or saved as literal text. Blank and NA/N/A are NOT errors
@@ -229,7 +233,7 @@ function extractStaffFromSheet(
   // 1–31 from either the raw value or the formatted string.  Everything else
   // (month-total column, weekly sub-totals, text headers, large non-date
   // numbers) is excluded.
-  const dayColumns: number[] = []
+  const dayColumns: { col: number; day: number }[] = []
 
   for (let col = 3; col <= range.e.c; col++) {
     if (col === monthTotalCol) continue
@@ -268,14 +272,14 @@ function extractStaffFromSheet(
       }
     }
 
-    if (dayNum !== null) dayColumns.push(col)
+    if (dayNum !== null) dayColumns.push({ col, day: dayNum })
   }
 
   // Sum a staff row's numeric daily cells across genuine day columns — used
   // as the month total when the sheet has no pre-computed Ttl column.
   const sumDaily = (r: number, ctx: string): number => {
     let total = 0
-    for (const col of dayColumns) {
+    for (const { col } of dayColumns) {
       const cell = worksheet[XLSX.utils.encode_cell({ r, c: col })]
       if (!cell || cell.v === 'NA' || cell.v == null || cell.v === '') continue
       if (isErrorCell(cell)) {
@@ -343,7 +347,7 @@ function extractStaffFromSheet(
         // Count working days over genuine day columns only.
         // A day is worked when the sales cell is not blank and not NA —
         // zero is a valid entry (staff present, no sale) and still counts.
-        for (const col of dayColumns) {
+        for (const { col, day } of dayColumns) {
           const dailyCell = worksheet[
             XLSX.utils.encode_cell({ r: row - 1 + salesRowOffset, c: col })
           ]
@@ -355,6 +359,8 @@ function extractStaffFromSheet(
           }
 
           workingDays++
+          // Only a populated sales cell establishes a reporting cutoff.
+          if (!isErrorCell(dailyCell)) lastReportedDay = Math.max(lastReportedDay ?? 0, day)
         }
 
         // Fallback: if the sheet has no day-header columns but has sales data,
@@ -388,7 +394,7 @@ function extractStaffFromSheet(
     warnings.push(`${sheetName}: no TARGET value found on the sheet — team achievement can't be calculated for this month.`)
   }
 
-  return { staff, target, warnings }
+  return { staff, target, warnings, lastReportedDay }
 }
 
 export function getAvailableMonths(data: ExcelData[]): string[] {
