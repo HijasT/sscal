@@ -11,6 +11,7 @@ import { CenterBadge } from '@/components/CenterBadge'
 import { projectMonthlySales } from '@/lib/salesProjection'
 import { averageDivider } from '@/lib/rankAverage'
 import { BulkInsightsBeta } from '@/components/tabs/BulkInsightsBeta'
+import { visibleCenterRankings, nextCenterVisibility } from '@/lib/centerRankingVisibility'
 
 interface BulkResult extends StaffData {
   achievement: number
@@ -102,6 +103,19 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     setBulkSubtab(betaUnlocked ? 'beta' : 'calculator')
   }, [betaUnlocked])
   const [excludedStaff, setExcluded]  = useState<Set<string>>(new Set(persisted.excludedStaff ?? []))
+  // Visibility toggles affect only ranking rows; no results or incentives change.
+  const [centerVisibility, setCenterVisibility] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(Object.keys(CENTERS).map(key => [key, true]))
+  )
+  const toggleCenterVisibility = (key: string) => {
+    const next = nextCenterVisibility(centerVisibility, key)
+    if (!next) {
+      notify({ level: 'error', title: 'Keep at least one center visible',
+        messages: ['At least one center must remain ON in the ranking table.'] })
+      return
+    }
+    setCenterVisibility(next)
+  }
 
   // Persist the last calculation so it survives a tab switch/remount.
   useEffect(() => {
@@ -270,6 +284,18 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   const divider = sortColumn === 'name'
     ? null
     : averageDivider(sortedResults, (person) => Number(person[sortColumn] ?? 0), sortDir)
+  // Retain the original rank indices and the team-wide average even when
+  // a center is hidden. Unassigned staff have no center toggle and stay visible.
+  const centerMapping = loadStaffCenters()
+  const centerRanking = visibleCenterRankings(
+    sortedResults,
+    centerVisibility,
+    person => {
+      const code = extractEmployeeCode(person.name)
+      return code ? centerMapping[code] : null
+    },
+    divider?.index ?? null,
+  )
   const averageLabel: Partial<Record<SortCol, string>> = {
     sales: 'Sales', totalIncentive: 'Total incentive', packages: 'Packages',
     clients: 'Clients', workingDays: 'Days', avgPackagesPerDay: 'Packages/day',
@@ -579,10 +605,21 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
           {centerStats && (
             <div style={{marginBottom:'24px'}}>
               <div style={{fontSize:'11px',fontWeight:'700',color:'var(--text-muted)',marginBottom:'10px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Center-wise Stats</div>
+              <p className="center-ranking-help">Turn centers on or off to filter staff shown in the rank table. Rankings, averages, sales and incentives stay unchanged.</p>
               <div className="summary-stats" style={{marginBottom:centerStats.unassigned>0?'8px':0}}>
                 {centerStats.rows.map(row => (
                   <div key={row.key} className="stat-card">
-                    <div className="stat-label">{row.label}</div>
+                    <div className="center-stats-heading">
+                      <div className="stat-label">{row.label}</div>
+                      <button type="button" role="switch" className="center-ranking-toggle"
+                        aria-checked={centerVisibility[row.key] !== false}
+                        aria-label={`Show ${row.label} staff in rankings`}
+                        title={`Show/hide ${row.label} staff in rank table`}
+                        onClick={() => toggleCenterVisibility(row.key)}>
+                        <span className="center-ranking-toggle-track"><span className="center-ranking-toggle-thumb" /></span>
+                        <span>{centerVisibility[row.key] !== false ? 'ON' : 'OFF'}</span>
+                      </button>
+                    </div>
                     <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
                       <div style={{fontSize:'13px',color:'var(--text-secondary)'}}>Sales: <strong style={{color:'var(--text-primary)',fontFamily:"'JetBrains Mono', monospace"}}>AED {formatCurrency(row.sales)}</strong></div>
                       <div style={{fontSize:'13px',color:'var(--text-secondary)'}}>Packages: <strong style={{color:'var(--text-primary)',fontFamily:"'JetBrains Mono', monospace"}}>{row.packages}</strong></div>
@@ -601,6 +638,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
           )}
 
           {/* Table — frozen header, horizontal + vertical scroll */}
+          <div className="center-rank-summary" role="status">Showing {centerRanking.rows.length} of {sortedResults.length} ranked staff. Original rank numbers and team-wide averages are preserved.</div>
           <div style={{overflowX:'auto',marginBottom:'24px'}}>
             <div style={{maxHeight:'520px',overflowY:'auto'}}>
               <table style={{width:'100%',borderCollapse:'collapse',minWidth:'1260px'}}>
@@ -624,13 +662,12 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedResults.map((person, i) => {
-                    const rank   = i + 1
+                  {centerRanking.rows.map(({ person, rank }, i) => {
                     const isTop3 = rank <= 3
                     const nc     = isTop3 ? 'var(--accent-primary)' : 'var(--text-secondary)'
                     return (
                       <Fragment key={person.name}>
-                        {divider?.index === i && averageRow}
+                        {centerRanking.dividerIndex === i && averageRow}
                       <tr style={{borderBottom:'1px solid var(--border-color)',background:isTop3?'var(--accent-soft)':undefined}}>
                         <td style={{...TD,fontWeight:isTop3?'700':'normal',color:nc,fontFamily:"'JetBrains Mono', monospace"}}>#{rank}</td>
                         <td style={tdHl('name',{fontWeight:isTop3?'700':'normal',color:nc})}>{person.name}<CenterBadge name={person.name} /></td>
@@ -659,7 +696,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                       </Fragment>
                     )
                   })}
-                  {divider?.index === sortedResults.length && averageRow}
+                  {centerRanking.dividerIndex === centerRanking.rows.length && averageRow}
                 </tbody>
               </table>
             </div>

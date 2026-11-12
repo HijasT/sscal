@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.9.0]
+
+### Added
+- Each Center-wise Stats card now has an ON/OFF toggle that controls only the staff displayed in the main ranking table. All three centers are ON by default; turning off the last enabled center is prevented with an error message.
+- Filtered ranking rows retain their original full-team rank numbers. The average divider remains calculated against the complete team and is positioned consistently among visible rows; unassigned staff remain visible.
+- Team sales, average metrics, incentives, exports, center statistics and actual staff exclusion behavior are unaffected by these presentation-only switches.
+- Regression tests for unchanged ranking positions, full-team average boundary, default visibility and minimum-one-center behavior.
+
 ## [12.8.0]
 
 ### Added — Bulk Calculator: Beta Insights
