@@ -9,6 +9,7 @@ import assert from 'node:assert/strict'
 import {
   getServiceById,
   getCategories,
+  orderSpecialisedServices,
   getVisibleServices,
   buildJourney,
   bloodTubes,
@@ -124,4 +125,33 @@ test('category moves and ECG rename preserve package IDs', () => {
 test('composition: Healthy Heart covers BCA and renamed ECG', () => {
   const suggestion = suggestPackage([named('Body Composition Analysis'), named('ECG')], 'M')
   assert.equal(suggestion?.name, 'Healthy Heart Package')
+})
+
+// ---------- Specialised Screening catalogue display order ----------
+test('specialised screening priority order for men and women', () => {
+  const specialised = getVisibleServices().filter((s) => s.category === 'Specialised Screening')
+  const expected = [
+    'Longevity Profile',
+    'Food Allergy & Intolerance Bundle',
+    'Gut Microbiome Test',
+    'Coeliac Test',
+    'Body Composition Analysis',
+    'ECG',
+  ]
+  for (const gender of ['Men', 'Women']) {
+    const displayed = orderSpecialisedServices(specialised.filter((s) =>
+      !s.name.startsWith('Cancer Risk Profile - ') || s.name.includes(gender === 'Men' ? ' - Men' : "Women's")
+    )).map((s) => s.name)
+    assert.deepEqual(displayed.slice(0, 7), [
+      expected[0],
+      gender === 'Men' ? 'Cancer Risk Profile - Men' : "Cancer Risk Profile - Women's",
+      ...expected.slice(1),
+    ])
+  }
+})
+
+test('specialised screening order does not mutate catalogue array', () => {
+  const input = [svc(8), svc(26), svc(13)]
+  assert.deepEqual(orderSpecialisedServices(input).map((s) => s.id), [13, 26, 8])
+  assert.deepEqual(input.map((s) => s.id), [8, 26, 13])
 })

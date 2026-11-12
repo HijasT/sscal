@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.4.1]
+
+### Changed
+- Prioritised Specialised Screening rows in the Sale Assistant: Longevity, gender-specific Cancer Risk, Food Allergy & Intolerance Bundle, Gut Microbiome, Coeliac, BCA, then ECG. Other screening packages follow in their previous relative order.
+
 ## [12.4.0]
 
 ### Changed

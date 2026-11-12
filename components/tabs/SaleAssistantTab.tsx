@@ -22,6 +22,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
   getVisibleServices,
   getCategories,
+  orderSpecialisedServices,
   getServiceById,
   searchServices,
   isHiddenFromCatalogue,
@@ -191,7 +192,12 @@ export function SaleAssistantTab() {
       map.get(s.category)!.push(s)
     }
     const order = getCategories()
-    return { list: r, groups: [...map.entries()].sort(([a], [b]) => order.indexOf(a) - order.indexOf(b)), covered }
+    const groups = [...map.entries()].sort(([a], [b]) => order.indexOf(a) - order.indexOf(b))
+    return {
+      list: r,
+      groups: groups.map(([cat, services]) => [cat, cat === 'Specialised Screening' ? orderSpecialisedServices(services) : services] as [string, CatalogueService[]]),
+      covered,
+    }
   }, [query, category, gender, filter, lines, hideCovered])
 
   const selServices = useMemo(() => lines.map((l) => l.service), [lines])

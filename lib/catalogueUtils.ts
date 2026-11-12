@@ -97,6 +97,30 @@ export function getCategories(): string[] {
   return [...seen.filter((category) => category !== 'Follow-ups'), ...seen.filter((category) => category === 'Follow-ups')]
 }
 
+/**
+ * Display the high-priority Specialised Screening packages first. Both gender-specific
+ * cancer profiles share position 2, as the Sale Assistant displays one per gender.
+ * Unlisted packages keep their catalogue order after the seven prioritised rows.
+ */
+export function orderSpecialisedServices(services: CatalogueService[]): CatalogueService[] {
+  const order = [
+    'Longevity Profile',
+    'Cancer Risk Profile - Men',
+    "Cancer Risk Profile - Women's",
+    'Food Allergy & Intolerance Bundle',
+    'Gut Microbiome Test',
+    'Coeliac Test',
+    'Body Composition Analysis',
+    'ECG',
+  ]
+  const priority = (name: string): number => {
+    if (name.startsWith('Cancer Risk Profile - ')) return 1
+    const pos = order.indexOf(name)
+    return pos < 0 ? Number.POSITIVE_INFINITY : pos > 2 ? pos - 1 : pos
+  }
+  return [...services].sort((a, b) => priority(a.name) - priority(b.name))
+}
+
 export function getServiceById(id: number): CatalogueService | undefined {
   return data.services.find((s) => s.id === id)
 }
