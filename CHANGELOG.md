@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.10.1]
+
+### Changed
+- Simplified Bulk Calculator XLSX download instruction step 3 to: “Choose Download a copy.”
+
 ## [12.10.0]
 
 ### Changed

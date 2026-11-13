@@ -202,7 +202,7 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
           <ol style={{margin: '8px 0 0', paddingLeft: '20px'}}>
             <li>Open the Sales Tracker spreadsheet.</li>
             <li>Open the <strong>File</strong> menu and choose <strong>Create a copy</strong>.</li>
-            <li>In the copy, open <strong>File</strong> and choose <strong>Download a copy</strong>.</li>
+            <li>Choose <strong>Download a copy</strong>.</li>
             <li>Upload the downloaded <strong>.xlsx</strong> file here.</li>
           </ol>
         </div>
