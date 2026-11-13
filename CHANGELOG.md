@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.10.2]
+
+### Fixed
+- Improved the 9.95% projected-achievement adjustment: discount only the expected remaining sales, never already-recorded sales. Projection cannot fall below actual sales and equals actual exactly when the final day is reported.
+- Recalculate projected 100% target date using the discounted future daily pace; clarify the forecast note in Tier Ladder.
+- Added tests for late-month, last-day and month-end convergence cases.
+
 ## [12.10.1]
 
 ### Changed
