@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.10.0]
+
+### Changed
+- Added one shared month picker at the top of hidden Beta Insights. It defaults to the current calendar month when available (otherwise the latest uploaded month), and drives all seven insight sections without changing the main Calculator period.
+- The shared picker lists available workbook months. The previous-month comparison uses the selected month and its predecessor; other analyses use the selected month's staff, sales, incentives, daily entries and target.
+- Incentive comparisons recalculate the chosen month's official split and hypothetical 0% equal / 100% personal split using the same pool. Positive deltas display green and negative deltas red.
+- Revised Bulk Calculator XLSX instructions to File → Create a copy, then File → Download a copy, before uploading the .xlsx file.
+- Applied a 9.95% reduction to final projected month-end sales and target achievement (not recorded sales); the projected 100%-target date uses the adjusted remaining pace.
+- Added month-selection/default-current-month and incentive-comparison regression tests. The hidden Beta access gesture and official Calculator remain unchanged.
+
 ## [12.9.0]
 
 ### Added

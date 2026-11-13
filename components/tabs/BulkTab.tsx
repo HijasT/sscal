@@ -201,9 +201,9 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
           <strong style={{color: 'var(--text-primary)'}}>How to get the .xlsx file</strong>
           <ol style={{margin: '8px 0 0', paddingLeft: '20px'}}>
             <li>Open the Sales Tracker spreadsheet.</li>
-            <li>Go to the <strong>File</strong> menu.</li>
-            <li>Choose <strong>Save As</strong> (or <strong>Download</strong> / <strong>Export</strong>) and pick <strong>Excel Workbook (.xlsx)</strong>.</li>
-            <li>Upload that saved <strong>.xlsx</strong> file here.</li>
+            <li>Open the <strong>File</strong> menu and choose <strong>Create a copy</strong>.</li>
+            <li>In the copy, open <strong>File</strong> and choose <strong>Download a copy</strong>.</li>
+            <li>Upload the downloaded <strong>.xlsx</strong> file here.</li>
           </ol>
         </div>
       </div>

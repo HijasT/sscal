@@ -563,7 +563,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
               </div>
               <div className="bulk-projection-stats">
                 <div><span>Achieved as of reporting date</span><strong>{projection.currentPercent.toFixed(1)}%</strong></div>
-                <div><span>Projected month-end</span><strong>{projection.projectedPercent.toFixed(1)}%</strong></div>
+                <div><span>Projected month-end (−9.95%)</span><strong>{projection.projectedPercent.toFixed(1)}%</strong></div>
                 <div><span>Estimated 100% target date</span><strong>{
                   projection.targetReached ? 'Already reached'
                     : projection.dailySales === 0 ? 'No sales pace yet'
@@ -596,7 +596,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
               </div>
               <p className="bulk-projection-note">
                 Actual through the latest recorded sales day ({projection.cutoff} {selectedMonth}), not necessarily today.
-                Projection assumes the same average calendar-day pace (AED {formatCurrency(projection.dailySales)}/day) to month-end.
+                Projection starts from the calendar-day run rate (AED {formatCurrency(projection.dailySales)}/day), then reduces the estimated final result by 9.95%. Recorded sales remain unchanged.
               </p>
             </section>
           )}
@@ -712,16 +712,13 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
           <div id="bulk-panel-beta" role="tabpanel" aria-labelledby="bulk-tab-beta">
             <div className="beta-exit"><button type="button" onClick={onHideBeta}>Hide Beta Insights</button></div>
             <BulkInsightsBeta
-              staff={results}
               excelData={excelData}
               viewMode={viewMode}
               selectedMonth={selectedMonth}
               selectedYear={selectedYear}
               excludedNames={excludedStaff}
               teamTarget={calculatedData.target}
-              teamSales={calculatedData.teamSales}
               p1Split={p1Split}
-              projection={projection}
             />
           </div>
         )}

@@ -1,4 +1,5 @@
-/** Simple calendar-day run-rate forecast for a current, in-progress month. */
+/** Calendar-day run-rate forecast with a 9.95% reduction to month-end estimate. */
+export const PROJECTION_DISCOUNT = 0.0995
 export interface MonthlySalesProjection {
   cutoff: number
   daysInMonth: number
@@ -29,11 +30,17 @@ export function projectMonthlySales(args: {
       lastReportedDay > now.getDate()) return null
   const cutoff = lastReportedDay
   const dailySales = sales / cutoff
-  const projectedSales = dailySales * daysInMonth
+  const unadjustedSales = dailySales * daysInMonth
+  // Apply the requested reduction to the final projection, never to recorded sales.
+  // At late-month cutoffs, the adjusted forecast cannot fall below actual sales.
+  const projectedSales = Math.max(sales, unadjustedSales * (1 - PROJECTION_DISCOUNT))
   const currentPercent = sales / target * 100
   const projectedPercent = projectedSales / target * 100
   const targetReached = sales >= target
-  const dayToTarget = dailySales > 0 ? Math.ceil(target / dailySales - 1e-10) : Infinity
+  const remainingDays = daysInMonth - cutoff
+  const adjustedRemainingPace = remainingDays > 0 ? (projectedSales - sales) / remainingDays : 0
+  const dayToTarget = adjustedRemainingPace > 0
+    ? cutoff + Math.ceil((target - sales) / adjustedRemainingPace - 1e-10) : Infinity
   const targetDay = !targetReached && dayToTarget > cutoff && dayToTarget <= daysInMonth
     ? dayToTarget : null
   const scaleMax = Math.max(100, Math.ceil(Math.max(currentPercent, projectedPercent) / 25) * 25)

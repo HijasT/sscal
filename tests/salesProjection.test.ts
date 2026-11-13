@@ -11,10 +11,10 @@ test('projects month-end sales and plots actual, forecast and 100% target', () =
   })
   assert.ok(p)
   assert.equal(p.currentPercent, 60)
-  assert.equal(p.projectedPercent, 150)
-  assert.equal(p.projectedSales, 750000)
+  assert.equal(p.projectedPercent, 135.075)
+  assert.equal(p.projectedSales, 675375)
   assert.equal(p.dailySales, 25000)
-  assert.equal(p.targetDay, 20)
+  assert.equal(p.targetDay, 22)
   assert.equal(p.scaleMax, 150)
 })
 
@@ -26,7 +26,7 @@ test('respects the latest reported day instead of assuming today is complete', (
   assert.ok(p)
   assert.equal(p.cutoff, 10)
   assert.equal(p.dailySales, 20000)
-  assert.equal(p.targetDay, 25)
+  assert.equal(p.targetDay, 28)
 })
 
 test('does not forecast a historical month, future month, or unreported workbook', () => {
@@ -60,4 +60,25 @@ test('already achieved target and no sales are handled safely', () => {
   })
   assert.equal(zero?.dailySales, 0)
   assert.equal(zero?.targetDay, null)
+})
+
+test('9.95% reduction applies to projected final sales but not recorded sales', () => {
+  const p = projectMonthlySales({
+    sales: 300000, target: 500000, year: 2026, month: 11,
+    lastReportedDay: 12, now,
+  })
+  assert.ok(p)
+  assert.equal(p.currentPercent, 60)
+  assert.equal(p.projectedSales, 750000 * (1 - .0995))
+})
+
+test('projection cannot dip below recorded sales late in the month', () => {
+  const lastDay = projectMonthlySales({
+    sales: 500000, target: 600000, year: 2026, month: 11,
+    lastReportedDay: 30, now: new Date(2026,10,30),
+  })
+  assert.ok(lastDay)
+  assert.equal(lastDay.projectedSales, 500000)
+  assert.equal(lastDay.projectedPercent, 500000 / 600000 * 100)
+  assert.equal(lastDay.targetDay, null)
 })

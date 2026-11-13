@@ -2137,3 +2137,37 @@ body.light-mode .sa {
 .center-ranking-toggle[aria-checked='true'] .center-ranking-toggle-track { background: var(--accent-primary); }
 .center-ranking-toggle[aria-checked='true'] .center-ranking-toggle-thumb { transform: translateX(13px); }
 .center-rank-summary { font-size: 12px; color: var(--text-secondary); margin: -12px 0 9px; }
+
+/* Independent period selection for Beta Insights' month-specific analyses. */
+.beta-month-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 12px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+.beta-month-picker select {
+  min-width: 134px;
+  max-width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 7px;
+  font: inherit;
+  cursor: pointer;
+}
+.beta-month-picker select:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+.beta-month-picker select:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+/* Keep the shared Beta month picker alongside its title on wide screens. */
+.beta-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.beta-head .beta-month-picker { margin-bottom: 0; }
