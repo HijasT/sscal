@@ -252,7 +252,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
       notify({ level: 'error', title: 'Calculation blocked', messages: [allocation.error] })
       return
     }
-    const { pool: totalPool, p1Pool, p2Pool } = allocation.value
+    const { pool: totalPool, p1Pool, p2Pool, remainderFils, staffTotalFils } = allocation.value
     const teamAchievement = (teamSales / finalTarget) * 100
     const tier = getTier(teamAchievement)
 
@@ -276,7 +276,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
       }
     })
 
-    const auditIssue = auditRoundedIncentives(teamSales, totalPool, p1Pool, p2Pool, bulkResults)
+    const auditIssue = auditRoundedIncentives(teamSales, totalPool, p1Pool, p2Pool, bulkResults, remainderFils)
     if (auditIssue) {
       setResults([])
       setCalcData(null)
@@ -289,7 +289,8 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     setResults(bulkResults)
     setCalcData({
       teamAchievement, tier, totalPool, p1Pool, p2Pool,
-      payoutPolicy: 'largest-remainder-v1',
+      payoutPolicy: 'accounting-remainder-v1',
+      remainderFils, staffTotalFils,
       target: finalTarget, teamSales, teamPackages, teamClients,
       avgSales:    teamSales    / n,
       avgPackages: teamPackages / n,
@@ -429,9 +430,23 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   }
 
   const handleExportCSV = () => {
-    if (!results.length) return
+    if (!results.length || !calculatedData) return
+    const auditIssue = auditRoundedIncentives(
+      calculatedData.teamSales, calculatedData.totalPool,
+      calculatedData.p1Pool, calculatedData.p2Pool,
+      results, calculatedData.remainderFils
+    )
+    if (auditIssue) {
+      notify({ level: 'error', title: 'CSV export blocked', messages: [auditIssue] })
+      return
+    }
     let csv = 'Rank,Name,Packages,Sales (AED),Clients,Days,Pkg/Day,Sales/Day,Clients/Day,Max KPI Clients,Revenue Share %,P1 (AED),P2 (AED),Total (AED)\n'
     results.forEach((p,i) => { const pay = formattedPayout(p); csv += `${i+1},${csvText(p.name)},${p.packages},${p.sales.toFixed(2)},${p.clients??0},${p.workingDays},${p.avgPackagesPerDay.toFixed(2)},${p.avgSalesPerDay.toFixed(2)},${p.avgClientsPerDay.toFixed(2)},${p.maxKpiClients},${p.contribution.toFixed(2)},${pay.p1},${pay.p2},${pay.total}\n` })
+    csv += '\nSummary,Amount (AED)\n'
+    csv += `Incentive pool,${calculatedData.totalPool.toFixed(2)}\n`
+    csv += `Staff payout total,${(calculatedData.staffTotalFils / 100).toFixed(2)}\n`
+    csv += `Accounting remainder,${(calculatedData.remainderFils / 100).toFixed(2)}\n`
+    csv += 'Accounting action,Pending review\n'
     const a = document.createElement('a')
     a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}))
     a.download = `incentive-report-${new Date().toISOString().split('T')[0]}.csv`
@@ -547,6 +562,19 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
               </div>
             </div>
             <div className="stat-card"><div className="stat-label">Total Pool</div><div className="stat-value" style={{fontSize:'18px'}}>AED {formatCurrency(calculatedData.totalPool)}</div></div>
+            <div className="stat-card">
+              <div className="stat-label">Staff Payout Total</div>
+              <div className="stat-value" style={{fontSize:'18px'}}>AED {formatCurrency(calculatedData.staffTotalFils / 100)}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">Accounting Remainder</div>
+              <div className="stat-value" style={{fontSize:'18px'}}>AED {formatCurrency(calculatedData.remainderFils / 100)}</div>
+              <div style={{fontSize:'12px',color:'var(--text-secondary)'}}>
+                {calculatedData.remainderFils > 0 ? 'Unallocated balance — Accounting to decide'
+                  : calculatedData.remainderFils < 0 ? 'Rounded payouts exceed the pool — Accounting to review'
+                  : 'No rounding difference'}
+              </div>
+            </div>
             <div className="stat-card"><div className="stat-label">Active Staff</div><div className="stat-value">{calculatedData.staffCount}</div></div>
             <div className="stat-card"><div className="stat-label">Team Target</div><div className="stat-value" style={{fontSize:'16px'}}>AED {formatCurrency(calculatedData.target)}</div></div>
             <div className="stat-card"><div className="stat-label">Team Sales</div><div className="stat-value" style={{fontSize:'16px'}}>AED {formatCurrency(calculatedData.teamSales)}</div></div>

@@ -1,10 +1,10 @@
 /**
- * Official roster-aware team incentives, allocated in whole fils.
- * Shared by the Bulk Calculator and the monthly Beta actuals.
+ * Official team incentive calculations with independently rounded staff awards.
+ * Residual fils are reported to Accounting, never assigned to an employee.
  */
 import { calculateIncentive, type CalculationResult, loadTiers } from './utils'
 import type { Tier } from './config'
-import { allocateFilsShares, employeePayoutKey, toFils } from './filsReconciliation'
+import { accountingRemainder, toFils } from './filsReconciliation'
 
 export interface IncentiveStaffInput { name: string; sales: number }
 export interface OfficialStaffPayout {
@@ -20,6 +20,12 @@ export interface OfficialTeamPayouts {
   p1Pool: number
   p2Pool: number
   poolFils: number
+  staffP1Fils: number
+  staffP2Fils: number
+  staffTotalFils: number
+  p1RemainderFils: number
+  p2RemainderFils: number
+  remainderFils: number
   staff: OfficialStaffPayout[]
 }
 export type OfficialTeamOutcome =
@@ -32,7 +38,7 @@ export function calculateTeamIncentives(
   p1Percent: number,
   tiers: Tier[] = loadTiers()
 ): OfficialTeamOutcome {
-  if (!roster.length) return { ok: false, error: 'No active staff available for allocation' }
+  if (!roster.length) return { ok: false, error: 'No active staff available for calculation' }
   const teamSales = roster.reduce((sum, p) => sum + p.sales, 0)
   const raw: CalculationResult[] = []
   for (const person of roster) {
@@ -42,31 +48,37 @@ export function calculateTeamIncentives(
   }
 
   try {
-    const keys = roster.map(p => employeePayoutKey(p.name))
-    if (new Set(keys).size !== keys.length) {
-      return { ok: false, error: 'Duplicate employee identifiers found. Correct the workbook before allocating incentives.' }
-    }
     const poolFils = toFils(raw[0].totalPool)
-    const p1Fils = toFils(raw[0].p1Pool)
-    const p2Fils = poolFils - p1Fils
-    if (p2Fils < 0) throw new Error('Invalid P1/P2 pool allocation')
-    const p1 = allocateFilsShares(p1Fils, keys.map((id, i) => ({ id, amount: raw[i].myP1 })))
-    const p2 = allocateFilsShares(p2Fils, keys.map((id, i) => ({ id, amount: raw[i].myP2 })))
-    const staff = roster.map((person, i) => {
-      const personalP1 = p1[i].fils / 100
-      const personalP2 = p2[i].fils / 100
-      return {
-        name: person.name, sales: person.sales,
-        p1: personalP1, p2: personalP2,
-        totalIncentive: (p1[i].fils + p2[i].fils) / 100,
-        contribution: raw[i].myContribution,
-      }
-    })
+    const p1PoolFils = toFils(raw[0].p1Pool)
+    const p2PoolFils = poolFils - p1PoolFils
+    if (p2PoolFils < 0) throw new Error('Invalid P1/P2 pool calculation')
+    const staffP1 = raw.map(person => toFils(person.myP1))
+    const staffP2 = raw.map(person => toFils(person.myP2))
+    const staff = roster.map((person, i) => ({
+      name: person.name,
+      sales: person.sales,
+      p1: staffP1[i] / 100,
+      p2: staffP2[i] / 100,
+      totalIncentive: (staffP1[i] + staffP2[i]) / 100,
+      contribution: raw[i].myContribution,
+    }))
+    const p1 = accountingRemainder(p1PoolFils, staffP1)
+    const p2 = accountingRemainder(p2PoolFils, staffP2)
+    const total = accountingRemainder(poolFils, staffP1.map((value, i) => value + staffP2[i]))
     return { ok: true, value: {
-      pool: poolFils / 100, p1Pool: p1Fils / 100, p2Pool: p2Fils / 100,
-      poolFils, staff,
+      pool: poolFils / 100,
+      p1Pool: p1PoolFils / 100,
+      p2Pool: p2PoolFils / 100,
+      poolFils,
+      staffP1Fils: p1.staffFils,
+      staffP2Fils: p2.staffFils,
+      staffTotalFils: total.staffFils,
+      p1RemainderFils: p1.remainderFils,
+      p2RemainderFils: p2.remainderFils,
+      remainderFils: total.remainderFils,
+      staff,
     } }
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : 'Invalid fils allocation' }
+    return { ok: false, error: error instanceof Error ? error.message : 'Invalid rounded incentive' }
   }
 }

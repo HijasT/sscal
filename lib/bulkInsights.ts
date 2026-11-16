@@ -1,5 +1,5 @@
 import type { ExcelData, StaffData } from './excelUtils'
-import { allocateFilsShares, employeePayoutKey, toFils } from './filsReconciliation'
+import { toFils } from './filsReconciliation'
 
 export interface DailyTotal {
   day: number
@@ -140,12 +140,11 @@ export function comparePersonalSplit(
   incentivePool: number
 ): PersonalSplitComparison[] {
   if (!staff.length) return []
-  const hypothetical = allocateFilsShares(toFils(incentivePool), staff.map(person => ({
-    id: employeePayoutKey(person.name),
-    amount: teamSales > 0 ? person.sales / teamSales * incentivePool : 0,
-  })))
+  const hypothetical = staff.map(person =>
+    toFils(teamSales > 0 ? person.sales / teamSales * incentivePool : 0)
+  )
   return staff.map((person, index) => {
-    const personalOnly = hypothetical[index].fils / 100
+    const personalOnly = hypothetical[index] / 100
     // All displayed comparisons now use official two-decimal awards.
     const delta = Math.round((personalOnly - person.totalIncentive) * 100) / 100
     return {

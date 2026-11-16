@@ -1,6 +1,6 @@
 /**
  * Audit raw incentive inputs and finalized whole-fils allocations.
- * Rounding allocations follow the approved largest-remainder policy.
+ * Individually rounded staff awards are reconciled against a separately shown\n * accounting remainder; no unallocated fils are assigned to employees.
  */
 export interface PayoutAuditRow {
   sales: number
@@ -43,13 +43,14 @@ export function auditIncentivePayouts(
   return null
 }
 
-/** Exact whole-fils audit for official, post-allocation payouts. */
+/** Exact whole-fils audit including the signed Accounting Remainder. */
 export function auditRoundedIncentives(
   teamSales: number,
   pool: number,
   p1Pool: number,
   p2Pool: number,
-  staff: readonly PayoutAuditRow[]
+  staff: readonly PayoutAuditRow[],
+  remainderFils = 0
 ): string | null {
   if (!staff.length || !Number.isFinite(teamSales) || teamSales < 0) {
     return 'Invalid team sales or staff count'
@@ -64,20 +65,19 @@ export function auditRoundedIncentives(
     return value
   }
   try {
+    if (!Number.isSafeInteger(remainderFils)) return 'Accounting remainder must be whole fils'
     const poolFils=inFils(pool)
     const p1Fils=inFils(p1Pool)
     const p2Fils=inFils(p2Pool)
     if (p1Fils+p2Fils!==poolFils) return 'P1 and P2 pools do not match the team pool'
-    let sumP1=0, sumP2=0, sumTotal=0
+    let sumTotal=0
     for (const person of staff) {
       const a=inFils(person.p1), b=inFils(person.p2), t=inFils(person.totalIncentive)
       if (a+b!==t) return 'Staff payout does not match P1 plus P2'
-      sumP1+=a
-      sumP2+=b
       sumTotal+=t
     }
-    if (sumP1!==p1Fils || sumP2!==p2Fils || sumTotal!==poolFils) {
-      return 'Individual payouts do not reconcile exactly to the incentive pool in fils'
+    if (sumTotal+remainderFils!==poolFils) {
+      return 'Staff payouts plus Accounting Remainder do not match the incentive pool'
     }
     const salesSum=staff.reduce((sum,p)=>sum+p.sales,0)
     if (Math.abs(salesSum-teamSales)>Math.max(1e-7,Math.abs(teamSales)*1e-12)) {

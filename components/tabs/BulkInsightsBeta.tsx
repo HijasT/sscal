@@ -306,7 +306,16 @@ export function BulkInsightsBeta({
             </tr></tfoot>
           </table>
         </div> : <p className="beta-empty">Select a month with a valid target and staff sales data.</p>}
-        <p className="beta-note">This is a redistribution scenario, not an increase in the incentive pool or a change to official payouts. Both columns reconcile to the same incentive pool in whole fils.</p>
+        {chosenSnapshot && (
+          <p className="beta-note">
+            Official staff payout total: {money(chosenSnapshot.staffTotalFils / 100)}.
+            Accounting remainder: {money(chosenSnapshot.remainderFils / 100)}.
+            {chosenSnapshot.remainderFils === 0 ? ' No difference.' :
+              chosenSnapshot.remainderFils > 0 ? ' Unallocated balance for Accounting.' :
+              ' Staff rounding exceeds the pool; Accounting review required.'}
+          </p>
+        )}
+        <p className="beta-note">This is a redistribution scenario, not an increase in the incentive pool or a change to official payouts. Independently rounded payouts may leave a signed remainder for Accounting to review.</p>
       </section>
       <p className="beta-footnote">Beta calculations are estimates and exploratory comparisons. They run locally using your uploaded data; they do not modify your official ranking, incentives or exports.</p>
     </div>

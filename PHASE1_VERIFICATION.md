@@ -1,24 +1,10 @@
-# Phase 1 accuracy verification — v12.10.6
+# Phase 1 accuracy verification — v12.11.0
 
-## Verification added
+## Verification and owner-approved accounting remainder
 
-- New GitHub Actions quality gate on every main push and pull request runs unit/integration tests, TypeScript check and production build.
-- New SheetJS XLSX workbook fixtures cover blank attendance within reported dates, numeric zero, NA absence, errors, client-row layouts and future blanks.
-- Workbook-to-incentive tests verify the team pool and P1/P2 reconciliation from parsed data.
-- A proposal-only rounding preview with deterministic largest-remainder allocation has tests. Live payouts are not changed.
+GitHub Actions runs test, type-check and production build on every main-branch push and pull request. Synthetic SheetJS workbook tests cover blank attendance, NA, zero, errors and reporting cutoffs.
 
-## Approved residual-fils allocation (active in v12.10.7)
-
-The live Bulk Calculator and monthly Beta actuals now allocate P1/P2 in whole fils using largest remainder, with exact pool reconciliation. The Individual Calculator remains an explicitly labeled estimate without a full roster.
-
-Approved policy (ACTIVE in Bulk and monthly Beta actuals):
-1. Compute each raw incentive and the total pool.
-2. Round the total pool to fils.
-3. Initially assign the floor of each raw individual payout in fils.
-4. Distribute remaining fils by descending fractional remainder.
-5. Resolve ties using a unique stable employee identifier (name is only a placeholder in the proposal).
-
-This makes the staff payout sum match the rounded team pool exactly. The owner approved the method; standalone Individual estimates do not assign roster-dependent residual fils.
+As of v12.11.0 the user requested **no largest-remainder distribution**. Raw staff P1 and P2 are rounded independently; the signed difference between the rounded incentive pool and their sum is reported as Accounting Remainder, not assigned to any employee. Positive and negative differences both require Accounting review. Regression tests cover both directions as well as a zero difference, excluded staff, roster ordering, and report formatting.
 
 ## Remaining real-world evidence
 

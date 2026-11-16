@@ -1,33 +1,27 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { previewFilsReconciliation } from '../lib/filsReconciliation.ts'
+import { accountingRemainder, remainderAED, toFils } from '../lib/filsReconciliation.ts'
 
-test('proposal: largest remainder distributes residual fils without losing pool',()=>{
-  const r = previewFilsReconciliation(0.10, [
-    {id:'A',incentive:0.10/3},{id:'B',incentive:0.10/3},{id:'C',incentive:0.10/3}
-  ])
-  assert.equal(r.poolFils, 10)
-  assert.equal(r.separatelyRoundedFils, 9)
-  assert.equal(r.roundingDifferenceFils, 1)
-  assert.deepEqual(r.allocations.map(x=>[x.id,x.fils]),[['A',4],['B',3],['C',3]])
-  assert.equal(r.allocations.reduce((s,x)=>s+x.fils,0),r.poolFils)
+test('positive remainder is held for Accounting, never assigned to an employee',()=>{
+  const result=accountingRemainder(10,[3,3,3])
+  assert.deepEqual(result,{poolFils:10,staffFils:9,remainderFils:1})
+  assert.equal(remainderAED(result.remainderFils),.01)
 })
 
-test('proposal: tie resolution is independent of workbook staff row order',()=>{
-  const input = [{id:'C',incentive:1/3},{id:'A',incentive:1/3},{id:'B',incentive:1/3}]
-  const x=previewFilsReconciliation(1,input)
-  const y=previewFilsReconciliation(1,[...input].reverse())
-  assert.deepEqual(Object.fromEntries(x.allocations.map(p=>[p.id,p.fils])),
-    Object.fromEntries(y.allocations.map(p=>[p.id,p.fils])))
+test('negative remainder is reported when independent rounding exceeds the pool',()=>{
+  const result=accountingRemainder(100,[34,34,33])
+  assert.equal(result.staffFils,101)
+  assert.equal(result.remainderFils,-1)
+  assert.equal(remainderAED(result.remainderFils),-.01)
 })
 
-test('proposal: exact-cent amounts are unchanged',()=>{
-  const r=previewFilsReconciliation(3.40,[{id:'A',incentive:1.15},{id:'B',incentive:2.25}])
-  assert.equal(r.roundingDifferenceFils,0)
-  assert.ok(r.allocations.every(x=>x.adjustmentFils===0))
+test('zero remainder means total independently rounded awards equal the pool',()=>{
+  assert.equal(accountingRemainder(100,[25,25,50]).remainderFils,0)
 })
 
-test('proposal rejects non-reconciling raw payout and duplicate identifiers',()=>{
-  assert.throws(()=>previewFilsReconciliation(4,[{id:'A',incentive:2},{id:'B',incentive:1}]),/reconcile/)
-  assert.throws(()=>previewFilsReconciliation(1,[{id:'A',incentive:.5},{id:'A',incentive:.5}]),/uniquely/)
+test('rounds individual award normally without distributing residual fils',()=>{
+  assert.equal(toFils(33.333333),3333)
+  assert.equal(toFils(0),0)
+  assert.throws(()=>toFils(Infinity))
+  assert.throws(()=>accountingRemainder(100,[50,0.5]))
 })

@@ -1,6 +1,6 @@
 # Incentive accuracy audit — Phase 1
 
-Status: implementation-level validation added in v12.10.3–12.10.4. v12.10.5 adds automated quality checks and synthetic XLSX integration fixtures. Independent real-workbook payroll validation and rounding policy approval remain outstanding.
+Status: implementation-level validation, synthetic XLSX tests and automated CI are active. The owner approved an Accounting-held residual-fils policy in v12.11.0. Independent real-workbook payroll validation remains outstanding.
 
 ## Current approved formula (unchanged for valid positive sales)
 
@@ -27,11 +27,13 @@ Status: implementation-level validation added in v12.10.3–12.10.4. v12.10.5 ad
 
 Bulk Calculator and monthly Beta comparisons now refuse to present a payout if an employee calculation fails or calculated staff payouts fail reconciliation. Reconciliation checks team sales, each employee's P1 + P2, the total pool and finite nonnegative values. Raw floating-point tolerance covers numerical representation only, not material discrepancies.
 
-## Approved residual-fils policy (active in v12.10.7)
+## Accounting-held residual-fils policy (active v12.11.0)
 
-Official Bulk and monthly Beta actual incentives allocate the rounded team pool using the largest-remainder method. The team P1 pool is rounded to fils, P2 receives the remaining fils, and staff awards are allocated independently within each pool using raw entitlements as weights. Each row's final total is exactly its allocated P1 plus P2 in whole fils. Exact ties use employee code in lexicographic order, then a normalized name fallback for staff with no code; duplicate keys block allocation. CSV/PDF show these same awards.
+Each employee's raw P1 and P2 entitlements are individually rounded to the nearest fils. No amount is arbitrarily given to or taken from an employee to reconcile the team pool. Employee total equals displayed P1 plus displayed P2.
 
-The Individual Calculator has no team roster and therefore displays a clearly labeled *estimate*. Its exact official payout can differ by one or more fils because tie-breaks require every employee's raw entitlement. Use Bulk for final allocated staff amounts.
+The independently rounded staff total can differ from the rounded pool. Accounting Remainder = rounded pool − total independently rounded employee payouts. This is a **signed** amount: positive means funds remain undistributed; negative means separately rounded staff payouts exceed the pool. The accounting team decides how to reconcile either situation. A zero remainder needs no action.
+
+Bulk Calculator, Beta actual payouts and CSV/PDF reports display these amounts. The allocation audit confirms **staff total + signed Accounting Remainder = rounded pool in exact integer fils**. The Individual Calculator shows personal rounded entitlements, but not the team remainder without a full roster.
 
 ## Remaining Phase 1 validation
 

@@ -5,7 +5,7 @@ import { auditRoundedIncentives } from './incentiveAudit'
 
 export async function exportBulkToPDF(calculatedData: any, results: any[]) {
   const audit = auditRoundedIncentives(calculatedData.teamSales,
-    calculatedData.totalPool, calculatedData.p1Pool, calculatedData.p2Pool, results)
+    calculatedData.totalPool, calculatedData.p1Pool, calculatedData.p2Pool, results, calculatedData.remainderFils)
   if (audit) throw new Error(`Cannot export unreconciled payouts: ${audit}`)
   const [{ jsPDF }, { default: autoTable }] = await Promise.all([
     import('jspdf'),
@@ -41,6 +41,9 @@ export async function exportBulkToPDF(calculatedData: any, results: any[]) {
     ['Team Achievement', `${calculatedData.teamAchievement.toFixed(2)}%`],
     ['Current Tier',    `${calculatedData.tier.name} (${calculatedData.tier.rate}% rate)`],
     ['Total Pool',      `AED ${formatCurrency(calculatedData.totalPool)}`],
+    ['Staff Payout Total', `AED ${formatCurrency(calculatedData.staffTotalFils / 100)}`],
+    ['Accounting Remainder', `AED ${formatCurrency(calculatedData.remainderFils / 100)}`],
+    ['Accounting Action', calculatedData.remainderFils === 0 ? 'No difference' : 'Pending review'],
     ['Pool Split (P1 / P2)', `${p1Split}% / ${100 - p1Split}%`],
     ['P1 Pool (Equal Share)',       `AED ${formatCurrency(p1Pool)}`],
     ['P2 Pool (Performance Share)', `AED ${formatCurrency(p2Pool)}`],

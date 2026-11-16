@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.11.0]
+
+### Changed — Accounting-held residual fils (owner-approved)
+- Removed largest-remainder allocation to employees. Each employee's raw P1 and P2 entitlement is rounded independently to two decimals, with no extra or removed fils assigned to any individual.
+- Team pool remains rounded to fils; **Accounting Remainder = rounded incentive pool − sum of individually rounded staff payouts**. A positive balance is unallocated; a negative balance means individual rounding exceeded the pool. Both are presented for Accounting review.
+- Bulk Calculator displays the total staff payouts and the signed Accounting Remainder alongside the pool. CSV/PDF reports include the same accounting summary and preserve staff P1/P2/Total amounts.
+- Monthly Beta Insights uses the same rounded staff payouts and shows the signed Accounting Remainder; hypothetical 100% personal payouts are rounded independently.
+- Individual Calculator displays independently rounded personal P1/P2 values, with a note directing users to Bulk for the team remainder.
+- Replaced residual-distribution tests with checks for positive/negative/zero accounting balances, unchanged employee rounding, exclusions, order independence, and exact pool = staff payouts + accounting remainder.
+- Does not alter incentive tier thresholds, raw P1/P2 formulas, Excel attendance rules or projections.
+
 ## [12.10.9]
 
 ### Fixed — TypeScript allocation result narrowing

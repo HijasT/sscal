@@ -44,7 +44,7 @@ export function monthlyIncentives(
   excluded: ReadonlySet<string>,
   p1Split: number,
   targetOverride?: number
-): { staff: (StaffData & { totalIncentive: number })[]; sales: number; target: number; pool: number } | null {
+): { staff: (StaffData & { totalIncentive: number })[]; sales: number; target: number; pool: number; remainderFils: number; staffTotalFils: number } | null {
   const staff = monthlyStaff(sheet, excluded)
   const sales = staff.reduce((total, person) => total + person.sales, 0)
   const target = targetOverride && targetOverride > 0 ? targetOverride : sheet.target
@@ -54,5 +54,5 @@ export function monthlyIncentives(
     ...person,
     totalIncentive: allocation.value.staff[index].totalIncentive,
   }))
-  return { staff: rows, sales, target, pool: allocation.value.pool }
+  return { staff: rows, sales, target, pool: allocation.value.pool, remainderFils: allocation.value.remainderFils, staffTotalFils: allocation.value.staffTotalFils }
 }
