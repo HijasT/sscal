@@ -30,6 +30,8 @@ jobs:
         run: npm run test:coverage
       - name: TypeScript check
         run: npx tsc --noEmit
+      - name: Phase 3 strict domain types
+        run: npx tsc --project tsconfig.phase3.json
       - name: Production build
         run: npm run build
       - name: Install browser-test tooling (CI-only, pinned)

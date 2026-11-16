@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [13.2.0]
+
+### Phase 3 — Excel and typed presentation modules
+- Split Excel processing into typed contracts, attendance logic, employee code/month-name utilities, worksheet extraction, period aggregation, and a stable compatibility facade for existing imports.
+- Typed the XLSX worksheet parser's entry point and cell-error helper; removed the PDF export's unscoped any casts.
+- Extracted next-tier projections and center summary models from the Bulk React component into a pure, testable presentation module.
+- Introduced a separate strict TypeScript migration configuration with strict null checks and noUncheckedIndexedAccess for the refactored workbook domain.
+- Added regression tests proving the facade's existing public behavior, tier ladder, and center percentages.
+- Incentive formulas, reporting cutoff interpretation and accounting-held residual fils policy remain unchanged.
+
 ## [13.1.0]
 
 ### Phase 3 — typed calculation/report architecture (increment 1)

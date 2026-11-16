@@ -3,6 +3,7 @@ import { Fragment, useState, useEffect, useRef } from 'react'
 import { extractEmployeeCode, type ExcelData } from '@/lib/excelUtils'
 import { calculateBulkReport, selectBulkSheets, type BulkResult, type BulkCalculatedData, type BulkViewMode } from '@/lib/bulkCalculation'
 import { buildBulkCSV } from '@/lib/bulkCsv'
+import { nextBulkTierInfo, bulkCenterStats } from '@/lib/bulkPresentation'
 import { formatCurrency, loadTiers, loadStaffCenters } from '@/lib/utils'
 import { formattedPayout } from '@/lib/reportPayout'
 import { exportBulkToPDF } from '@/lib/pdfUtils'
@@ -266,56 +267,10 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
       ? { ...TD, ...extra, background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' }
       : { ...TD, ...extra }
 
-  const nextTierInfo = (() => {
-    if (!calculatedData) return null
-    const tiers = [...loadTiers()].sort((a,b) => a.min - b.min)
-    if (tiers.length === 0) return null
-    const idx   = tiers.findIndex(t => t.id === calculatedData.tier.id)
-    if (calculatedData.tier.rate === 0) {
-      const lowest = tiers[0]
-      const req = ((lowest?.min ?? 0)/100) * calculatedData.target
-      return { nextTierName:lowest?.name??'Tier 1', nextTierRate:lowest?.rate??0, requiredPercentage:lowest?.min??0, requiredSales:req, deficit:req-calculatedData.teamSales, isMaxTier:false }
-    }
-    if (idx >= 0 && idx < tiers.length - 1) {
-      const next = tiers[idx+1]
-      const req  = (next.min/100) * calculatedData.target
-      return { nextTierName:next.name, nextTierRate:next.rate, requiredPercentage:next.min, requiredSales:req, deficit:req-calculatedData.teamSales, isMaxTier:false }
-    }
-    const hi = tiers[idx] ?? tiers[tiers.length - 1]
-    const thS = (hi.min/100)*calculatedData.target
-    const thP = (hi.rate/100)*thS
-    const acP = (hi.rate/100)*calculatedData.teamSales
-    return { isMaxTier:true, currentRate:calculatedData.tier.rate, thresholdPercentage:hi.min, thresholdSales:thS, thresholdPool:thP, extraIncentive:acP-thP }
-  })()
-
-  const centerStats = (() => {
-    if (!calculatedData) return null
-    const staffCenters = loadStaffCenters()
-    const totals: Record<string, { sales: number; packages: number; clients: number }> = {}
-    let unassigned = 0
-
-    results.forEach(person => {
-      const code = extractEmployeeCode(person.name)
-      const center = code ? staffCenters[code] : undefined
-      if (!center) { unassigned++; return }
-      if (!totals[center]) totals[center] = { sales: 0, packages: 0, clients: 0 }
-      totals[center].sales    += person.sales
-      totals[center].packages += person.packages
-      totals[center].clients  += person.clients ?? 0
-    })
-
-    const teamSales = calculatedData.teamSales || 1
-    const rows = Object.entries(CENTERS).map(([key, label]) => ({
-      key,
-      label,
-      sales:      totals[key]?.sales ?? 0,
-      packages:   totals[key]?.packages ?? 0,
-      clients:    totals[key]?.clients ?? 0,
-      revenuePct: ((totals[key]?.sales ?? 0) / teamSales) * 100,
-    }))
-
-    return { rows, unassigned }
-  })()
+  const nextTierInfo = nextBulkTierInfo(calculatedData, loadTiers())
+  const centerStats = bulkCenterStats(
+    results, calculatedData, loadStaffCenters(), CENTERS, extractEmployeeCode
+  )
 
   const handleExportCSV = () => {
     if (!results.length || !calculatedData) return

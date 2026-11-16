@@ -65,7 +65,7 @@ export async function exportBulkToPDF(calculatedData: BulkCalculatedData, result
     },
   })
 
-  let finalY = (doc as any).lastAutoTable.finalY + 10
+  let finalY = ((doc as typeof doc & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 48) + 10
   doc.setFontSize(14)
   doc.setTextColor(0, 0, 0)
   doc.text('Staff Performance', 15, finalY)
@@ -101,7 +101,7 @@ export async function exportBulkToPDF(calculatedData: BulkCalculatedData, result
     },
   })
 
-  const pageCount = (doc as any).internal.getNumberOfPages()
+  const pageCount = doc.getNumberOfPages()
   doc.setFontSize(8)
   doc.setTextColor(150, 150, 150)
   for (let i = 1; i <= pageCount; i++) {

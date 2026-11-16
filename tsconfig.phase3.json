@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "incremental": false
+  },
+  "include": [
+    "lib/excelTypes.ts",
+    "lib/excelAttendance.ts",
+    "lib/excelSheetNames.ts",
+    "lib/excelPeriod.ts"
+  ],
+  "exclude": ["node_modules"]
+}

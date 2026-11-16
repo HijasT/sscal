@@ -26,3 +26,7 @@ The Phase 2 golden spreadsheet tests and Playwright E2E suite must remain green.
 5. Confirm financial sign-off with anonymized real workbook and independently expected incentives. The workbook's all-blank final-day reporting cutoff remains a known unresolved source ambiguity.
 
 **Do not** alter incentive formulas, rounding, employee attendance semantics or the accounting-held residual-fils policy during refactoring.
+
+## Increment 2: v13.2.0
+
+Workbook processing is split into `excelTypes`, `excelAttendance`, `excelSheetNames`, `excelSheetParser`, `excelPeriod`, and the backwards-compatible `excelUtils` facade. Presentation-only calculations are in `bulkPresentation`, and PDF report input interfaces are typed. The strict domain TypeScript configuration is verified in CI, separate from the legacy application-wide non-strict migration.
