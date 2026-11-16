@@ -65,3 +65,26 @@ test('one global Insights picker defaults to calendar month; otherwise latest av
   assert.equal(defaultInsightsMonth(months, new Date(2027, 0, 2)), 'Dec 2026')
   assert.equal(defaultInsightsMonth([], new Date(2026, 10, 13)), '')
 })
+
+test('Beta snapshots fail closed on invalid splits and staff sales', () => {
+  assert.equal(monthlyIncentives(sheet('Nov 26'), new Set(), 101), null)
+  assert.equal(monthlyIncentives(sheet('Nov 26'), new Set(), -1), null)
+  const broken = sheet('Nov 26')
+  broken.staff = [
+    { name:'A', sales:350, packages:1, workingDays:1 },
+    { name:'B', sales:-10, packages:1, workingDays:1 },
+  ]
+  assert.equal(monthlyIncentives(broken, new Set(), 50), null)
+})
+
+test('Beta zero-sales month has a valid zero incentive pool', () => {
+  const empty = sheet('Nov 26')
+  empty.staff = [
+    { name:'A', sales:0, packages:0, workingDays:0 },
+    { name:'B', sales:0, packages:0, workingDays:0 },
+  ]
+  const result = monthlyIncentives(empty, new Set(), 50)
+  assert.ok(result)
+  assert.equal(result.pool, 0)
+  assert.deepEqual(result.staff.map(p => p.totalIncentive), [0,0])
+})

@@ -160,17 +160,21 @@ export function calculateIncentive(
 ): CalculationResult {
   const tiers = customTiers || loadTiers()
 
-  // Better NaN and validation checks
-  if (isNaN(teamTarget) || isNaN(teamSales) || isNaN(mySales) || isNaN(staffCount) || isNaN(p1Percent)) {
-    return { error: 'Please enter valid numbers for all fields' } as any
+  // Reject Infinity as well as NaN: invalid inputs must never produce a payout.
+  if (![teamTarget, teamSales, mySales, staffCount, p1Percent].every(Number.isFinite)) {
+    return { error: 'Please enter valid finite numbers for all fields' } as any
   }
 
   if (teamTarget <= 0 || teamSales < 0 || mySales < 0 || staffCount <= 0) {
-    return { error: 'Target, staff count must be positive. Sales cannot be negative.' } as any
+    return { error: 'Target and staff count must be positive. Sales cannot be negative.' } as any
   }
 
-  if (teamSales === 0) {
-    return { error: 'Team sales must be greater than zero' } as any
+  if (!Number.isInteger(staffCount)) {
+    return { error: 'Staff count must be a whole number' } as any
+  }
+
+  if (p1Percent < 0 || p1Percent > 100) {
+    return { error: 'P1 split must be between 0% and 100%' } as any
   }
 
   if (mySales > teamSales) {
@@ -178,7 +182,13 @@ export function calculateIncentive(
   }
 
   const teamAchievement = (teamSales / teamTarget) * 100
+  if (!Number.isFinite(teamAchievement)) {
+    return { error: 'Team achievement is outside the supported numeric range' } as any
+  }
   const tier = getTier(teamAchievement, tiers)
+  if (!Number.isFinite(tier.rate) || tier.rate < 0 || tier.rate > 100) {
+    return { error: 'Incentive tier has an invalid rate' } as any
+  }
 
   // Calculate next tier info
   let nextTierInfo = null
@@ -232,11 +242,15 @@ export function calculateIncentive(
   }
 
   const totalPool = (tier.rate / 100) * teamSales
+  if (!Number.isFinite(totalPool)) {
+    return { error: 'Incentive pool is outside the supported numeric range' } as any
+  }
   const p1Pool = (p1Percent / 100) * totalPool
   const p2Pool = ((100 - p1Percent) / 100) * totalPool
   const myP1 = p1Pool / staffCount
-  const myContribution = (mySales / teamSales) * 100
-  const myP2 = (mySales / teamSales) * p2Pool
+  // A valid zero-sales month has a zero pool and zero payouts, never NaN.
+  const myContribution = teamSales === 0 ? 0 : (mySales / teamSales) * 100
+  const myP2 = teamSales === 0 ? 0 : (mySales / teamSales) * p2Pool
   const myTotal = myP1 + myP2
 
   return {

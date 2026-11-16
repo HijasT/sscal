@@ -127,8 +127,18 @@ test('calculateIncentive: rejects non-positive target', () => {
   assert.ok(calculateIncentive(0, 120000, 12000, 10, 50, TIERS).error)
 })
 
-test('calculateIncentive: rejects zero team sales', () => {
-  assert.ok(calculateIncentive(100000, 0, 0, 10, 50, TIERS).error)
+test('calculateIncentive: zero team sales yields a valid zero pool and zero payouts', () => {
+  const result = calculateIncentive(100000, 0, 0, 10, 50, TIERS)
+  assert.equal(result.error, undefined)
+  assert.equal(result.teamAchievement, 0)
+  assert.equal(result.tier.rate, 0)
+  assert.equal(result.totalPool, 0)
+  assert.equal(result.p1Pool, 0)
+  assert.equal(result.p2Pool, 0)
+  assert.equal(result.myContribution, 0)
+  assert.equal(result.myP1, 0)
+  assert.equal(result.myP2, 0)
+  assert.equal(result.myTotal, 0)
 })
 
 test('calculateIncentive: rejects personal sales exceeding team sales', () => {
@@ -161,4 +171,45 @@ test('calculateIncentive: P1 + P2 pools equal the total pool', () => {
 test('formatCurrency: thousands separators and 2 decimals', () => {
   assert.equal(formatCurrency(1234567.5), '1,234,567.50')
   assert.equal(formatCurrency(0), '0.00')
+})
+
+test('calculateIncentive: rejects Infinity and negative Infinity in every input', () => {
+  const valid = [100000, 120000, 12000, 10, 50] as const
+  for (let i = 0; i < valid.length; i++) {
+    for (const invalid of [Infinity, -Infinity, NaN]) {
+      const inputs = [...valid]
+      inputs[i] = invalid
+      assert.ok(calculateIncentive(...(inputs as [number, number, number, number, number]), TIERS).error,
+        `input index ${i}, invalid ${String(invalid)}`)
+    }
+  }
+})
+
+test('calculateIncentive: invalid P1 split cannot create a payout', () => {
+  for (const split of [-1, 100.01, 250]) {
+    assert.match(calculateIncentive(100000, 120000, 12000, 10, split, TIERS).error ?? '', /P1 split/)
+  }
+  for (const split of [0, 50, 100]) {
+    assert.equal(calculateIncentive(100000, 120000, 12000, 10, split, TIERS).error, undefined)
+  }
+})
+
+test('calculateIncentive: staff count must be a positive integer', () => {
+  assert.match(calculateIncentive(100000, 120000, 12000, 2.5, 50, TIERS).error ?? '', /whole number/)
+  assert.ok(calculateIncentive(100000, 120000, 12000, -2, 50, TIERS).error)
+})
+
+test('calculateIncentive: unchanged valid staff payouts reconcile for multiple splits', () => {
+  const sales = [50000, 25000, 15000, 30000]
+  const total = sales.reduce((sum, n) => sum + n, 0)
+  for (const p1 of [0, 25, 50, 75, 100]) {
+    const results = sales.map(person => calculateIncentive(100000, total, person, sales.length, p1, TIERS))
+    assert.ok(results.every(x => !x.error))
+    assert.ok(Math.abs(results.reduce((sum, x) => sum + x.myTotal, 0) - results[0].totalPool) < 1e-8)
+  }
+})
+
+test('calculateIncentive: rejects numeric overflow even from finite inputs', () => {
+  assert.match(calculateIncentive(1, Number.MAX_VALUE, Number.MAX_VALUE, 1, 50, TIERS).error ?? '', /numeric range|pool/)
+  assert.match(calculateIncentive(Number.MIN_VALUE, 100000, 10000, 10, 50, TIERS).error ?? '', /numeric range/)
 })

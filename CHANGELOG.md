@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.10.3]
+
+### Fixed — Phase 1 incentive accuracy
+- Rejected non-finite and overflowing incentive inputs, out-of-range P1 percentages, and fractional staff counts before computing payouts.
+- Standardized zero team sales to produce zero incentive pool, zero personal contribution and zero staff payouts, rather than an error that Bulk previously read as undefined fields.
+- Bulk Calculator and monthly Beta comparisons now stop on invalid staff payout results or failed team pool reconciliation. Empty active-staff sets no longer fabricate a divisor of one.
+- Individual Calculator rejects partially numeric manual entries instead of silently truncating them.
+- XLSX daily sales: NA/N/A means absent; numeric 0 means an attended day with no sales. Broken formulas and non-numeric text do not count as worked days. The one-day fallback only applies to sheets without any dated daily columns.
+- Added input-validation, zero-sales, team reconciliation and attendance regression tests.
+- Documented the existing unrounded incentive formula, attendance rules and outstanding fils allocation approval in INCENTIVE_ACCURACY_AUDIT.md.
+
 ## [12.10.2]
 
 ### Fixed

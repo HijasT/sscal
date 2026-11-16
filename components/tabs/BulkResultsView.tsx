@@ -2,6 +2,7 @@
 import { Fragment, useState, useEffect, useRef } from 'react'
 import { aggregateSheets, extractEmployeeCode, type ExcelData, type StaffData } from '@/lib/excelUtils'
 import { calculateIncentive, formatCurrency, getTier, loadTiers, loadStaffCenters } from '@/lib/utils'
+import { auditIncentivePayouts } from '@/lib/incentiveAudit'
 import { exportBulkToPDF } from '@/lib/pdfUtils'
 import { DEFAULT_P1_SPLIT, CENTERS } from '@/lib/config'
 import { getFresh, setFresh, clearFresh } from '@/lib/storage'
@@ -214,15 +215,21 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     setAutoTarget(aggregated.target)
     setStaffCount(aggregated.staff.length)
 
-    const finalTarget = target ? parseFloat(target) : aggregated.target
-    if (!finalTarget || finalTarget <= 0) {
+    const finalTarget = target.trim() ? Number(target) : aggregated.target
+    if (!Number.isFinite(finalTarget) || finalTarget <= 0) {
       if (!silent) notify({ level: 'error', title: 'Invalid target', messages: ['Enter a Team Target manually, or check that the Excel sheet has one.'] })
       else { setResults([]); setCalcData(null) }
       return
     }
 
     const activeStaff = aggregated.staff.filter(p => !excludedStaff.has(p.name))
-    const n = activeStaff.length || 1
+    if (!activeStaff.length) {
+      setResults([])
+      setCalcData(null)
+      if (!silent) notify({ level: 'error', title: 'No active staff', messages: ['Keep at least one staff member included.'] })
+      return
+    }
+    const n = activeStaff.length
 
     const teamSales    = activeStaff.reduce((s, p) => s + p.sales, 0)
     const teamPackages = activeStaff.reduce((s, p) => s + p.packages, 0)
@@ -232,11 +239,18 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     const tier      = getTier(teamAchievement)
     const totalPool = (tier.rate / 100) * teamSales
 
-    const bulkResults: BulkResult[] = activeStaff.map(person => {
-      const calc    = calculateIncentive(finalTarget, teamSales, person.sales, n, p1Split)
+    const bulkResults: BulkResult[] = []
+    for (const person of activeStaff) {
+      const calc = calculateIncentive(finalTarget, teamSales, person.sales, n, p1Split)
+      if (calc.error) {
+        setResults([])
+        setCalcData(null)
+        notify({ level: 'error', title: 'Calculation blocked', messages: [calc.error] })
+        return
+      }
       const days    = Math.max(person.workingDays, 1)
       const clients = person.clients ?? 0
-      return {
+      bulkResults.push({
         ...person,
         achievement:       teamAchievement,
         tierName:          tier.name,
@@ -249,8 +263,16 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
         avgSalesPerDay:    person.sales / days,
         avgClientsPerDay:  clients / days,
         maxKpiClients:     clients * 20,
-      }
-    })
+      })
+    }
+
+    const auditIssue = auditIncentivePayouts(teamSales, totalPool, bulkResults)
+    if (auditIssue) {
+      setResults([])
+      setCalcData(null)
+      notify({ level: 'error', title: 'Payout reconciliation failed', messages: [auditIssue] })
+      return
+    }
 
     bulkResults.sort((a, b) => b.sales - a.sales)
 

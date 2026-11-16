@@ -42,10 +42,12 @@ export function IndividualTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
   }, [teamTarget, teamSales, mySales, staffCount, p1Split])
 
   const calculate = () => {
-    const target = parseFloat(teamTarget)
-    const sales = parseFloat(teamSales)
-    const my = parseFloat(mySales) || 0
-    const staff = parseInt(staffCount)
+    // Number() rejects partial strings such as "100abc" instead of accepting 100.
+    // An empty personal-sales field intentionally means zero sales.
+    const target = teamTarget.trim() ? Number(teamTarget) : NaN
+    const sales = teamSales.trim() ? Number(teamSales) : NaN
+    const my = mySales.trim() ? Number(mySales) : 0
+    const staff = staffCount.trim() ? Number(staffCount) : NaN
 
     const result = calculateIncentive(target, sales, my, staff, p1Split)
     setResults(result)

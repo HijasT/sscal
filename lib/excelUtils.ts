@@ -32,6 +32,23 @@ export interface ExcelData {
   lastReportedDay?: number
 }
 
+/**
+ * Daily sales attendance rule:
+ * - NA / N/A / blank: not recorded as worked (absent or no entry)
+ * - numeric 0: worked, with zero sales
+ * - a genuine Excel error: invalid, not a worked day
+ */
+export function isWorkedSalesCell(cell: { v?: unknown; t?: string } | undefined): boolean {
+  if (!cell || cell.v == null) return false
+  const value = String(cell.v).trim()
+  if (!value || /^n[/]?a$/i.test(value)) return false
+  if (cell.t === 'e' || /^#(REF|DIV[/]0|VALUE|NAME|NUM|NULL|N[/]A)[!?]/i.test(value)) return false
+  // A worked day requires an actual numeric sales entry, including zero.
+  // Arbitrary text must not inflate attendance.
+  const amount = typeof cell.v === 'number' ? cell.v : Number(value.replaceAll(',', ''))
+  return Number.isFinite(amount)
+}
+
 // Matches an employee code like "AE01-227" embedded in a staff name cell
 // (e.g. "Jane Doe AE01-227") — used to look up STAFF_CENTERS without
 // keying that config by real names.
@@ -290,7 +307,7 @@ function extractStaffFromSheet(
     let total = 0
     for (const { col } of dayColumns) {
       const cell = worksheet[XLSX.utils.encode_cell({ r, c: col })]
-      if (!cell || cell.v === 'NA' || cell.v == null || cell.v === '') continue
+      if (!cell || cell.v == null || cell.v === '' || /^n[/]?a$/i.test(String(cell.v).trim())) continue
       if (isErrorCell(cell)) {
         warnings.push(`${sheetName}: ${ctx} has a broken daily cell ("${cell.w ?? cell.v}") — skipped`)
         continue
@@ -370,28 +387,23 @@ function extractStaffFromSheet(
             XLSX.utils.encode_cell({ r: row - 1 + salesRowOffset, c: col })
           ]
 
-          // Skip if cell is absent (blank) or explicitly marked NA
-          if (!dailyCell || dailyCell.v === 'NA' ||
-              dailyCell.v === null || dailyCell.v === undefined || dailyCell.v === '') {
-            continue
-          }
+          // NA denotes absence; numeric 0 denotes attendance with no sales.
+          // Broken formulas are handled as errors, never as worked days.
+          if (!isWorkedSalesCell(dailyCell)) continue
 
           workingDays++
-          // Only a populated sales cell establishes a reporting cutoff.
-          if (!isErrorCell(dailyCell)) {
-            lastReportedDay = Math.max(lastReportedDay ?? 0, day)
-            daily.push({
-              day,
-              sales: dailyNumber(row - 1 + salesRowOffset, col),
-              packages: dailyNumber(row - 1, col),
-              clients: hasClientsRow ? dailyNumber(row, col) : 0,
-            })
-          }
+          lastReportedDay = Math.max(lastReportedDay ?? 0, day)
+          daily.push({
+            day,
+            sales: dailyNumber(row - 1 + salesRowOffset, col),
+            packages: dailyNumber(row - 1, col),
+            clients: hasClientsRow ? dailyNumber(row, col) : 0,
+          })
         }
 
-        // Fallback: if the sheet has no day-header columns but has sales data,
-        // at least 1 day must have been worked
-        if (workingDays === 0 && sales > 0) {
+        // Fallback only when the workbook has NO daily columns at all.
+        // Dated NA entries mean absence and must not invent a worked day.
+        if (dayColumns.length === 0 && workingDays === 0 && sales > 0) {
           workingDays = 1
         }
 
