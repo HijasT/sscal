@@ -9,6 +9,7 @@ export function extractStaffFromSheet(
   worksheet: SheetJS.WorkSheet | undefined,
   sheetName: string,
   XLSX: typeof SheetJS,
+  reportedThroughDay?: number,
 ): { staff: StaffData[]; target: number; warnings: string[]; lastReportedDay?: number } {
   if (!worksheet) return { staff: [], target: 0, warnings: [] }
 
@@ -260,8 +261,24 @@ export function extractStaffFromSheet(
     }
   }
 
-  // Count blank cells as zero-sale worked days ONLY through the last explicit
-  // reported sales day. Never treat future unfilled columns as attendance.
+  // The entered reporting cutoff may extend an entirely zero-sales day.
+  // Never allow it to silently discard an actual entered sales day.
+  const detectedLastDay = lastReportedDay
+  const validOverride = reportedThroughDay !== undefined &&
+    Number.isInteger(reportedThroughDay) && reportedThroughDay >= 1 && reportedThroughDay <= 31
+  if (reportedThroughDay !== undefined && !validOverride) {
+    warnings.push(`${sheetName}: reporting cutoff must be a day from 1 to 31; automatic cutoff used.`)
+  }
+  if (validOverride) {
+    lastReportedDay = Math.max(detectedLastDay ?? 0, reportedThroughDay!)
+    if (detectedLastDay !== undefined && reportedThroughDay! < detectedLastDay) {
+      warnings.push(`${sheetName}: requested cutoff day ${reportedThroughDay} is before entered sales on day ${detectedLastDay}; retaining the entered sales day.`)
+    }
+  } else if (dayColumns.some(({ day }) => day > (detectedLastDay ?? 0))) {
+    warnings.push(`${sheetName}: blank dates after day ${detectedLastDay ?? 'unknown'} are excluded from attendance. If those dates were completed zero-sales days, set a reporting cutoff and re-upload.`)
+  }
+
+  // Count blank cells as zero-sale worked days ONLY through the reporting cutoff.
   for (const { staff: employee, days } of pendingBlankDays) {
     applyReportedBlankAttendance(employee, days, lastReportedDay)
   }
