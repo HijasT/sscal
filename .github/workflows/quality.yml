@@ -11,9 +11,9 @@ permissions:
 
 jobs:
   verify:
-    name: Tests, types and production build
+    name: Unit, XLSX, types, build and browser smoke
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,7 +26,24 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Unit and XLSX integration tests
         run: npm test
+      - name: Test coverage summary
+        run: npm run test:coverage
       - name: TypeScript check
         run: npx tsc --noEmit
       - name: Production build
         run: npm run build
+      - name: Install browser-test tooling (CI-only, pinned)
+        run: npm install --no-save --package-lock=false @playwright/test@1.56.1 pdfjs-dist@4.10.38
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Upload, calculation and CSV/PDF browser tests
+        run: npm run test:e2e
+      - name: Retain browser failures for diagnosis
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore

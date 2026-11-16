@@ -1,0 +1,162 @@
+{
+  "schema": "kleon-phase2-golden-v1",
+  "description": "Synthetic workbook with independently hand-computed expected awards; no real staff data",
+  "months": [
+    {
+      "sheetName": "Nov 26",
+      "target": 100,
+      "days": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "staff": [
+        {
+          "name": "Cora AE03-101",
+          "packages": [
+            1,
+            "NA",
+            0,
+            null
+          ],
+          "sales": [
+            10,
+            "NA",
+            20,
+            null
+          ]
+        },
+        {
+          "name": "Amir AE01-227",
+          "packages": [
+            0,
+            0,
+            1,
+            null
+          ],
+          "sales": [
+            0,
+            15,
+            25,
+            null
+          ]
+        },
+        {
+          "name": "Bela AE02-138",
+          "packages": [
+            0,
+            0,
+            0,
+            null
+          ],
+          "sales": [
+            10,
+            null,
+            20,
+            null
+          ]
+        }
+      ],
+      "expected": {
+        "lastReportedDay": 3,
+        "teamSales": 100,
+        "teamPackages": 2,
+        "staff": [
+          {
+            "name": "Cora AE03-101",
+            "sales": 30,
+            "workingDays": 2,
+            "p1": 0.42,
+            "p2": 0.38,
+            "total": 0.8
+          },
+          {
+            "name": "Amir AE01-227",
+            "sales": 40,
+            "workingDays": 3,
+            "p1": 0.42,
+            "p2": 0.5,
+            "total": 0.92
+          },
+          {
+            "name": "Bela AE02-138",
+            "sales": 30,
+            "workingDays": 3,
+            "p1": 0.42,
+            "p2": 0.38,
+            "total": 0.8
+          }
+        ],
+        "tierRate": 2.5,
+        "poolFils": 250,
+        "staffTotalFils": 252,
+        "remainderFils": -2
+      }
+    },
+    {
+      "sheetName": "Dec 26",
+      "target": 100,
+      "days": [
+        1,
+        2,
+        3
+      ],
+      "staff": [
+        {
+          "name": "Dina AE01-216",
+          "packages": [
+            1,
+            1,
+            null
+          ],
+          "sales": [
+            50,
+            20,
+            null
+          ]
+        },
+        {
+          "name": "Evan AE02-104",
+          "packages": [
+            1,
+            0,
+            null
+          ],
+          "sales": [
+            30,
+            20,
+            null
+          ]
+        }
+      ],
+      "expected": {
+        "lastReportedDay": 2,
+        "teamSales": 120,
+        "teamPackages": 3,
+        "staff": [
+          {
+            "name": "Dina AE01-216",
+            "sales": 70,
+            "workingDays": 2,
+            "p1": 1.05,
+            "p2": 1.23,
+            "total": 2.28
+          },
+          {
+            "name": "Evan AE02-104",
+            "sales": 50,
+            "workingDays": 2,
+            "p1": 1.05,
+            "p2": 0.88,
+            "total": 1.93
+          }
+        ],
+        "tierRate": 3.5,
+        "poolFils": 420,
+        "staffTotalFils": 421,
+        "remainderFils": -1
+      }
+    }
+  ]
+}

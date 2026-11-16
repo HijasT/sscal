@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [13.0.0]
+
+### Major — Phase 2 automated regression protection
+- Introduced a declarative synthetic golden-workbook fixture with independently specified expected employee attendance, sales, P1/P2, incentive pool and Accounting Remainder; the fixture is assembled into a real XLSX and round-tripped through the production parser.
+- Added regression tests for month-to-month isolation, annual aggregation, exclusions, manual targets and fixed accounting outcomes.
+- Added Chromium browser integration tests for actual XLSX upload, staff-payout display, downloadable CSV contents, downloaded PDF accounting text, employee exclusion recalculation and the Individual Calculator.
+- Expanded GitHub Actions quality checks to include test coverage reporting, TypeScript, production build and browser smoke tests; failed browser artifacts are retained for investigation.
+- Documented release-gate setup, real-workbook sign-off requirements and browser-test commands in PHASE2_TEST_STRATEGY.md.
+- Incentive calculations, attendance semantics, the signed Accounting Remainder policy and CSV/PDF payout formulas remain unchanged.
+
 ## [12.11.1]
 
 ### Improved — Accounting Remainder CSV and PDF exports
