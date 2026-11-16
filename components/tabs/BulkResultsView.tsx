@@ -246,7 +246,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     const teamClients  = activeStaff.reduce((s, p) => s + (p.clients ?? 0), 0)
 
     const allocation = calculateTeamIncentives(finalTarget, activeStaff, p1Split)
-    if (!allocation.ok) {
+    if ('error' in allocation) {
       setResults([])
       setCalcData(null)
       notify({ level: 'error', title: 'Calculation blocked', messages: [allocation.error] })

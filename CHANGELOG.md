@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.10.9]
+
+### Fixed — TypeScript allocation result narrowing
+- Used an explicit error-property guard for the roster-aware allocation result in Bulk Calculator and its regression tests, allowing correct TypeScript narrowing under the existing project settings.
+- No change to incentive formulas or rounding policy.
+
 ## [12.10.8]
 
 ### Fixed — residual-fils regression validation

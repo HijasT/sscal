@@ -13,8 +13,8 @@ const people = [
 ]
 const payout = (roster=people, split=50) => {
   const outcome = calculateTeamIncentives(100,roster,split,DEFAULT_TIERS)
-  assert.equal(outcome.ok,true,outcome.ok?'':outcome.error)
-  if(!outcome.ok) throw new Error(outcome.error)
+  assert.equal(outcome.ok,true,'error' in outcome ? outcome.error : '')
+  if('error' in outcome) throw new Error(outcome.error)
   return outcome.value
 }
 
@@ -62,7 +62,7 @@ test('zero-sales roster yields exact zero-fils payout',()=>{
 test('official calculator blocks duplicate employee codes even with changed names',()=>{
   const bad=calculateTeamIncentives(100,[{name:'Jane AE01-227',sales:50},{name:'Janet AE01-227',sales:50}],50,DEFAULT_TIERS)
   assert.equal(bad.ok,false)
-  if(!bad.ok)assert.match(bad.error,/Duplicate employee identifiers/)
+  if('error' in bad)assert.match(bad.error,/Duplicate employee identifiers/)
 })
 
 test('invalid splits and oversized pools cannot allocate payouts',()=>{
