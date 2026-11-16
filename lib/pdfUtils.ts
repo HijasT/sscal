@@ -3,8 +3,9 @@ import { formatCurrency } from './utils'
 import { formattedPayout } from './reportPayout'
 import { accountingExportRows } from './accountingExport'
 import { auditRoundedIncentives } from './incentiveAudit'
+import type { BulkCalculatedData, BulkResult } from './bulkCalculation'
 
-export async function exportBulkToPDF(calculatedData: any, results: any[]) {
+export async function exportBulkToPDF(calculatedData: BulkCalculatedData, results: readonly BulkResult[]) {
   const audit = auditRoundedIncentives(calculatedData.teamSales,
     calculatedData.totalPool, calculatedData.p1Pool, calculatedData.p2Pool, results, calculatedData.remainderFils)
   if (audit) throw new Error(`Cannot export unreconciled payouts: ${audit}`)

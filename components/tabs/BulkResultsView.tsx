@@ -1,11 +1,10 @@
 'use client'
 import { Fragment, useState, useEffect, useRef } from 'react'
-import { aggregateSheets, extractEmployeeCode, type ExcelData, type StaffData } from '@/lib/excelUtils'
-import { formatCurrency, getTier, loadTiers, loadStaffCenters } from '@/lib/utils'
-import { calculateTeamIncentives } from '@/lib/teamIncentives'
-import { auditRoundedIncentives } from '@/lib/incentiveAudit'
+import { extractEmployeeCode, type ExcelData } from '@/lib/excelUtils'
+import { calculateBulkReport, selectBulkSheets, type BulkResult, type BulkCalculatedData, type BulkViewMode } from '@/lib/bulkCalculation'
+import { buildBulkCSV } from '@/lib/bulkCsv'
+import { formatCurrency, loadTiers, loadStaffCenters } from '@/lib/utils'
 import { formattedPayout } from '@/lib/reportPayout'
-import { accountingSummaryCSV } from '@/lib/accountingExport'
 import { exportBulkToPDF } from '@/lib/pdfUtils'
 import { DEFAULT_P1_SPLIT, CENTERS, APP_VERSION } from '@/lib/config'
 import { getFresh, setFresh, clearFresh } from '@/lib/storage'
@@ -17,22 +16,7 @@ import { averageDivider } from '@/lib/rankAverage'
 import { BulkInsightsBeta } from '@/components/tabs/BulkInsightsBeta'
 import { visibleCenterRankings, nextCenterVisibility } from '@/lib/centerRankingVisibility'
 
-interface BulkResult extends StaffData {
-  achievement: number
-  tierName: string
-  tierRate: number
-  totalIncentive: number
-  p1: number
-  p2: number
-  contribution: number
-  avgPackagesPerDay: number
-  avgSalesPerDay: number
-  avgClientsPerDay: number
-  maxKpiClients: number
-  clients?: number
-}
-
-type ViewMode = 'monthly' | 'q1' | 'q2' | 'q3' | 'q4' | 'h1' | 'h2' | 'yearly' | 'alltime'
+type ViewMode = BulkViewMode
 type SortCol = keyof BulkResult
 
 interface Props {
@@ -79,7 +63,7 @@ interface PersistedResults {
   staffCount: number
   p1Split: number
   results: BulkResult[]
-  calculatedData: any
+  calculatedData: BulkCalculatedData | null
   excludedStaff: string[]
 }
 
@@ -106,7 +90,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   const [staffCount, setStaffCount]   = useState(persisted.staffCount ?? 0)
   const [p1Split, setP1Split]         = useState(persisted.p1Split ?? DEFAULT_P1_SPLIT)
   const [results, setResults]         = useState<BulkResult[]>(persisted.results ?? [])
-  const [calculatedData, setCalcData] = useState<any>(persisted.calculatedData ?? null)
+  const [calculatedData, setCalcData] = useState<BulkCalculatedData | null>(persisted.calculatedData ?? null)
   const [sortColumn, setSortCol]      = useState<SortCol>('sales')
   const [sortDir, setSortDir]         = useState<'asc' | 'desc'>('desc')
   const [bulkSubtab, setBulkSubtab]   = useState<'calculator' | 'beta'>('calculator')
@@ -152,25 +136,8 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     }
   }, [excelData])
 
-  const getSheetsForView = (): ExcelData[] => {
-    if (viewMode === 'alltime') return excelData
-    if (viewMode === 'yearly')  return excelData.filter(d => d.sheetName.includes(selectedYear))
-    if (viewMode === 'monthly') {
-      const name = `${selectedMonth} ${selectedYear}`.trim()
-      return excelData.filter(d => d.sheetName === name || d.sheetName === `${selectedMonth}${selectedYear}`)
-    }
-    const quarters: Record<string, string[]> = {
-      q1: ['Jan','Feb','Mar'], q2: ['Apr','May','Jun'],
-      q3: ['Jul','Aug','Sep'], q4: ['Oct','Nov','Dec'],
-      h1: ['Jan','Feb','Mar','Apr','May','Jun'],
-      h2: ['Jul','Aug','Sep','Oct','Nov','Dec'],
-    }
-    const months = quarters[viewMode]
-    return excelData.filter(d => {
-      const [m, y] = d.sheetName.split(' ')
-      return months.includes(m) && y === selectedYear
-    })
-  }
+  const getSheetsForView = (): ExcelData[] =>
+    selectBulkSheets(excelData, viewMode, selectedMonth, selectedYear)
 
   const toggleExclude = (name: string) => {
     setExcluded(prev => {
@@ -209,99 +176,26 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   }, [overrideActive])
 
   const handleCalculate = (silent = false) => {
-    const sheets = getSheetsForView()
-    if (!sheets.length) {
-      if (!silent) notify({ level: 'error', title: 'No data for this view', messages: ['No sheets found for the selected view.'] })
-      else { setResults([]); setCalcData(null) }
-      return
-    }
-
-    const aggregated = sheets.length === 1 ? sheets[0] : aggregateSheets(sheets)
-    if (!aggregated.staff.length) {
-      if (!silent) notify({ level: 'error', title: 'No staff data', messages: ['No staff data was found for the selected view.'] })
-      else { setResults([]); setCalcData(null) }
-      return
-    }
-
-    setAutoTarget(aggregated.target)
-    setStaffCount(aggregated.staff.length)
-
-    const finalTarget = target.trim() ? Number(target) : aggregated.target
-    if (!Number.isFinite(finalTarget) || finalTarget <= 0) {
-      if (!silent) notify({ level: 'error', title: 'Invalid target', messages: ['Enter a Team Target manually, or check that the Excel sheet has one.'] })
-      else { setResults([]); setCalcData(null) }
-      return
-    }
-
-    const activeStaff = aggregated.staff.filter(p => !excludedStaff.has(p.name))
-    if (!activeStaff.length) {
-      setResults([])
-      setCalcData(null)
-      if (!silent) notify({ level: 'error', title: 'No active staff', messages: ['Keep at least one staff member included.'] })
-      return
-    }
-    const n = activeStaff.length
-
-    const teamSales    = activeStaff.reduce((s, p) => s + p.sales, 0)
-    const teamPackages = activeStaff.reduce((s, p) => s + p.packages, 0)
-    const teamClients  = activeStaff.reduce((s, p) => s + (p.clients ?? 0), 0)
-
-    const allocation = calculateTeamIncentives(finalTarget, activeStaff, p1Split)
-    if ('error' in allocation) {
-      setResults([])
-      setCalcData(null)
-      notify({ level: 'error', title: 'Calculation blocked', messages: [allocation.error] })
-      return
-    }
-    const { pool: totalPool, p1Pool, p2Pool, remainderFils, staffTotalFils } = allocation.value
-    const teamAchievement = (teamSales / finalTarget) * 100
-    const tier = getTier(teamAchievement)
-
-    const bulkResults: BulkResult[] = activeStaff.map((person, index) => {
-      const payout = allocation.value.staff[index]
-      const days = Math.max(person.workingDays, 1)
-      const clients = person.clients ?? 0
-      return {
-        ...person,
-        achievement: teamAchievement,
-        tierName: tier.name,
-        tierRate: tier.rate,
-        totalIncentive: payout.totalIncentive,
-        p1: payout.p1,
-        p2: payout.p2,
-        contribution: payout.contribution,
-        avgPackagesPerDay: person.packages / days,
-        avgSalesPerDay: person.sales / days,
-        avgClientsPerDay: clients / days,
-        maxKpiClients: clients * 20,
-      }
-    })
-
-    const auditIssue = auditRoundedIncentives(teamSales, totalPool, p1Pool, p2Pool, bulkResults, remainderFils)
-    if (auditIssue) {
-      setResults([])
-      setCalcData(null)
-      notify({ level: 'error', title: 'Payout reconciliation failed', messages: [auditIssue] })
-      return
-    }
-
-    bulkResults.sort((a, b) => b.sales - a.sales)
-
-    setResults(bulkResults)
-    setCalcData({
-      teamAchievement, tier, totalPool, p1Pool, p2Pool,
-      payoutPolicy: 'accounting-remainder-v1',
-      remainderFils, staffTotalFils,
-      target: finalTarget, teamSales, teamPackages, teamClients,
-      avgSales:    teamSales    / n,
-      avgPackages: teamPackages / n,
-      avgClients:  teamClients  / n,
-      staffCount:    n,
-      excludedCount: excludedStaff.size,
-      sheets: sheets.map(s => s.sheetName),
-      viewMode,
+    const outcome = calculateBulkReport({
+      sheets: getSheetsForView(),
+      manualTarget: target,
       p1Split,
+      excludedStaff,
+      viewMode,
     })
+    if (outcome.autoTarget !== undefined) setAutoTarget(outcome.autoTarget)
+    if (outcome.sourceStaffCount !== undefined) setStaffCount(outcome.sourceStaffCount)
+    if (!outcome.ok) {
+      setResults([])
+      setCalcData(null)
+      if (!silent) {
+        const issue = 'error' in outcome ? outcome.error : 'Could not calculate incentives'
+        notify({ level:'error', title:'Calculation blocked', messages:[issue] })
+      }
+      return
+    }
+    setResults(outcome.results)
+    setCalcData(outcome.data)
     setSortCol('sales')
     setSortDir('desc')
   }
@@ -423,31 +317,22 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     return { rows, unassigned }
   })()
 
-  // CSV-safe text: neutralise spreadsheet formula injection (names from the
-  // uploaded sheet are attacker-controllable) and escape quotes/newlines.
-  const csvText = (v: string) => {
-    const s = /^[=+\-@\t\r]/.test(v) ? `'${v}` : v
-    return `"${s.replace(/"/g, '""')}"`
-  }
-
   const handleExportCSV = () => {
     if (!results.length || !calculatedData) return
-    const auditIssue = auditRoundedIncentives(
-      calculatedData.teamSales, calculatedData.totalPool,
-      calculatedData.p1Pool, calculatedData.p2Pool,
-      results, calculatedData.remainderFils
-    )
-    if (auditIssue) {
-      notify({ level: 'error', title: 'CSV export blocked', messages: [auditIssue] })
-      return
+    try {
+      const csv = buildBulkCSV(results, calculatedData)
+      const a = document.createElement('a')
+      const url = URL.createObjectURL(new Blob([csv], {type:'text/csv'}))
+      a.href = url
+      a.download = `incentive-report-${new Date().toISOString().split('T')[0]}.csv`
+      a.click()
+      // Browsers revoke this temporary URL when the next UI task completes.
+      setTimeout(() => URL.revokeObjectURL(url), 0)
+    } catch(error) {
+      notify({level:'error',title:'CSV export blocked',messages:[
+        error instanceof Error ? error.message : 'Could not export the report'
+      ]})
     }
-    let csv = 'Rank,Name,Packages,Sales (AED),Clients,Days,Pkg/Day,Sales/Day,Clients/Day,Max KPI Clients,Revenue Share %,P1 (AED),P2 (AED),Total (AED)\n'
-    results.forEach((p,i) => { const pay = formattedPayout(p); csv += `${i+1},${csvText(p.name)},${p.packages},${p.sales.toFixed(2)},${p.clients??0},${p.workingDays},${p.avgPackagesPerDay.toFixed(2)},${p.avgSalesPerDay.toFixed(2)},${p.avgClientsPerDay.toFixed(2)},${p.maxKpiClients},${p.contribution.toFixed(2)},${pay.p1},${pay.p2},${pay.total}\n` })
-    csv += '\n' + accountingSummaryCSV(calculatedData)
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}))
-    a.download = `incentive-report-${new Date().toISOString().split('T')[0]}.csv`
-    a.click()
   }
 
   // Forecast the CURRENT month only. The parser's last populated daily-sales

@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [13.1.0]
+
+### Phase 3 — typed calculation/report architecture (increment 1)
+- Extracted Bulk view selection and end-to-end payout calculations from the React component into the pure, typed `lib/bulkCalculation.ts` service.
+- Introduced typed `BulkResult` and `BulkCalculatedData` contracts shared by the UI and PDF exporter, removing the `any` payout-input boundary.
+- Moved CSV construction and spreadsheet-formula sanitization to testable `lib/bulkCsv.ts` and kept export reconciliation fail-closed.
+- Added domain regression tests for quarter/month selection, stable golden payouts, accounting remainders, exclusions, manual targets, invalid inputs and CSV injection.
+- The existing UI, approved monetary policy, workbook parser, reporting cutoff and export layouts remain unchanged.
+- Phase 3 continues with parser modularization and progressive strict TypeScript after this regression-protected increment.
+
 ## [13.0.0]
 
 ### Major — Phase 2 automated regression protection
