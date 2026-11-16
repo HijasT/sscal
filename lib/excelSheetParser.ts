@@ -40,7 +40,7 @@ export function extractStaffFromSheet(
     if (target > 0) break
   }
 
-  const range = XLSX.utils.decode_range(worksheet['!ref'])
+  const range = XLSX.utils.decode_range(worksheet['!ref'] ?? 'A1')
 
   // Find the month-total column: header row (row 3, index 2) containing
   // the sheet's month name, year, and "ttl"/"total"

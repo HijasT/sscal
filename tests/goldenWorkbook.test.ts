@@ -8,7 +8,31 @@ import { DEFAULT_TIERS } from '../lib/config.ts'
 import { accountingExportRows, accountingSummaryCSV } from '../lib/accountingExport.ts'
 import { formattedPayout } from '../lib/reportPayout.ts'
 
-const { manifest, createGoldenXlsxBuffer } = require('./fixtures/goldenWorkbook.cjs')
+interface GoldenStaff {
+  name: string
+  sales: number
+  workingDays: number
+  p1: number
+  p2: number
+  total: number
+}
+interface GoldenMonth {
+  sheetName: string
+  target: number
+  expected: {
+    lastReportedDay: number
+    teamSales: number
+    teamPackages: number
+    staff: GoldenStaff[]
+    poolFils: number
+    staffTotalFils: number
+    remainderFils: number
+  }
+}
+const { manifest, createGoldenXlsxBuffer } = require('./fixtures/goldenWorkbook.cjs') as {
+  manifest: { months: GoldenMonth[] }
+  createGoldenXlsxBuffer: () => Buffer
+}
 
 /**
  * Independent expected values live in the checked-in JSON.
