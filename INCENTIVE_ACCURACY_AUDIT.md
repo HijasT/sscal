@@ -18,7 +18,8 @@ Status: implementation-level validation added in v12.10.3; independent payroll a
 
 - `NA` and `N/A` (case-insensitive): absent, **not** a worked day.
 - Numeric `0` or text `0` in the sales cell: present, worked day, zero sales.
-- Blank: no working day recorded; do not infer attendance.
+- Blank sales cell: zero sales and a worked day when its date is within the known reporting period.
+- Future blank date: not yet recorded and not counted as worked. Reported-day cutoff is derived from explicit dated sales entries.
 - Broken Excel formula: warning/invalid data, never a worked day.
 - The one-day fallback for positive sales is used only if the worksheet has **no** daily columns.
 

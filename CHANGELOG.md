@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.10.4]
+
+### Fixed — Excel attendance clarification
+- Corrected blank daily sales cells: blanks mean zero sales and count as worked days **through the last reported day**; future blank dates are excluded to avoid inflating working-day counts.
+- Preserved NA/N/A as absent (not worked) and numeric zero as present with zero sales.
+- Added tests for blank/NA behavior and reporting-cutoff attendance.
+- Clarified the attendance audit documentation. Source-code version advances independently from any stale browser/PWA or older deployment.
+
 ## [12.10.3]
 
 ### Fixed — Phase 1 incentive accuracy

@@ -34,19 +34,41 @@ export interface ExcelData {
 
 /**
  * Daily sales attendance rule:
- * - NA / N/A / blank: not recorded as worked (absent or no entry)
- * - numeric 0: worked, with zero sales
+ * - NA / N/A: absent, not a worked day
+ * - numeric 0 or blank ON AN ALREADY-REPORTED DAY: worked with zero sales
+ * - future blank columns: not yet reported, never counted in attendance
  * - a genuine Excel error: invalid, not a worked day
  */
-export function isWorkedSalesCell(cell: { v?: unknown; t?: string } | undefined): boolean {
-  if (!cell || cell.v == null) return false
+export function isWorkedSalesCell(
+  cell: { v?: unknown; t?: string } | undefined,
+  dayIsReported = false
+): boolean {
+  if (!cell || cell.v == null || String(cell.v).trim() === '') return dayIsReported
   const value = String(cell.v).trim()
-  if (!value || /^n[/]?a$/i.test(value)) return false
+  if (/^n[/]?a$/i.test(value)) return false
   if (cell.t === 'e' || /^#(REF|DIV[/]0|VALUE|NAME|NUM|NULL|N[/]A)[!?]/i.test(value)) return false
   // A worked day requires an actual numeric sales entry, including zero.
   // Arbitrary text must not inflate attendance.
   const amount = typeof cell.v === 'number' ? cell.v : Number(value.replaceAll(',', ''))
   return Number.isFinite(amount)
+}
+
+/**
+ * Resolve otherwise empty sales cells only after the sheet-wide reporting
+ * cutoff is known. Future empty dates never inflate working-day counts.
+ */
+export function applyReportedBlankAttendance(
+  employee: StaffData,
+  blankDays: readonly number[],
+  lastReportedDay?: number
+): void {
+  if (lastReportedDay == null) return
+  for (const day of blankDays) {
+    if (day < 1 || day > lastReportedDay) continue
+    employee.workingDays++
+    employee.daily?.push({ day, sales: 0, packages: 0, clients: 0 })
+  }
+  employee.daily?.sort((a, b) => a.day - b.day)
 }
 
 // Matches an employee code like "AE01-227" embedded in a staff name cell
@@ -193,6 +215,8 @@ function extractStaffFromSheet(
   const warnings: string[] = []
   let target = 0
   let lastReportedDay: number | undefined
+  // Blank cells are resolved only after the last reported day is established.
+  const pendingBlankDays: { staff: StaffData; days: number[] }[] = []
 
   // An Excel error cell (#REF!, #DIV/0!, #VALUE!, …), whether stored as a true
   // error (t === 'e') or saved as literal text. Blank and NA/N/A are NOT errors
@@ -373,6 +397,7 @@ function extractStaffFromSheet(
       if (name && !['STAFF', 'p25', '`', 'Grand totals'].includes(name)) {
         let workingDays = 0
         const daily: DailyStaffValue[] = []
+        const blankDays: number[] = []
 
         const who = stripEmployeeCode(name) || name
         const packages = readTotal(row - 1, `${who} (packages)`)
@@ -387,8 +412,13 @@ function extractStaffFromSheet(
             XLSX.utils.encode_cell({ r: row - 1 + salesRowOffset, c: col })
           ]
 
-          // NA denotes absence; numeric 0 denotes attendance with no sales.
-          // Broken formulas are handled as errors, never as worked days.
+          // Blank on a reported date is zero sales, but the reporting cutoff
+          // is only known after reading all staff. Hold blanks until then.
+          if (!dailyCell || dailyCell.v == null || String(dailyCell.v).trim() === '') {
+            blankDays.push(day)
+            continue
+          }
+          // NA is absent; numeric 0 is present. Broken formulas are errors.
           if (!isWorkedSalesCell(dailyCell)) continue
 
           workingDays++
@@ -420,12 +450,19 @@ function extractStaffFromSheet(
         }
 
         staff.push(staffEntry)
+        pendingBlankDays.push({ staff: staffEntry, days: blankDays })
       }
 
       row += hasClientsRow ? 3 : 2
     } else {
       row++
     }
+  }
+
+  // Count blank cells as zero-sale worked days ONLY through the last explicit
+  // reported sales day. Never treat future unfilled columns as attendance.
+  for (const { staff: employee, days } of pendingBlankDays) {
+    applyReportedBlankAttendance(employee, days, lastReportedDay)
   }
 
   // A sheet with staff rows but no TARGET can't produce a team achievement %.
