@@ -1,6 +1,6 @@
 # Incentive accuracy audit — Phase 1
 
-Status: implementation-level validation added in v12.10.3; independent payroll approval and end-to-end workbook verification remain outstanding.
+Status: implementation-level validation added in v12.10.3–12.10.4. v12.10.5 adds automated quality checks and synthetic XLSX integration fixtures. Independent real-workbook payroll validation and rounding policy approval remain outstanding.
 
 ## Current approved formula (unchanged for valid positive sales)
 
@@ -35,5 +35,5 @@ Existing calculation figures are computed in JavaScript floating point and forma
 
 - Test the changes against anonymized real workbook samples, including current and closed months, all-NA days, zero-sales attended days, broken formulas, exclusions and manual targets.
 - Verify actual production tier configuration (which can be customized per browser).
-- Execute `npm test`, `npx tsc --noEmit` and `npm run build` in a complete environment. The GitHub connector can change files but cannot execute these commands.
+- GitHub Actions is configured in v12.10.5 to run `npm test`, `npx tsc --noEmit` and `npm run build`; check its actual run results rather than assuming configuration means success.
 - Reconcile independently approved staff payout spreadsheets against app output before treating results as payroll-authoritative.

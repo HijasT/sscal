@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.10.5]
+
+### Added — Phase 1 verification
+- Added GitHub Actions quality gate to run npm test, TypeScript verification and a production build for commits and pull requests.
+- Extracted workbook parsing as a testable pure function; added realistic XLSX round-trip integration fixtures for NA/blank/zero, future blank days, broken formulas and the newer client-row layout.
+- Added proposal-only deterministic largest-remainder fils reconciliation preview and unit tests; live incentive payouts remain unchanged until the business approves a rounding policy.
+- Added PHASE1_VERIFICATION.md documenting what is testable and the remaining real-workbook sign-off requirements.
+
 ## [12.10.4]
 
 ### Fixed — Excel attendance clarification

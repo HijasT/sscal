@@ -104,33 +104,7 @@ export async function parseExcelFile(file: File): Promise<ExcelData[]> {
 
         const uint8Data = new Uint8Array(data as ArrayBuffer)
         const workbook = XLSX.read(uint8Data, { type: 'array' })
-        const results: ExcelData[] = []
-
-        const monthSheets = getAvailableMonthsFromWorkbook(workbook)
-
-        for (const { raw, sheetName } of monthSheets) {
-          const worksheet = workbook.Sheets[raw]
-          const extracted = extractStaffFromSheet(worksheet, sheetName, XLSX)
-
-          results.push({
-            sheetName,
-            staff: extracted.staff,
-            target: extracted.target,
-            teamTotal: {
-              packages: extracted.staff.reduce((sum, s) => sum + s.packages, 0),
-              sales: extracted.staff.reduce((sum, s) => sum + s.sales, 0),
-            },
-            warnings: extracted.warnings,
-            lastReportedDay: extracted.lastReportedDay,
-          })
-        }
-
-        if (results.length === 0) {
-          reject(new Error('No valid month sheets found in Excel file'))
-          return
-        }
-
-        resolve(results)
+        resolve(parseExcelWorkbook(workbook, XLSX))
       } catch (error) {
         console.error('Excel parsing error:', error)
         reject(error)
@@ -140,6 +114,31 @@ export async function parseExcelFile(file: File): Promise<ExcelData[]> {
     reader.onerror = () => reject(new Error('Failed to read file'))
     reader.readAsArrayBuffer(file)
   })
+}
+
+/** Pure workbook extraction; exported for real SheetJS worksheet regression tests. */
+export function parseExcelWorkbook(
+  workbook: { SheetNames: string[]; Sheets: Record<string, unknown> },
+  XLSX: typeof import('xlsx'),
+): ExcelData[] {
+  const results: ExcelData[] = []
+  const monthSheets = getAvailableMonthsFromWorkbook(workbook)
+  for (const { raw, sheetName } of monthSheets) {
+    const extracted = extractStaffFromSheet(workbook.Sheets[raw], sheetName, XLSX)
+    results.push({
+      sheetName,
+      staff: extracted.staff,
+      target: extracted.target,
+      teamTotal: {
+        packages: extracted.staff.reduce((sum, p) => sum + p.packages, 0),
+        sales: extracted.staff.reduce((sum, p) => sum + p.sales, 0),
+      },
+      warnings: extracted.warnings,
+      lastReportedDay: extracted.lastReportedDay,
+    })
+  }
+  if (!results.length) throw new Error('No valid month sheets found in Excel file')
+  return results
 }
 
 // ── Sheet name normalisation ──────────────────────────────────────────────────
