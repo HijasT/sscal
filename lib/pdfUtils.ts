@@ -1,7 +1,12 @@
 // PDF export utilities using jsPDF (bundled, not CDN)
 import { formatCurrency } from './utils'
+import { formattedPayout } from './reportPayout'
+import { auditRoundedIncentives } from './incentiveAudit'
 
 export async function exportBulkToPDF(calculatedData: any, results: any[]) {
+  const audit = auditRoundedIncentives(calculatedData.teamSales,
+    calculatedData.totalPool, calculatedData.p1Pool, calculatedData.p2Pool, results)
+  if (audit) throw new Error(`Cannot export unreconciled payouts: ${audit}`)
   const [{ jsPDF }, { default: autoTable }] = await Promise.all([
     import('jspdf'),
     import('jspdf-autotable'),
@@ -29,8 +34,8 @@ export async function exportBulkToPDF(calculatedData: any, results: any[]) {
 
   // Same split as calculateIncentive(): P1 gets p1Split% of the pool, P2 the rest.
   const p1Split = calculatedData.p1Split
-  const p1Pool = (p1Split / 100) * calculatedData.totalPool
-  const p2Pool = ((100 - p1Split) / 100) * calculatedData.totalPool
+  const p1Pool = calculatedData.p1Pool
+  const p2Pool = calculatedData.p2Pool
 
   const summaryData = [
     ['Team Achievement', `${calculatedData.teamAchievement.toFixed(2)}%`],
@@ -61,10 +66,12 @@ export async function exportBulkToPDF(calculatedData: any, results: any[]) {
   doc.setTextColor(0, 0, 0)
   doc.text('Staff Performance', 15, finalY)
 
-  const tableData = results.map((person, idx) => [
+  const tableData = results.map((person, idx) => {
+    const pay = formattedPayout(person)
+    return [
     `#${idx + 1}`,
     person.name,
-    formatCurrency(person.totalIncentive),
+    pay.total,
     person.packages,
     person.clients ?? '-',
     formatCurrency(person.sales),
@@ -74,9 +81,9 @@ export async function exportBulkToPDF(calculatedData: any, results: any[]) {
     person.clients ? person.avgClientsPerDay.toFixed(2) : '-',
     person.clients ? person.maxKpiClients : '-',
     `${person.contribution.toFixed(2)}%`,
-    formatCurrency(person.p1),
-    formatCurrency(person.p2),
-  ])
+    pay.p1,
+    pay.p2,
+  ] })
 
   autoTable(doc, {
     startY: finalY + 3,

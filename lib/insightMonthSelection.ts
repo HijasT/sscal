@@ -1,6 +1,5 @@
 import type { ExcelData, StaffData } from './excelUtils'
-import { calculateIncentive, getTier } from './utils'
-import { auditIncentivePayouts } from './incentiveAudit'
+import { calculateTeamIncentives } from './teamIncentives'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -49,19 +48,11 @@ export function monthlyIncentives(
   const staff = monthlyStaff(sheet, excluded)
   const sales = staff.reduce((total, person) => total + person.sales, 0)
   const target = targetOverride && targetOverride > 0 ? targetOverride : sheet.target
-  if (!staff.length || !Number.isFinite(target) || target <= 0 ||
-      !Number.isFinite(sales) || sales < 0) return null
-  const pool = sales * getTier(sales / target * 100).rate / 100
-  const rows: (StaffData & { totalIncentive: number; p1: number; p2: number })[] = []
-  for (const person of staff) {
-    const calculation = calculateIncentive(target, sales, person.sales, staff.length, p1Split)
-    // Never turn a failed calculation into a silently fabricated zero payout.
-    if (calculation.error) return null
-    rows.push({
-      ...person, totalIncentive: calculation.myTotal,
-      p1: calculation.myP1, p2: calculation.myP2,
-    })
-  }
-  if (auditIncentivePayouts(sales, pool, rows)) return null
-  return { staff: rows, sales, target, pool }
+  const allocation = calculateTeamIncentives(target, staff, p1Split)
+  if (!allocation.ok) return null
+  const rows = staff.map((person, index) => ({
+    ...person,
+    totalIncentive: allocation.value.staff[index].totalIncentive,
+  }))
+  return { staff: rows, sales, target, pool: allocation.value.pool }
 }

@@ -306,7 +306,7 @@ export function BulkInsightsBeta({
             </tr></tfoot>
           </table>
         </div> : <p className="beta-empty">Select a month with a valid target and staff sales data.</p>}
-        <p className="beta-note">This is a redistribution scenario, not an increase in the incentive pool or a change to official payouts. Minor rounding differences may appear.</p>
+        <p className="beta-note">This is a redistribution scenario, not an increase in the incentive pool or a change to official payouts. Both columns reconcile to the same incentive pool in whole fils.</p>
       </section>
       <p className="beta-footnote">Beta calculations are estimates and exploratory comparisons. They run locally using your uploaded data; they do not modify your official ranking, incentives or exports.</p>
     </div>

@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.10.7]
+
+### Changed — approved residual-fils allocation
+- Official Bulk Calculator payouts now use a roster-aware largest-remainder allocation in integer fils, allocating P1 and P2 independently and summing per-staff components to the displayed total.
+- Each separately rounded team P1 pool and residual P2 pool reconciles exactly to the rounded team incentive pool; staff P1, P2 and totals reconcile exactly in fils.
+- Deterministic tie-breaking uses the employee code embedded in each staff name. Missing codes fall back to a normalized full name; duplicate identifiers block allocation rather than assigning money unpredictably.
+- Monthly Beta actual incentives and the 100% personal-only comparison now use reconciled whole-fils allocations. The hypothetical simulator remains clearly illustrative.
+- CSV and PDF exports use the exact same finalized payout fields as the ranking table, with PDF export protected by an exact-fils audit.
+- Individual Calculator explicitly labels its personal calculation as an estimate because the final employee-code tie-break cannot be determined without the full staff roster; displayed estimate components sum to the displayed estimate total.
+- Stale persisted pre-allocation Bulk results are discarded on upgrade and recalculated to prevent exporting superseded payouts.
+- Added tests for whole-fils reconciliation, stable employee-code ties, differing P1/P2 splits, exclusions, zero sales, duplicate identifiers and shared report formatting.
+- No changes to tier boundaries, raw incentive formulas, Sales Tracker attendance semantics or the 9.95% projection adjustment.
+
 ## [12.10.6]
 
 ### Fixed — quality gate TypeScript verification

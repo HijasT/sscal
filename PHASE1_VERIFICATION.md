@@ -7,18 +7,18 @@
 - Workbook-to-incentive tests verify the team pool and P1/P2 reconciliation from parsed data.
 - A proposal-only rounding preview with deterministic largest-remainder allocation has tests. Live payouts are not changed.
 
-## Pending approval: distributing residual fils
+## Approved residual-fils allocation (active in v12.10.7)
 
-Live P1/P2 payouts remain calculated without per-person rounding, then displayed with two decimals. Separately rounded displayed staff payouts can differ by a few fils from the rounded team incentive pool.
+The live Bulk Calculator and monthly Beta actuals now allocate P1/P2 in whole fils using largest remainder, with exact pool reconciliation. The Individual Calculator remains an explicitly labeled estimate without a full roster.
 
-Proposed policy (NOT ACTIVE):
+Approved policy (ACTIVE in Bulk and monthly Beta actuals):
 1. Compute each raw incentive and the total pool.
 2. Round the total pool to fils.
 3. Initially assign the floor of each raw individual payout in fils.
 4. Distribute remaining fils by descending fractional remainder.
 5. Resolve ties using a unique stable employee identifier (name is only a placeholder in the proposal).
 
-This ensures the total of displayed allocations matches the separately rounded pool, but a person's payout may differ by a fils from independently rounding every employee. Requires explicit business-policy sign-off.
+This makes the staff payout sum match the rounded team pool exactly. The owner approved the method; standalone Individual estimates do not assign roster-dependent residual fils.
 
 ## Remaining real-world evidence
 

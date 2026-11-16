@@ -1,10 +1,12 @@
 'use client'
 import { Fragment, useState, useEffect, useRef } from 'react'
 import { aggregateSheets, extractEmployeeCode, type ExcelData, type StaffData } from '@/lib/excelUtils'
-import { calculateIncentive, formatCurrency, getTier, loadTiers, loadStaffCenters } from '@/lib/utils'
-import { auditIncentivePayouts } from '@/lib/incentiveAudit'
+import { formatCurrency, getTier, loadTiers, loadStaffCenters } from '@/lib/utils'
+import { calculateTeamIncentives } from '@/lib/teamIncentives'
+import { auditRoundedIncentives } from '@/lib/incentiveAudit'
+import { formattedPayout } from '@/lib/reportPayout'
 import { exportBulkToPDF } from '@/lib/pdfUtils'
-import { DEFAULT_P1_SPLIT, CENTERS } from '@/lib/config'
+import { DEFAULT_P1_SPLIT, CENTERS, APP_VERSION } from '@/lib/config'
 import { getFresh, setFresh, clearFresh } from '@/lib/storage'
 import { notify } from '@/lib/notify'
 import { DownloadIcon } from '@/components/icons'
@@ -70,6 +72,7 @@ const TD: React.CSSProperties = {
 const STORAGE_KEY = 'sic_bulk_results'
 
 interface PersistedResults {
+  payoutVersion: string
   target: string
   autoTarget: number
   staffCount: number
@@ -83,7 +86,13 @@ function loadPersistedResults(): Partial<PersistedResults> {
   if (typeof window === 'undefined') return {}
   try {
     const stored = getFresh('local', STORAGE_KEY)
-    return stored ? JSON.parse(stored) : {}
+    if (!stored) return {}
+    const parsed = JSON.parse(stored) as Partial<PersistedResults>
+    // Do not display/export stale pre-rounding payouts on an app upgrade.
+    return parsed.payoutVersion === APP_VERSION ? parsed : {
+      target: parsed.target, p1Split: parsed.p1Split,
+      excludedStaff: parsed.excludedStaff,
+    }
   } catch {
     return {}
   }
@@ -124,6 +133,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     // Nothing calculated yet: store nothing (and drop any older copy).
     if (results.length === 0 && calculatedData === null) return clearFresh('local', STORAGE_KEY)
     setFresh('local', STORAGE_KEY, JSON.stringify({
+      payoutVersion: APP_VERSION,
       target, autoTarget, staffCount, p1Split, results, calculatedData,
       excludedStaff: Array.from(excludedStaff),
     }))
@@ -235,38 +245,38 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     const teamPackages = activeStaff.reduce((s, p) => s + p.packages, 0)
     const teamClients  = activeStaff.reduce((s, p) => s + (p.clients ?? 0), 0)
 
-    const teamAchievement = (teamSales / finalTarget) * 100
-    const tier      = getTier(teamAchievement)
-    const totalPool = (tier.rate / 100) * teamSales
-
-    const bulkResults: BulkResult[] = []
-    for (const person of activeStaff) {
-      const calc = calculateIncentive(finalTarget, teamSales, person.sales, n, p1Split)
-      if (calc.error) {
-        setResults([])
-        setCalcData(null)
-        notify({ level: 'error', title: 'Calculation blocked', messages: [calc.error] })
-        return
-      }
-      const days    = Math.max(person.workingDays, 1)
-      const clients = person.clients ?? 0
-      bulkResults.push({
-        ...person,
-        achievement:       teamAchievement,
-        tierName:          tier.name,
-        tierRate:          tier.rate,
-        totalIncentive:    calc.myTotal,
-        p1:                calc.myP1,
-        p2:                calc.myP2,
-        contribution:      calc.myContribution,
-        avgPackagesPerDay: person.packages / days,
-        avgSalesPerDay:    person.sales / days,
-        avgClientsPerDay:  clients / days,
-        maxKpiClients:     clients * 20,
-      })
+    const allocation = calculateTeamIncentives(finalTarget, activeStaff, p1Split)
+    if (!allocation.ok) {
+      setResults([])
+      setCalcData(null)
+      notify({ level: 'error', title: 'Calculation blocked', messages: [allocation.error] })
+      return
     }
+    const { pool: totalPool, p1Pool, p2Pool } = allocation.value
+    const teamAchievement = (teamSales / finalTarget) * 100
+    const tier = getTier(teamAchievement)
 
-    const auditIssue = auditIncentivePayouts(teamSales, totalPool, bulkResults)
+    const bulkResults: BulkResult[] = activeStaff.map((person, index) => {
+      const payout = allocation.value.staff[index]
+      const days = Math.max(person.workingDays, 1)
+      const clients = person.clients ?? 0
+      return {
+        ...person,
+        achievement: teamAchievement,
+        tierName: tier.name,
+        tierRate: tier.rate,
+        totalIncentive: payout.totalIncentive,
+        p1: payout.p1,
+        p2: payout.p2,
+        contribution: payout.contribution,
+        avgPackagesPerDay: person.packages / days,
+        avgSalesPerDay: person.sales / days,
+        avgClientsPerDay: clients / days,
+        maxKpiClients: clients * 20,
+      }
+    })
+
+    const auditIssue = auditRoundedIncentives(teamSales, totalPool, p1Pool, p2Pool, bulkResults)
     if (auditIssue) {
       setResults([])
       setCalcData(null)
@@ -278,7 +288,8 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
 
     setResults(bulkResults)
     setCalcData({
-      teamAchievement, tier, totalPool,
+      teamAchievement, tier, totalPool, p1Pool, p2Pool,
+      payoutPolicy: 'largest-remainder-v1',
       target: finalTarget, teamSales, teamPackages, teamClients,
       avgSales:    teamSales    / n,
       avgPackages: teamPackages / n,
@@ -420,7 +431,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   const handleExportCSV = () => {
     if (!results.length) return
     let csv = 'Rank,Name,Packages,Sales (AED),Clients,Days,Pkg/Day,Sales/Day,Clients/Day,Max KPI Clients,Revenue Share %,P1 (AED),P2 (AED),Total (AED)\n'
-    results.forEach((p,i) => { csv += `${i+1},${csvText(p.name)},${p.packages},${p.sales.toFixed(2)},${p.clients??0},${p.workingDays},${p.avgPackagesPerDay.toFixed(2)},${p.avgSalesPerDay.toFixed(2)},${p.avgClientsPerDay.toFixed(2)},${p.maxKpiClients},${p.contribution.toFixed(2)},${p.p1.toFixed(2)},${p.p2.toFixed(2)},${p.totalIncentive.toFixed(2)}\n` })
+    results.forEach((p,i) => { const pay = formattedPayout(p); csv += `${i+1},${csvText(p.name)},${p.packages},${p.sales.toFixed(2)},${p.clients??0},${p.workingDays},${p.avgPackagesPerDay.toFixed(2)},${p.avgSalesPerDay.toFixed(2)},${p.avgClientsPerDay.toFixed(2)},${p.maxKpiClients},${p.contribution.toFixed(2)},${pay.p1},${pay.p2},${pay.total}\n` })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}))
     a.download = `incentive-report-${new Date().toISOString().split('T')[0]}.csv`
@@ -693,7 +704,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                       <tr style={{borderBottom:'1px solid var(--border-color)',background:isTop3?'var(--accent-soft)':undefined}}>
                         <td style={{...TD,fontWeight:isTop3?'700':'normal',color:nc,fontFamily:"'JetBrains Mono', monospace"}}>#{rank}</td>
                         <td style={tdHl('name',{fontWeight:isTop3?'700':'normal',color:nc})}>{person.name}<CenterBadge name={person.name} /></td>
-                        <td style={tdHl('totalIncentive',{fontWeight:'600',color:isTop3?'var(--accent-primary)':'var(--success)'})}>AED {formatCurrency(person.totalIncentive)}</td>
+                        <td style={tdHl('totalIncentive',{fontWeight:'600',color:isTop3?'var(--accent-primary)':'var(--success)'})}>AED {formattedPayout(person).total}</td>
                         <td style={tdHl('packages')}>{person.packages}</td>
                         <td style={tdHl('clients')}>{person.clients??'-'}</td>
                         <td style={tdHl('sales')}>AED {formatCurrency(person.sales)}</td>
@@ -703,8 +714,8 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                         <td style={tdHl('avgClientsPerDay')}>{person.clients ? person.avgClientsPerDay.toFixed(2) : '-'}</td>
                         <td style={tdHl('maxKpiClients')}>{person.clients ? person.maxKpiClients : '-'}</td>
                         <td style={tdHl('contribution')}>{person.contribution.toFixed(2)}%</td>
-                        <td style={tdHl('p1')}>AED {formatCurrency(person.p1)}</td>
-                        <td style={tdHl('p2')}>AED {formatCurrency(person.p2)}</td>
+                        <td style={tdHl('p1')}>AED {formattedPayout(person).p1}</td>
+                        <td style={tdHl('p2')}>AED {formattedPayout(person).p2}</td>
                         <td style={{...TD,textAlign:'center',padding:'10px 6px'}}>
                           <button
                             onClick={()=>toggleExclude(person.name)}

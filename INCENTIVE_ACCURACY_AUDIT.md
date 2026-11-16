@@ -27,9 +27,11 @@ Status: implementation-level validation added in v12.10.3–12.10.4. v12.10.5 ad
 
 Bulk Calculator and monthly Beta comparisons now refuse to present a payout if an employee calculation fails or calculated staff payouts fail reconciliation. Reconciliation checks team sales, each employee's P1 + P2, the total pool and finite nonnegative values. Raw floating-point tolerance covers numerical representation only, not material discrepancies.
 
-## Rounding policy still awaiting approval
+## Approved residual-fils policy (active in v12.10.7)
 
-Existing calculation figures are computed in JavaScript floating point and formatted to two decimal places for display. **Do not silently introduce a per-person fils-allocation algorithm.** The sum of individually rounded display amounts can differ by a few fils from the separately rounded team pool. Before production payroll use, confirm whether payout amounts must be rounded individually to fils, whether ties use half-up/half-even, and where any residual fils should be assigned (e.g. deterministic largest-remainder allocation). Once approved, add exact-fil reconciliation tests.
+Official Bulk and monthly Beta actual incentives allocate the rounded team pool using the largest-remainder method. The team P1 pool is rounded to fils, P2 receives the remaining fils, and staff awards are allocated independently within each pool using raw entitlements as weights. Each row's final total is exactly its allocated P1 plus P2 in whole fils. Exact ties use employee code in lexicographic order, then a normalized name fallback for staff with no code; duplicate keys block allocation. CSV/PDF show these same awards.
+
+The Individual Calculator has no team roster and therefore displays a clearly labeled *estimate*. Its exact official payout can differ by one or more fils because tie-breaks require every employee's raw entitlement. Use Bulk for final allocated staff amounts.
 
 ## Remaining Phase 1 validation
 

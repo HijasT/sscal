@@ -3,6 +3,7 @@ import { useState, useEffect, type ReactNode } from 'react'
 import { DEFAULT_P1_SPLIT, DEFAULT_STAFF_COUNT } from '@/lib/config'
 import { getFresh, setFresh, clearFresh } from '@/lib/storage'
 import { calculateIncentive, formatCurrency, type CalculationResult } from '@/lib/utils'
+import { toFils } from '@/lib/filsReconciliation'
 
 // Persists in-progress form inputs so switching tabs and coming back doesn't
 // blank the form. Session-scoped (not localStorage) — cleared when the tab closes.
@@ -34,6 +35,11 @@ export function IndividualTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
   const [staffCount, setStaffCount] = useState(persisted.staffCount ?? String(DEFAULT_STAFF_COUNT))
   const [p1Split, setP1Split] = useState(persisted.p1Split ?? DEFAULT_P1_SPLIT)
   const [results, setResults] = useState<CalculationResult | null>(null)
+  // Individual mode has no full roster: official largest-remainder awards
+  // depend on every employee's fractional shares and employee code.
+  const estimate = results && !results.error
+    ? { p1: toFils(results.myP1)/100, p2: toFils(results.myP2)/100 }
+    : null
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -149,7 +155,7 @@ export function IndividualTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
       {results && !results.error && (
         <div className="results-panel">
           <div className="results-header">
-            <span>Your Incentive Breakdown</span>
+            <span>Estimated Incentive Breakdown</span>
           </div>
           
           <div className="results-grid">
@@ -185,20 +191,25 @@ export function IndividualTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
               <div className="breakdown-section">
                 <div className="breakdown-row">
                   <span className="breakdown-label" style={{color: '#42a5f5'}}>P1 (Equal Share)</span>
-                  <span className="breakdown-value">AED {formatCurrency(results.myP1)}</span>
+                  <span className="breakdown-value">AED {formatCurrency(estimate?.p1 ?? 0)}</span>
                 </div>
                 
                 <div className="breakdown-row">
                   <span className="breakdown-label" style={{color: '#ffa726'}}>P2 (Personal Share)</span>
-                  <span className="breakdown-value">AED {formatCurrency(results.myP2)}</span>
+                  <span className="breakdown-value">AED {formatCurrency(estimate?.p2 ?? 0)}</span>
                 </div>
                 
                 <div className="breakdown-row total-row">
                   <span className="breakdown-label">TOTAL INCENTIVE</span>
-                  <span className="breakdown-value">AED {formatCurrency(results.myTotal)}</span>
+                  <span className="breakdown-value">AED {formatCurrency((estimate?.p1 ?? 0)+(estimate?.p2 ?? 0))}</span>
                 </div>
               </div>
               
+              <p style={{fontSize:'12px', color:'var(--text-muted)', marginTop:'12px'}}>
+                Estimate only. Final official P1/P2 payouts are allocated by largest remainder
+                across the complete staff roster, with ties resolved by employee code.
+                Use Bulk Calculator for the exact reconciled amount.
+              </p>
               <div style={{marginTop: '16px', padding: '12px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', fontFamily: "'JetBrains Mono', monospace"}}>
                 P1 Pool: {formatCurrency(results.p1Pool)} ÷ {staffCount} staff | P2 Pool: {formatCurrency(results.p2Pool)} × {results.myContribution.toFixed(2)}%
               </div>
