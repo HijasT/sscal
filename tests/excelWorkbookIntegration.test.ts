@@ -97,3 +97,57 @@ test('all-NA/blank workbook has no inferred cutoff and does not invent worked da
   assert.equal(month.lastReportedDay, undefined)
   assert.equal(month.staff[0].workingDays, 0)
 })
+
+test('explicit cutoff can include completed all-zero days without counting NA', () => {
+  const workbook = buildWorkbook([
+    ['TARGET', 100], [],
+    [null, null, null, 1, 2, 3, 4],
+    ['A AE01-227', 'Count of Packages', null, 1, 0, 0, 0],
+    [null, 'Sum of Sales', null, 40, null, null, null],
+    ['B AE02-138', 'Count of Packages', null, 1, 0, 0, 0],
+    [null, 'Sum of Sales', null, 20, 'NA', null, null],
+    ['Grand totals'],
+  ])
+  const [automatic] = parseExcelWorkbook(workbook, XLSX)
+  assert.equal(automatic.lastReportedDay, 1)
+  assert.deepEqual(automatic.staff.map(s => s.workingDays), [1, 1])
+  assert.ok(automatic.warnings?.some(w => w.includes('blank dates after day 1')))
+
+  const [confirmed] = parseExcelWorkbook(workbook, XLSX, 3)
+  assert.equal(confirmed.lastReportedDay, 3)
+  assert.deepEqual(confirmed.staff.map(s => s.workingDays), [3, 2])
+  assert.equal(confirmed.teamTotal.sales, automatic.teamTotal.sales)
+  assert.deepEqual(confirmed.staff[0].daily?.map(d => d.day), [1, 2, 3])
+  assert.deepEqual(confirmed.staff[1].daily?.map(d => d.day), [1, 3])
+})
+
+test('manual cutoff cannot discard later explicitly entered sales', () => {
+  const workbook = buildWorkbook([
+    ['TARGET', 100], [],
+    [null, null, null, 1, 2, 3],
+    ['A AE01-227', 'Count of Packages', null, 1, 0, 1],
+    [null, 'Sum of Sales', null, 40, null, 50],
+    ['Grand totals'],
+  ])
+  const [month] = parseExcelWorkbook(workbook, XLSX, 1)
+  assert.equal(month.lastReportedDay, 3)
+  assert.equal(month.staff[0].workingDays, 3)
+  assert.ok(month.warnings?.some(w => w.includes('before entered sales')))
+})
+
+test('manual cutoff only affects the newest sheet in a multi-month workbook', () => {
+  const first = [
+    ['TARGET', 100], [],
+    [null, null, null, 1, 2, 3],
+    ['A AE01-227', 'Count of Packages', null, 1, 0, 0],
+    [null, 'Sum of Sales', null, 20, null, null],
+    ['Grand totals'],
+  ]
+  const workbook = buildWorkbook(first, 'Sep 26')
+  XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(first), 'Oct 26')
+  const [sep, oct] = parseExcelWorkbook(workbook, XLSX, 3)
+  assert.equal(sep.lastReportedDay, 1)
+  assert.equal(sep.staff[0].workingDays, 1)
+  assert.equal(oct.lastReportedDay, 3)
+  assert.equal(oct.staff[0].workingDays, 3)
+})

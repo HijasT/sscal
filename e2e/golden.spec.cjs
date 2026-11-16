@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test')
 const { readFileSync } = require('node:fs')
 const { manifest, createGoldenXlsxBuffer } = require('../tests/fixtures/goldenWorkbook.cjs')
 
-async function uploadGolden(page) {
+async function uploadGolden(page, { dismissWarning = true } = {}) {
   await page.goto('/')
   await page.getByRole('button',{name:'Calculator',exact:true}).click()
   await page.locator('input[type="file"]').setInputFiles({
@@ -12,6 +12,13 @@ async function uploadGolden(page) {
   })
   const remainder=page.locator('.stat-card').filter({hasText:'Accounting Remainder'})
   await expect(remainder).toContainText('AED -0.02')
+  const warning = page.locator('dialog.msg-dialog.msg-warning')
+  await expect(warning).toBeVisible()
+  await expect(warning).toContainText('blank dates after day')
+  if (dismissWarning) {
+    await warning.getByRole('button', { name: 'Got it' }).click()
+    await expect(warning).toBeHidden()
+  }
   return remainder
 }
 
@@ -62,6 +69,15 @@ test('staff exclusion re-calculates the tier, payouts and Accounting Remainder',
   await expect(page.locator('.stat-card').filter({hasText:'Total Pool'})).toContainText('AED 0.00')
   await expect(page.locator('.stat-card').filter({hasText:'Accounting Remainder'})).toContainText('AED 0.00')
   await expect(page.getByText('1 staff excluded')).toBeVisible()
+})
+
+test('trailing blank-day warning is visible, actionable and dismissible', async ({page}) => {
+  await uploadGolden(page, { dismissWarning: false })
+  const warning = page.locator('dialog.msg-dialog.msg-warning')
+  await expect(warning).toContainText('set a reporting cutoff and re-upload')
+  await warning.getByRole('button', { name: 'Got it' }).click()
+  await expect(warning).toBeHidden()
+  await expect(page.getByRole('button', { name: 'Download CSV' })).toBeEnabled()
 })
 
 test('Individual mode preserves independently rounded personal awards',async ({page})=>{

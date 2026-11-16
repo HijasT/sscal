@@ -8,7 +8,7 @@ export { isWorkedSalesCell, applyReportedBlankAttendance } from './excelAttendan
 export { EMPLOYEE_CODE_PATTERN, extractEmployeeCode, stripEmployeeCode } from './excelSheetNames'
 export { getAvailableMonths, pickDefaultMonth, aggregateSheets } from './excelPeriod'
 
-export async function parseExcelFile(file: File): Promise<ExcelData[]> {
+export async function parseExcelFile(file: File, reportedThroughDay?: number): Promise<ExcelData[]> {
   // Bundled import — no CDN, no (window as any), no polling needed
   const XLSX = await import('xlsx')
 
@@ -25,7 +25,7 @@ export async function parseExcelFile(file: File): Promise<ExcelData[]> {
 
         const uint8Data = new Uint8Array(data as ArrayBuffer)
         const workbook = XLSX.read(uint8Data, { type: 'array' })
-        resolve(parseExcelWorkbook(workbook, XLSX))
+        resolve(parseExcelWorkbook(workbook, XLSX, reportedThroughDay))
       } catch (error) {
         console.error('Excel parsing error:', error)
         reject(error)
@@ -41,11 +41,14 @@ export async function parseExcelFile(file: File): Promise<ExcelData[]> {
 export function parseExcelWorkbook(
   workbook: Pick<SheetJS.WorkBook, 'SheetNames' | 'Sheets'>,
   XLSX: typeof SheetJS,
+  reportedThroughDay?: number,
 ): ExcelData[] {
   const results: ExcelData[] = []
   const monthSheets = getAvailableMonthsFromWorkbook(workbook)
   for (const { raw, sheetName } of monthSheets) {
-    const extracted = extractStaffFromSheet(workbook.Sheets[raw], sheetName, XLSX)
+    // Manual day applies only to the newest month, never historical sheets.
+    const manualDay = sheetName === monthSheets[monthSheets.length - 1]?.sheetName ? reportedThroughDay : undefined
+    const extracted = extractStaffFromSheet(workbook.Sheets[raw], sheetName, XLSX, manualDay)
     results.push({
       sheetName,
       staff: extracted.staff,
