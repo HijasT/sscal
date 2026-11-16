@@ -46,7 +46,9 @@ export function parseExcelWorkbook(
   const results: ExcelData[] = []
   const monthSheets = getAvailableMonthsFromWorkbook(workbook)
   for (const { raw, sheetName } of monthSheets) {
-    const extracted = extractStaffFromSheet(workbook.Sheets[raw], sheetName, XLSX, reportedThroughDay)
+    // Manual day applies only to the newest month, never historical sheets.
+    const manualDay = sheetName === monthSheets[monthSheets.length - 1]?.sheetName ? reportedThroughDay : undefined
+    const extracted = extractStaffFromSheet(workbook.Sheets[raw], sheetName, XLSX, manualDay)
     results.push({
       sheetName,
       staff: extracted.staff,
