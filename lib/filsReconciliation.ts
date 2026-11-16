@@ -33,7 +33,7 @@ export function allocateFilsShares(poolFils: number, rows: readonly FilsAwardInp
   if (!Number.isSafeInteger(poolFils) || poolFils < 0 || !rows.length ||
       rows.some(row => !row.id || !Number.isFinite(row.amount) || row.amount < 0) ||
       new Set(rows.map(row => row.id)).size !== rows.length) {
-    throw new Error('Valid pool, unique stable employee identifiers and non-negative awards required')
+    throw new Error('Valid pool, uniquely identified staff and non-negative awards required')
   }
   const base = rows.map(({ id, amount }) => {
     const rawFils = amount * 100

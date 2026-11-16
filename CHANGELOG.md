@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.10.8]
+
+### Fixed — residual-fils regression validation
+- Updated duplicate-identifier error wording to match the existing validation regression test; approved largest-remainder business logic is unchanged.
+
 ## [12.10.7]
 
 ### Changed — approved residual-fils allocation
