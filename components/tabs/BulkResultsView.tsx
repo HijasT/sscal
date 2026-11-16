@@ -1,8 +1,9 @@
 'use client'
-import { Fragment, useState, useEffect, useRef } from 'react'
+import { Fragment, useState, useEffect, useRef, useMemo } from 'react'
 import { extractEmployeeCode, type ExcelData } from '@/lib/excelUtils'
 import { calculateBulkReport, selectBulkSheets, type BulkResult, type BulkCalculatedData, type BulkViewMode } from '@/lib/bulkCalculation'
 import { buildBulkCSV } from '@/lib/bulkCsv'
+import { buildBulkAuditCSV } from '@/lib/bulkAudit'
 import { nextBulkTierInfo, bulkCenterStats } from '@/lib/bulkPresentation'
 import { formatCurrency, loadTiers, loadStaffCenters } from '@/lib/utils'
 import { formattedPayout } from '@/lib/reportPayout'
@@ -201,12 +202,12 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     setSortDir('desc')
   }
 
-  const sortedResults = [...results].sort((a, b) => {
+  const sortedResults = useMemo(() => [...results].sort((a, b) => {
     const av = a[sortColumn] ?? (sortColumn === 'name' ? '' : 0)
     const bv = b[sortColumn] ?? (sortColumn === 'name' ? '' : 0)
     const m = sortDir === 'asc' ? 1 : -1
     return (av < bv ? -1 : av > bv ? 1 : 0) * m
-  })
+  }), [results, sortColumn, sortDir])
 
   // Name has no meaningful average. For every numeric sort, calculate the mean
   // from exactly the staff shown, and keep equal-to-average staff in the
@@ -287,6 +288,25 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
       notify({level:'error',title:'CSV export blocked',messages:[
         error instanceof Error ? error.message : 'Could not export the report'
       ]})
+    }
+  }
+
+  const handleExportAudit = () => {
+    if (!results.length || !calculatedData) return
+    try {
+      const csv = buildBulkAuditCSV(
+        results, calculatedData, [...excludedStaff], new Date().toISOString(),
+      )
+      const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `incentive-audit-${new Date().toISOString().split('T')[0]}.csv`
+      anchor.click()
+      setTimeout(() => URL.revokeObjectURL(url), 0)
+    } catch (error) {
+      notify({ level: 'error', title: 'Audit export blocked', messages: [
+        error instanceof Error ? error.message : 'Could not export audit report',
+      ] })
     }
   }
 
@@ -604,6 +624,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
           {/* Export */}
           <div style={{display:'flex',gap:'12px'}}>
             <button className="btn btn-secondary" onClick={handleExportCSV}><><DownloadIcon />Download CSV</></button>
+            <button className="btn btn-secondary" onClick={handleExportAudit}><><DownloadIcon />Download Audit CSV</></button>
             <button className="btn btn-secondary" onClick={()=>exportBulkToPDF({ ...calculatedData, p1Split: calculatedData.p1Split ?? p1Split },results)}><><DownloadIcon />Download PDF</></button>
           </div>
         </div>

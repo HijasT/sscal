@@ -15,7 +15,7 @@
  */
 
 /** Displayed in the header, About tab, and page title. */
-export const APP_VERSION = '13.3.1'
+export const APP_VERSION = '14.0.0'
 
 export interface Tier {
   id: string

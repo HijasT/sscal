@@ -8,6 +8,7 @@ import { getTier, loadTiers } from './utils'
 import { calculateTeamIncentives } from './teamIncentives'
 import { auditRoundedIncentives } from './incentiveAudit'
 import type { Tier } from './config'
+import { validateStaffRoster } from './rosterValidation'
 
 export type BulkViewMode = 'monthly'|'q1'|'q2'|'q3'|'q4'|'h1'|'h2'|'yearly'|'alltime'
 
@@ -84,6 +85,8 @@ export function calculateBulkReport(input: {
   if (!sheets.length) return { ok:false,error:'No sheets found for the selected view.' }
   const aggregated = sheets.length === 1 ? sheets[0] : aggregateSheets([...sheets])
   if (!aggregated.staff.length) return { ok:false,error:'No staff data was found for the selected view.' }
+  const rosterError = validateStaffRoster(aggregated.staff)
+  if (rosterError) return { ok:false,error:rosterError }
   const autoTarget = aggregated.target
   const sourceStaffCount = aggregated.staff.length
   const finalTarget = manualTarget.trim() ? Number(manualTarget) : autoTarget
