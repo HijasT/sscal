@@ -242,14 +242,16 @@ export function SaleAssistantTab() {
         if (stored?.gender === 'W' || stored?.gender === 'M') setGender(stored.gender)
         const storedLines = stored?.lines ?? stored?.A?.lines ?? []
         const restored = storedLines
-          .map((l: any) => {
-            const service = getServiceById(l.id)
+          .map((l: unknown) => {
+            if (!l || typeof l !== 'object' || !('id' in l) || typeof l.id !== 'string') return null
+            const item = l as { id: string; qty?: number; discountType?: DiscountType; discountValue?: number }
+            const service = getServiceById(item.id)
             return service
               ? {
                   service,
-                  qty: l.qty ?? 1,
-                  discountType: (l.discountType as DiscountType) || 'pct',
-                  discountValue: l.discountValue || 0,
+                  qty: item.qty ?? 1,
+                  discountType: item.discountType || 'pct',
+                  discountValue: item.discountValue || 0,
                 }
               : null
           })

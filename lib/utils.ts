@@ -132,6 +132,13 @@ export function formatCurrency(n: number): string {
   return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
+export type IncentiveTierPreview =
+  | { isMaxTier: false; nextTierName: string; nextTierRate: number;
+      requiredPercentage: number; requiredSales: number; deficit: number }
+  | { isMaxTier: true; currentRate: number; thresholdPercentage: number;
+      thresholdSales: number; thresholdPool: number; extraIncentive: number }
+  | null
+
 export interface CalculationResult {
   teamAchievement: number
   tier: Tier
@@ -146,7 +153,7 @@ export interface CalculationResult {
   teamSales: number
   mySales: number
   staffCount: number
-  nextTierInfo: any
+  nextTierInfo: IncentiveTierPreview
   error?: string
 }
 
@@ -159,39 +166,49 @@ export function calculateIncentive(
   customTiers?: Tier[]
 ): CalculationResult {
   const tiers = customTiers || loadTiers()
+  // Financial validation remains fail-closed: invalid calculations return
+  // a typed zero-payment result rather than an untyped partial object.
+  const invalid = (error: string): CalculationResult => ({
+    teamAchievement: 0, tier: getTier(0, tiers),
+    totalPool: 0, p1Pool: 0, p2Pool: 0,
+    myP1: 0, myP2: 0, myTotal: 0, myContribution: 0,
+    teamTarget: 0, teamSales: 0, mySales: 0, staffCount: 0,
+    nextTierInfo: null, error,
+  })
+
 
   // Reject Infinity as well as NaN: invalid inputs must never produce a payout.
   if (![teamTarget, teamSales, mySales, staffCount, p1Percent].every(Number.isFinite)) {
-    return { error: 'Please enter valid finite numbers for all fields' } as any
+    return invalid('Please enter valid finite numbers for all fields')
   }
 
   if (teamTarget <= 0 || teamSales < 0 || mySales < 0 || staffCount <= 0) {
-    return { error: 'Target and staff count must be positive. Sales cannot be negative.' } as any
+    return invalid('Target and staff count must be positive. Sales cannot be negative.')
   }
 
   if (!Number.isInteger(staffCount)) {
-    return { error: 'Staff count must be a whole number' } as any
+    return invalid('Staff count must be a whole number')
   }
 
   if (p1Percent < 0 || p1Percent > 100) {
-    return { error: 'P1 split must be between 0% and 100%' } as any
+    return invalid('P1 split must be between 0% and 100%')
   }
 
   if (mySales > teamSales) {
-    return { error: 'Your sales cannot exceed team sales' } as any
+    return invalid('Your sales cannot exceed team sales')
   }
 
   const teamAchievement = (teamSales / teamTarget) * 100
   if (!Number.isFinite(teamAchievement)) {
-    return { error: 'Team achievement is outside the supported numeric range' } as any
+    return invalid('Team achievement is outside the supported numeric range')
   }
   const tier = getTier(teamAchievement, tiers)
   if (!Number.isFinite(tier.rate) || tier.rate < 0 || tier.rate > 100) {
-    return { error: 'Incentive tier has an invalid rate' } as any
+    return invalid('Incentive tier has an invalid rate')
   }
 
   // Calculate next tier info
-  let nextTierInfo = null
+  let nextTierInfo: IncentiveTierPreview = null
   const sortedTiers = [...tiers].sort((a, b) => a.min - b.min)
   const currentTierIndex = sortedTiers.findIndex(t => t.id === tier.id)
 
@@ -243,7 +260,7 @@ export function calculateIncentive(
 
   const totalPool = (tier.rate / 100) * teamSales
   if (!Number.isFinite(totalPool)) {
-    return { error: 'Incentive pool is outside the supported numeric range' } as any
+    return invalid('Incentive pool is outside the supported numeric range')
   }
   const p1Pool = (p1Percent / 100) * totalPool
   const p2Pool = ((100 - p1Percent) / 100) * totalPool

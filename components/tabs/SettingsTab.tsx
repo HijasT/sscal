@@ -91,7 +91,7 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
     setCodeToName(loadCodeToName())
   }, [])
 
-  const handleTierChange = (index: number, field: keyof Tier, value: any) => {
+  const handleTierChange = (index: number, field: keyof Tier, value: Tier[keyof Tier]) => {
     const newTiers = [...tiers]
     newTiers[index] = { ...newTiers[index], [field]: value }
     setTiers(newTiers)

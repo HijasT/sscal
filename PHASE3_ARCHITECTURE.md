@@ -30,3 +30,9 @@ The Phase 2 golden spreadsheet tests and Playwright E2E suite must remain green.
 ## Increment 2: v13.2.0
 
 Workbook processing is split into `excelTypes`, `excelAttendance`, `excelSheetNames`, `excelSheetParser`, `excelPeriod`, and the backwards-compatible `excelUtils` facade. Presentation-only calculations are in `bulkPresentation`, and PDF report input interfaces are typed. The strict domain TypeScript configuration is verified in CI, separate from the legacy application-wide non-strict migration.
+
+## Increment 3: v13.3.0 — completion gate
+
+Global TypeScript `strict: true` is enabled in `tsconfig.json`. The standalone `tsconfig.phase3.json` additionally enables `noUncheckedIndexedAccess` for core workbook contracts, attendance rules, month naming and aggregation. The typed, validated financial calculation result has no unsafe `as any` bypasses; PDF and Bulk presentation inputs use explicit types. The remaining Sale Assistant restore path and tier Settings editor are typed.
+
+Phase 3 code milestones are complete subject to all automated tests, browser downloads, strict compilation and the production build passing together on the final commit. Business-level verification of actual Sales Tracker files and enforcement of GitHub branch protection remain external sign-off tasks, not claimed as completed by automated refactoring.

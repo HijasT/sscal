@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## [13.3.0]
+
+### Phase 3 — final strict TypeScript and architecture audit
+- Enabled application-wide TypeScript strict mode after migrating the calculator UI, workbook parser and golden tests to explicit types.
+- Preserved an additional noUncheckedIndexedAccess strict domain gate for workbook contracts, attendance, sheet naming and period aggregation.
+- Removed unsafe `any` casts from incentive validation and replaced the legacy partial error object with a typed, fail-closed zero-payment result; original validation messages and valid payout formulas remain unchanged.
+- Defined a discriminated union for the next-tier projection and updated regression assertions to validate the correct branch.
+- Removed remaining explicit `any` parameters from the tier-settings editor and Sale Assistant session rehydration, validating restored line items before access.
+- Added tests for invalid incentive inputs returning zero payouts; all previous Phase 1/2 workbook and browser scenarios remain mandatory CI checks.
+- Marked Phase 3 code refactoring complete while documenting external real-workbook finance sign-off and repository branch-protection requirements separately.
+
 ## [13.2.0]
 
 ### Phase 3 — Excel and typed presentation modules

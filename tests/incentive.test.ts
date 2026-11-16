@@ -100,7 +100,7 @@ test('calculateIncentive: p1=0 means everything is performance-based (P2)', () =
 test('calculateIncentive: projects the sales needed for the next tier', () => {
   const r = calculateIncentive(100000, 90000, 9000, 10, 50, TIERS) // 90% -> Tier 1
   assert.equal(r.tier.name, 'Tier 1')
-  assert.equal(r.nextTierInfo.isMaxTier, false)
+  assert.ok(r.nextTierInfo && !r.nextTierInfo.isMaxTier)
   assert.equal(r.nextTierInfo.nextTierName, 'Tier 2')
   assert.equal(r.nextTierInfo.requiredSales, 101000) // 101% of target
   assert.equal(r.nextTierInfo.deficit, 11000)
@@ -109,6 +109,7 @@ test('calculateIncentive: projects the sales needed for the next tier', () => {
 test('calculateIncentive: below the lowest tier projects toward Tier 1', () => {
   const r = calculateIncentive(100000, 50000, 5000, 10, 50, TIERS) // 50% -> None
   assert.equal(r.tier.rate, 0)
+  assert.ok(r.nextTierInfo && !r.nextTierInfo.isMaxTier)
   assert.equal(r.nextTierInfo.nextTierName, 'Tier 1')
   assert.equal(r.nextTierInfo.requiredSales, 85000)
   assert.equal(r.nextTierInfo.deficit, 35000)
@@ -116,7 +117,7 @@ test('calculateIncentive: below the lowest tier projects toward Tier 1', () => {
 
 test('calculateIncentive: top tier reports extra earned over the threshold', () => {
   const r = calculateIncentive(100000, 120000, 12000, 10, 50, TIERS) // Tier 3
-  assert.equal(r.nextTierInfo.isMaxTier, true)
+  assert.ok(r.nextTierInfo && r.nextTierInfo.isMaxTier)
   // 3.5% of 120k minus 3.5% of (111% of 100k) = 4200 - 3885 = 315 (float-safe)
   assert.ok(Math.abs(r.nextTierInfo.extraIncentive - 315) < 1e-6)
 })
@@ -212,4 +213,22 @@ test('calculateIncentive: unchanged valid staff payouts reconcile for multiple s
 test('calculateIncentive: rejects numeric overflow even from finite inputs', () => {
   assert.match(calculateIncentive(1, Number.MAX_VALUE, Number.MAX_VALUE, 1, 50, TIERS).error ?? '', /numeric range|pool/)
   assert.match(calculateIncentive(Number.MIN_VALUE, 100000, 10000, 10, 50, TIERS).error ?? '', /numeric range/)
+})
+
+test('Phase 3 typed validation failures are zero-payment and fail closed', () => {
+  for (const [target, sales, personal, count, split] of [
+    [0, 120000, 12000, 10, 50],
+    [100000, Infinity, 12000, 10, 50],
+    [100000, 120000, 12000, 10.5, 50],
+    [100000, 120000, 12000, 10, 101],
+    [100000, 100000, 120000, 10, 50],
+  ]) {
+    const result = calculateIncentive(target,sales,personal,count,split,TIERS)
+    assert.ok(result.error)
+    assert.equal(result.totalPool,0)
+    assert.equal(result.myP1,0)
+    assert.equal(result.myP2,0)
+    assert.equal(result.myTotal,0)
+    assert.equal(result.nextTierInfo,null)
+  }
 })
