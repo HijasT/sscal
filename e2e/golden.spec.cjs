@@ -93,3 +93,16 @@ test('Individual mode preserves independently rounded personal awards',async ({p
   await expect(page.getByText('Incentive Breakdown')).toBeVisible()
   await expect(page.getByText('team-wide Accounting Remainder',{exact:false})).toBeVisible()
 })
+
+test('Phase 4 audit CSV downloads signed accounting reconciliation and input policy', async ({page}) => {
+  await uploadGolden(page)
+  const pending = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Download Audit CSV' }).click()
+  const downloaded = await pending
+  expect(downloaded.suggestedFilename()).toMatch(/^incentive-audit-.*\.csv$/)
+  const csv = readFileSync(await downloaded.path(), 'utf8')
+  expect(csv).toContain('"Application Version","14.0.0"')
+  expect(csv).toContain('"Payout Policy","accounting-remainder-v1"')
+  expect(csv).toContain('"Accounting Remainder (fils)","-2"')
+  expect(csv).toContain('"Accounting Remainder (AED)","-0.02"')
+})
