@@ -51,7 +51,11 @@ test('golden XLSX fixture: independently specified attendance, sales, P1/P2 and 
       remainderFils:payout.value.remainderFils,
     })
     assert.equal(summary[2][1], (payout.value.remainderFils/100).toFixed(2))
-    assert.ok(accountingSummaryCSV(payout.value).includes('Accounting Remainder (AED)'))
+    assert.ok(accountingSummaryCSV({
+      totalPool:payout.value.pool,
+      staffTotalFils:payout.value.staffTotalFils,
+      remainderFils:payout.value.remainderFils,
+    }).includes('Accounting Remainder (AED)'))
     assert.deepEqual(payout.value.staff.map(formattedPayout).map(x=>Number(x.total)),
       expectedMonth.expected.staff.map(x=>x.total))
   }
