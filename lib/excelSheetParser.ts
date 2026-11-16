@@ -1,6 +1,6 @@
 import type { StaffData, DailyStaffValue } from './excelTypes'
 import { isWorkedSalesCell, applyReportedBlankAttendance } from './excelAttendance'
-import { stripEmployeeCode } from './excelSheetNames'
+import { stripEmployeeCode, extractEmployeeCode } from './excelSheetNames'
 import type * as SheetJS from 'xlsx'
 
 // ── Sheet extraction ──────────────────────────────────────────────────────────
@@ -259,6 +259,18 @@ export function extractStaffFromSheet(
     } else {
       row++
     }
+  }
+
+  // Flag duplicates explicitly: payout calculations will reject the roster.
+  const seenNames = new Set<string>()
+  const seenCodes = new Set<string>()
+  for (const person of staff) {
+    const nameKey = person.name.trim().toLowerCase()
+    if (seenNames.has(nameKey)) warnings.push(`${sheetName}: duplicate employee row for ${person.name}; calculations are blocked until resolved.`)
+    seenNames.add(nameKey)
+    const code = extractEmployeeCode(person.name)
+    if (code && seenCodes.has(code)) warnings.push(`${sheetName}: duplicate employee code ${code}; calculations are blocked until resolved.`)
+    if (code) seenCodes.add(code)
   }
 
   // The entered reporting cutoff may extend an entirely zero-sales day.
