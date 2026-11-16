@@ -5,7 +5,7 @@ import { APP_VERSION } from './config'
 
 function csv(value: string | number): string {
   const text = String(value)
-  const escaped = /^[=+\-@\t\r]/.test(text) ? "'" + text : text
+  const escaped = typeof value === 'string' && /^[=+\-@\t\r]/.test(text) ? "'" + text : text
   return '"' + escaped.replace(/"/g, '""') + '"'
 }
 
