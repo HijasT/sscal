@@ -243,8 +243,8 @@ export function SaleAssistantTab() {
         const storedLines = stored?.lines ?? stored?.A?.lines ?? []
         const restored = storedLines
           .map((l: unknown) => {
-            if (!l || typeof l !== 'object' || !('id' in l) || typeof l.id !== 'string') return null
-            const item = l as { id: string; qty?: number; discountType?: DiscountType; discountValue?: number }
+            if (!l || typeof l !== 'object' || !('id' in l) || typeof l.id !== 'number') return null
+            const item = l as { id: number; qty?: number; discountType?: DiscountType; discountValue?: number }
             const service = getServiceById(item.id)
             return service
               ? {
