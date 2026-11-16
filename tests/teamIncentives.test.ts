@@ -14,7 +14,7 @@ const people = [
 const payout = (roster=people, split=50) => {
   const outcome = calculateTeamIncentives(100,roster,split,DEFAULT_TIERS)
   assert.equal(outcome.ok,true,'error' in outcome ? outcome.error : '')
-  if('error' in outcome) throw new Error(outcome.error)
+  if('error' in outcome) throw new Error(String(outcome.error))
   return outcome.value
 }
 
