@@ -2,23 +2,20 @@
 import type { Tier } from './config'
 import type { BulkCalculatedData, BulkResult } from './bulkCalculation'
 
-export type NextTierInfo =
-  | {
-    isMaxTier: false
-    nextTierName: string
-    nextTierRate: number
-    requiredPercentage: number
-    requiredSales: number
-    deficit: number
-  }
-  | {
-    isMaxTier: true
-    currentRate: number
-    thresholdPercentage: number
-    thresholdSales: number
-    thresholdPool: number
-    extraIncentive: number
-  }
+/** Optional display fields reflect whether the current or next tier is shown. */
+export interface NextTierInfo {
+  isMaxTier: boolean
+  nextTierName?: string
+  nextTierRate?: number
+  requiredPercentage?: number
+  requiredSales?: number
+  deficit?: number
+  currentRate?: number
+  thresholdPercentage?: number
+  thresholdSales?: number
+  thresholdPool?: number
+  extraIncentive?: number
+}
 
 export function nextBulkTierInfo(data: BulkCalculatedData | null, configuredTiers: readonly Tier[]): NextTierInfo | null {
   if (!data) return null
