@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.11.1]
+
+### Improved — Accounting Remainder CSV and PDF exports
+- Added a shared Accounting export summary for both CSV and PDF, displaying Total Incentive Pool, Total Staff Payouts, signed Accounting Remainder, and Accounting Status.
+- Positive remainders are flagged as unallocated; negative remainders are flagged as staff payouts exceeding the pool, both pending Accounting review.
+- Export summaries validate that pool = staff payout total + signed remainder in whole fils.
+- Added export regression tests covering positive, negative, zero, and inconsistent remainder amounts. Employee payouts and incentive formulas are unchanged.
+
 ## [12.11.0]
 
 ### Changed — Accounting-held residual fils (owner-approved)

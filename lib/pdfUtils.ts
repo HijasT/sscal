@@ -1,6 +1,7 @@
 // PDF export utilities using jsPDF (bundled, not CDN)
 import { formatCurrency } from './utils'
 import { formattedPayout } from './reportPayout'
+import { accountingExportRows } from './accountingExport'
 import { auditRoundedIncentives } from './incentiveAudit'
 
 export async function exportBulkToPDF(calculatedData: any, results: any[]) {
@@ -40,10 +41,9 @@ export async function exportBulkToPDF(calculatedData: any, results: any[]) {
   const summaryData = [
     ['Team Achievement', `${calculatedData.teamAchievement.toFixed(2)}%`],
     ['Current Tier',    `${calculatedData.tier.name} (${calculatedData.tier.rate}% rate)`],
-    ['Total Pool',      `AED ${formatCurrency(calculatedData.totalPool)}`],
-    ['Staff Payout Total', `AED ${formatCurrency(calculatedData.staffTotalFils / 100)}`],
-    ['Accounting Remainder', `AED ${formatCurrency(calculatedData.remainderFils / 100)}`],
-    ['Accounting Action', calculatedData.remainderFils === 0 ? 'No difference' : 'Pending review'],
+    ...accountingExportRows(calculatedData).map(([label, value]) =>
+      [label, label.includes('(AED)') ? `AED ${value}` : value]
+    ),
     ['Pool Split (P1 / P2)', `${p1Split}% / ${100 - p1Split}%`],
     ['P1 Pool (Equal Share)',       `AED ${formatCurrency(p1Pool)}`],
     ['P2 Pool (Performance Share)', `AED ${formatCurrency(p2Pool)}`],

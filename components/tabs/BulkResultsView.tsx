@@ -5,6 +5,7 @@ import { formatCurrency, getTier, loadTiers, loadStaffCenters } from '@/lib/util
 import { calculateTeamIncentives } from '@/lib/teamIncentives'
 import { auditRoundedIncentives } from '@/lib/incentiveAudit'
 import { formattedPayout } from '@/lib/reportPayout'
+import { accountingSummaryCSV } from '@/lib/accountingExport'
 import { exportBulkToPDF } from '@/lib/pdfUtils'
 import { DEFAULT_P1_SPLIT, CENTERS, APP_VERSION } from '@/lib/config'
 import { getFresh, setFresh, clearFresh } from '@/lib/storage'
@@ -442,11 +443,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     }
     let csv = 'Rank,Name,Packages,Sales (AED),Clients,Days,Pkg/Day,Sales/Day,Clients/Day,Max KPI Clients,Revenue Share %,P1 (AED),P2 (AED),Total (AED)\n'
     results.forEach((p,i) => { const pay = formattedPayout(p); csv += `${i+1},${csvText(p.name)},${p.packages},${p.sales.toFixed(2)},${p.clients??0},${p.workingDays},${p.avgPackagesPerDay.toFixed(2)},${p.avgSalesPerDay.toFixed(2)},${p.avgClientsPerDay.toFixed(2)},${p.maxKpiClients},${p.contribution.toFixed(2)},${pay.p1},${pay.p2},${pay.total}\n` })
-    csv += '\nSummary,Amount (AED)\n'
-    csv += `Incentive pool,${calculatedData.totalPool.toFixed(2)}\n`
-    csv += `Staff payout total,${(calculatedData.staffTotalFils / 100).toFixed(2)}\n`
-    csv += `Accounting remainder,${(calculatedData.remainderFils / 100).toFixed(2)}\n`
-    csv += 'Accounting action,Pending review\n'
+    csv += '\n' + accountingSummaryCSV(calculatedData)
     const a = document.createElement('a')
     a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}))
     a.download = `incentive-report-${new Date().toISOString().split('T')[0]}.csv`
