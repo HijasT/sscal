@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [12.10.6]
+
+### Fixed — quality gate TypeScript verification
+- Enabled allowImportingTsExtensions under noEmit so the existing Node test imports are valid TypeScript.
+- Corrected a regression test's over-narrow inferred tuple type.
+- No changes to incentive calculations or payouts.
+
 ## [12.10.5]
 
 ### Added — Phase 1 verification

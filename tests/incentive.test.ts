@@ -174,7 +174,7 @@ test('formatCurrency: thousands separators and 2 decimals', () => {
 })
 
 test('calculateIncentive: rejects Infinity and negative Infinity in every input', () => {
-  const valid = [100000, 120000, 12000, 10, 50] as const
+  const valid: [number, number, number, number, number] = [100000, 120000, 12000, 10, 50]
   for (let i = 0; i < valid.length; i++) {
     for (const invalid of [Infinity, -Infinity, NaN]) {
       const inputs = [...valid]
