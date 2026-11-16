@@ -745,6 +745,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                           <button
                             onClick={()=>toggleExclude(person.name)}
                             title={`Exclude ${person.name} and recalculate`}
+                             aria-label={`Exclude ${person.name} and recalculate`}
                             style={{background:'none',border:'1px solid var(--border-color)',color:'var(--text-muted)',width:'24px',height:'24px',borderRadius:'50%',cursor:'pointer',fontSize:'15px',lineHeight:'1',display:'inline-flex',alignItems:'center',justifyContent:'center',transition:'var(--transition-base)'}}
                             onMouseEnter={e=>{const b=e.currentTarget;b.style.borderColor='var(--error)';b.style.color='var(--error)'}}
                             onMouseLeave={e=>{const b=e.currentTarget;b.style.borderColor='var(--border-color)';b.style.color='var(--text-muted)'}}
