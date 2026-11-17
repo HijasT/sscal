@@ -97,7 +97,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   const [results, setResults]         = useState<BulkResult[]>(persisted.results ?? [])
   const [calculatedData, setCalcData] = useState<BulkCalculatedData | null>(persisted.calculatedData ?? null)
   const [engineChoice, setEngineChoice] = useState<IncentiveEngineChoice>('legacy')
-  const [krabsSnapshot, setKrabsSnapshot] = useState<{ key: string; preview: MrKrabsPreviewOutcome | null } | null>(null)
+  const [krabsSnapshot, setKrabsSnapshot] = useState<{ key: string; preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; bonusAed: number } | null>(null)
   useEffect(() => { setEngineChoice(readEnginePreferences().engine) }, [])
   const [sortColumn, setSortCol]      = useState<SortCol>('sales')
   const [sortDir, setSortDir]         = useState<'asc' | 'desc'>('desc')
@@ -235,8 +235,15 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     }
   }
   const onKrabsPreviewChange = useMemo(() =>
-    (preview: MrKrabsPreviewOutcome | null) => setKrabsSnapshot({ key: snapshotKey, preview }),
+    (evidence: {preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; bonusAed: number}) =>
+      setKrabsSnapshot({ key: snapshotKey, ...evidence }),
     [snapshotKey])
+  const dubaiEvidenceReady = !!selectedSheet && krabsSnapshot?.key === snapshotKey
+  const dubaiCounts = dubaiEvidenceReady ? krabsSnapshot?.counts : undefined
+  const dubaiBonusRate = dubaiEvidenceReady ? krabsSnapshot?.bonusAed ?? 500 : 500
+  const dubaiBonusQualifies = (krabsReady && krabsSnapshot?.preview?.ok)
+    ? krabsSnapshot.preview.rate > 0
+    : (calculatedData?.teamAchievement ?? 0) >= 80
   const sortedResults = useMemo(() => [...displayResults].sort((a, b) => {
     const av = a[sortColumn] ?? (sortColumn === 'name' ? '' : 0)
     const bv = b[sortColumn] ?? (sortColumn === 'name' ? '' : 0)
@@ -278,7 +285,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   ) : ''
   const averageRow = divider && (
     <tr className="rank-average-divider">
-      <td colSpan={15}>
+      <td colSpan={17}>
         <span>Average {averageLabel[sortColumn]}: <strong>{averageValue}</strong></span>
         <span className="rank-average-hint">
           {sortDir === 'desc' ? 'At or above average ↑  ·  Below average ↓' : 'Below average ↑  ·  At or above average ↓'}
@@ -597,7 +604,6 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
               workbookSheets={excelData}
               results={results}
               calculation={calculatedData}
-              selectedEngine={engineChoice}
               onPreviewChange={onKrabsPreviewChange}
             />
           )}
@@ -621,11 +627,16 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
             Showing Mr. Krabs comparison payouts (including Dubai It bonus). Exports are unavailable for this scenario.
             Summary and center metrics above remain Legacy-based.
           </p>}
+          {engineChoice === 'legacy' && dubaiCounts && (
+            <p style={{fontSize:12,color:'var(--text-secondary)',marginBottom:8}}>
+              Dubai It bonuses in Legacy view are informational (Legacy + Bonus scenario) and are not included in the Legacy Total column.
+            </p>
+          )}
           {/* Table — frozen header, horizontal + vertical scroll */}
           <div className="center-rank-summary" role="status">Showing {centerRanking.rows.length} of {sortedResults.length} ranked staff — {krabsReady ? 'Mr. Krabs comparison' : 'Legacy'} ranking. Rankings are recalculated for the selected payout view.</div>
           <div style={{overflowX:'auto',marginBottom:'24px'}}>
             <div style={{maxHeight:'520px',overflowY:'auto'}}>
-              <table style={{width:'100%',borderCollapse:'collapse',minWidth:'1260px'}}>
+              <table style={{width:'100%',borderCollapse:'collapse',minWidth:'1450px'}}>
                 <thead>
                   <tr>
                     <th style={{...TH,width:'46px'}}>Rank</th>
@@ -640,8 +651,10 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                     <th style={thHl('avgClientsPerDay',{fontSize:'11px'})} onClick={()=>handleSort('avgClientsPerDay')}>Clients/Day{si('avgClientsPerDay')}</th>
                     <th style={thHl('maxKpiClients',{fontSize:'11px'})} onClick={()=>handleSort('maxKpiClients')}>Max KPI Clients{si('maxKpiClients')}</th>
                     <th style={thHl('contribution')} onClick={()=>handleSort('contribution')}>Revenue Share %{si('contribution')}</th>
+                    <th style={{...TH,cursor:'default'}}>Dubai It</th>
                     <th style={thHl('p1')} onClick={()=>handleSort('p1')}>P1{si('p1')}</th>
                     <th style={thHl('p2')} onClick={()=>handleSort('p2')}>P2{si('p2')}</th>
+                    <th style={{...TH,cursor:'default'}}>Dubai It Bonus</th>
                     <th style={{...TH,width:'46px',textAlign:'center',cursor:'default'}}>Excl.</th>
                   </tr>
                 </thead>
@@ -665,8 +678,10 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                         <td style={tdHl('avgClientsPerDay')}>{person.clients ? person.avgClientsPerDay.toFixed(2) : '-'}</td>
                         <td style={tdHl('maxKpiClients')}>{person.clients ? person.maxKpiClients : '-'}</td>
                         <td style={tdHl('contribution')}>{person.contribution.toFixed(2)}%</td>
+                        <td style={TD}>{!dubaiCounts ? '—' : dubaiCounts[person.name] == null ? 'Review' : dubaiCounts[person.name]}</td>
                         <td style={tdHl('p1')}>AED {formattedPayout(person).p1}</td>
                         <td style={tdHl('p2')}>AED {formattedPayout(person).p2}</td>
+                        <td style={TD}>{!dubaiCounts ? '—' : dubaiCounts[person.name] == null ? 'Pending' : `AED ${formatCurrency(dubaiBonusQualifies ? (dubaiCounts[person.name] ?? 0) * dubaiBonusRate : 0)}`}</td>
                         <td style={{...TD,textAlign:'center',padding:'10px 6px'}}>
                           <button
                             onClick={()=>toggleExclude(person.name)}
