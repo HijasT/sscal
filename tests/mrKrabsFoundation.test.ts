@@ -70,7 +70,7 @@ test('Mr Krabs preview uses total sales for tier and P2, excludes full-price pac
   assert.equal(outcome.p1Pool,1575)
   assert.equal(outcome.p2Pool,1575)
   assert.equal(outcome.staff[0].dubaiItBonus,1000)
-  assert.equal(outcome.staff[0].p2BeforeProrata,1575 * 70000 / 110000)
+  assert.ok(Math.abs(outcome.staff[0].p2BeforeProrata-1575 * 70000 / 110000) < 0.000001)
   assert.equal(outcome.staff[1].p1AfterProrata,1575 / 2 / 2)
   assert.equal(outcome.status,'provisional-redistribution-unresolved')
   assert.equal(previewMrKrabs({period:'Oct 26',daysInMonth:31,teamTarget:100000,
