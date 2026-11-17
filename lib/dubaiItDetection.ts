@@ -4,6 +4,7 @@
 export interface DubaiItCell {
   day: number
   address: string
+  sourceSheet?: string
   formula?: string
   sales: number
   detected: number
