@@ -38,18 +38,29 @@ export type MrKrabsPreviewOutcome =
       accountingRemainderFils: number; status: 'comparison-only';
       staff: MrKrabsStaffPreview[] }
 
-export function previewMrKrabs(input: {
+export interface SharedPoolPreviewInput {
   teamTarget: number
   staff: readonly MrKrabsStaffInput[]
   daysInMonth: number
   bonusAed: number
   period: string
   tiers?: readonly Tier[]
-}): MrKrabsPreviewOutcome {
+}
+
+/** Krabs: gross P2 weights. Scrooge: exclude full-price Dubai It from P2 weights. */
+export function previewMrKrabs(input: SharedPoolPreviewInput): MrKrabsPreviewOutcome {
+  return calculatePoolPreview(input, 'gross')
+}
+
+export function previewScrooge(input: SharedPoolPreviewInput): MrKrabsPreviewOutcome {
+  return calculatePoolPreview(input, 'net-of-dubai-it')
+}
+
+function calculatePoolPreview(input: SharedPoolPreviewInput, p2Basis: 'gross' | 'net-of-dubai-it'): MrKrabsPreviewOutcome {
   const { teamTarget, staff, daysInMonth, bonusAed, period } = input
   const month = period.trim().replace(/\s+/g, ' ')
   if (!/^(Nov|Dec) 26$/.test(month)) return {
-    ok: false, error: 'Mr. Krabs policy covers November and December 2026 only; other periods are comparison-only and not supported.'
+    ok: false, error: 'Mr. Krabs and Scrooge comparisons currently support November and December 2026 only.'
   }
   if (!staff.length || !Number.isFinite(teamTarget) || teamTarget <= 0 ||
       !Number.isInteger(daysInMonth) || daysInMonth !== (month === 'Nov 26' ? 30 : 31) ||
@@ -89,12 +100,17 @@ export function previewMrKrabs(input: {
   const pool = poolFils / 100
   const p1Pool = (poolFils / 2) / 100
   const p2Pool = (poolFils / 2) / 100
+  // P2 uses gross revenue in Krabs and non-Dubai-It revenue in Scrooge.
+  // Both retain gross sales for achievement; the pool excludes full-price Dubai It.
+  const p2Sales = (person: MrKrabsStaffInput) => p2Basis === 'gross'
+    ? person.sales : person.sales - person.fullPriceDubaiItCount * 10000
+  const p2Denominator = p2Basis === 'gross' ? teamSales : eligibleRevenue
   // One redistribution pass: calculate withheld P1 and P2 from original
   // allocations, then distribute that fixed amount with original weight
   // types only to eligible (>0 days) employees. No recursion.
   const preliminary = staff.map(person => {
     const p1BeforeProrata = p1Pool / staff.length
-    const p2BeforeProrata = teamSales ? p2Pool * person.sales / teamSales : 0
+    const p2BeforeProrata = p2Denominator ? p2Pool * p2Sales(person) / p2Denominator : 0
     const factor = person.eligibleCalendarDays / daysInMonth
     const p1AfterProrata = p1BeforeProrata * factor
     const p2AfterProrata = p2BeforeProrata * factor
@@ -105,11 +121,11 @@ export function previewMrKrabs(input: {
   // Old staff must appear in the previous calendar-month roster. New joiners
   // retain only their pro-rated shares; they NEVER receive redistribution.
   const recipients = preliminary.filter(p => p.isExistingStaff && p.eligibleCalendarDays > 0)
-  const recipientSales = recipients.reduce((sum, p) => sum + p.sales, 0)
+  const recipientSales = recipients.reduce((sum, p) => sum + p2Sales(p), 0)
   const staffResult = preliminary.map(p => {
     const eligible = p.isExistingStaff && p.eligibleCalendarDays > 0
     const redistributedP1 = eligible && recipients.length > 0 ? withheldP1 / recipients.length : 0
-    const redistributedP2 = eligible && recipientSales > 0 ? withheldP2 * p.sales / recipientSales : 0
+    const redistributedP2 = eligible && recipientSales > 0 ? withheldP2 * p2Sales(p) / recipientSales : 0
     const p1 = toFils(p.p1AfterProrata + redistributedP1) / 100
     const p2 = toFils(p.p2AfterProrata + redistributedP2) / 100
     const dubaiItBonus = rate > 0 ? toFils(p.fullPriceDubaiItCount * bonusAed) / 100 : 0

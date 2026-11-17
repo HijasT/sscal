@@ -97,7 +97,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   const [results, setResults]         = useState<BulkResult[]>(persisted.results ?? [])
   const [calculatedData, setCalcData] = useState<BulkCalculatedData | null>(persisted.calculatedData ?? null)
   const [engineChoice, setEngineChoice] = useState<IncentiveEngineChoice>('legacy')
-  const [krabsSnapshot, setKrabsSnapshot] = useState<{ key: string; preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; bonusAed: number } | null>(null)
+  const [krabsSnapshot, setKrabsSnapshot] = useState<{ key: string; engine: IncentiveEngineChoice; preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; bonusAed: number } | null>(null)
   useEffect(() => { setEngineChoice(readEnginePreferences().engine) }, [])
   const [sortColumn, setSortCol]      = useState<SortCol>('sales')
   const [sortDir, setSortDir]         = useState<'asc' | 'desc'>('desc')
@@ -214,7 +214,8 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     selectedSheet?.sheetName, calculatedData?.target,
     results.map(p => [p.name, p.sales, p.totalIncentive]),
   ])
-  const krabsReady = engineChoice === 'mr-krabs' && !!selectedSheet &&
+  const krabsReady = engineChoice !== 'legacy' && !!selectedSheet &&
+    krabsSnapshot?.engine === engineChoice &&
     krabsSnapshot?.key === snapshotKey && krabsSnapshot.preview?.ok === true
   const displayResults: BulkResult[] = krabsReady && krabsSnapshot?.preview?.ok
     ? results.map(p => {
@@ -235,7 +236,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     }
   }
   const onKrabsPreviewChange = useMemo(() =>
-    (evidence: {preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; bonusAed: number}) =>
+    (evidence: {engine: IncentiveEngineChoice; preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; bonusAed: number}) =>
       setKrabsSnapshot({ key: snapshotKey, ...evidence }),
     [snapshotKey])
   const dubaiEvidenceReady = !!selectedSheet && krabsSnapshot?.key === snapshotKey
@@ -604,6 +605,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
               workbookSheets={excelData}
               results={results}
               calculation={calculatedData}
+              selectedEngine={engineChoice}
               onPreviewChange={onKrabsPreviewChange}
             />
           )}
@@ -615,16 +617,17 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
               onChange={e => switchEngine(e.target.value as IncentiveEngineChoice)}>
               <option value="legacy">Legacy Engine</option>
               <option value="mr-krabs">Mr. Krabs Engine</option>
+              <option value="scrooge">Scrooge Engine</option>
             </select>
           </div>
-          {engineChoice === 'mr-krabs' && !krabsReady && (
+          {engineChoice !== 'legacy' && !krabsReady && (
             <p role="status" style={{fontSize:13,color:'var(--warning)',marginBottom:12}}>
-              Mr. Krabs ranking unavailable for this period or pending Dubai It / eligibility verification.
+              {engineChoice === 'scrooge' ? 'Scrooge' : 'Mr. Krabs'} ranking unavailable for this period or pending Dubai It / eligibility verification.
               The Legacy ranking remains visible; no Mr. Krabs figures are substituted.
             </p>
           )}
           {krabsReady && <p role="status" style={{fontSize:13,color:'var(--text-secondary)',marginBottom:12}}>
-            Showing Mr. Krabs comparison payouts (including Dubai It bonus). Exports are unavailable for this scenario.
+            Showing {engineChoice === 'scrooge' ? 'Scrooge' : 'Mr. Krabs'} comparison payouts (including Dubai It bonus). Exports are unavailable for this scenario.
             Summary and center metrics above remain Legacy-based.
           </p>}
           {engineChoice === 'legacy' && dubaiCounts && (
@@ -633,7 +636,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
             </p>
           )}
           {/* Table — frozen header, horizontal + vertical scroll */}
-          <div className="center-rank-summary" role="status">Showing {centerRanking.rows.length} of {sortedResults.length} ranked staff — {krabsReady ? 'Mr. Krabs comparison' : 'Legacy'} ranking. Rankings are recalculated for the selected payout view.</div>
+          <div className="center-rank-summary" role="status">Showing {centerRanking.rows.length} of {sortedResults.length} ranked staff — {krabsReady ? (engineChoice === 'scrooge' ? 'Scrooge comparison' : 'Mr. Krabs comparison') : 'Legacy'} ranking. Rankings are recalculated for the selected payout view.</div>
           <div style={{overflowX:'auto',marginBottom:'24px'}}>
             <div style={{maxHeight:'520px',overflowY:'auto'}}>
               <table style={{width:'100%',borderCollapse:'collapse',minWidth:'1450px'}}>
@@ -704,9 +707,9 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
 
           {/* Export */}
           <div style={{display:'flex',gap:'12px'}}>
-            <button className="btn btn-secondary" disabled={engineChoice === 'mr-krabs'} onClick={handleExportCSV}><><DownloadIcon />Download CSV</></button>
-            <button className="btn btn-secondary" disabled={engineChoice === 'mr-krabs'} onClick={handleExportAudit}><><DownloadIcon />Download Audit CSV</></button>
-            <button className="btn btn-secondary" disabled={engineChoice === 'mr-krabs'} onClick={()=>exportBulkToPDF({ ...calculatedData, p1Split: calculatedData.p1Split ?? p1Split },results)}><><DownloadIcon />Download PDF</></button>
+            <button className="btn btn-secondary" disabled={engineChoice !== 'legacy'} onClick={handleExportCSV}><><DownloadIcon />Download CSV</></button>
+            <button className="btn btn-secondary" disabled={engineChoice !== 'legacy'} onClick={handleExportAudit}><><DownloadIcon />Download Audit CSV</></button>
+            <button className="btn btn-secondary" disabled={engineChoice !== 'legacy'} onClick={()=>exportBulkToPDF({ ...calculatedData, p1Split: calculatedData.p1Split ?? p1Split },results)}><><DownloadIcon />Download PDF</></button>
           </div>
         </div>
         {betaUnlocked && bulkSubtab === 'beta' && (
