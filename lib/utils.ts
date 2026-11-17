@@ -3,6 +3,15 @@
 import { STAFF_CENTERS, DEFAULT_TIERS, type Tier } from './config'
 import { extractEmployeeCode } from './excelUtils'
 
+/** Upgrade the original built-in 85/101/111 tier preset without
+ * overriding a genuinely customized ladder saved by the user.
+ */
+export function isObsoleteLegacyDefaultTiers(tiers: Tier[]): boolean {
+  return tiers.length === 3 &&
+    tiers[0].min === 85 && tiers[0].max === 101 && tiers[0].rate === 2.5 &&
+    tiers[1].min === 101 && tiers[1].max === 111 && tiers[1].rate === 3 &&
+    tiers[2].min === 111 && tiers[2].max === Infinity && tiers[2].rate === 3.5
+}
 export function loadTiers(): Tier[] {
   // Ensure we're in browser environment (Next.js SSR safety)
   if (typeof window === 'undefined') return DEFAULT_TIERS
@@ -15,10 +24,16 @@ export function loadTiers(): Tier[] {
     if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_TIERS
 
     // FIX: JSON.stringify converts Infinity to null, restore it
-    return parsed.map((tier: Tier) => ({
+    const tiers: Tier[] = parsed.map((tier: Tier) => ({
       ...tier,
       max: tier.max === null ? Infinity : tier.max
     }))
+    if (isObsoleteLegacyDefaultTiers(tiers)) {
+      // Preserve custom configurations; migrate only a verified old default.
+      saveTiers(DEFAULT_TIERS)
+      return DEFAULT_TIERS
+    }
+    return tiers
   } catch {
     return DEFAULT_TIERS
   }
@@ -125,7 +140,7 @@ export function getTier(achievementPercent: number, tiers: Tier[] = loadTiers())
     }
   }
   // Below minimum tier
-  return { id: 'none', name: 'None', min: 0, max: 75, rate: 0, color: '#ff5252' }
+  return { id: 'none', name: 'None', min: 0, max: tiers[0]?.min ?? 80, rate: 0, color: '#ff5252' }
 }
 
 export function formatCurrency(n: number): string {
