@@ -13,7 +13,7 @@ interface Props {
   workbookSheets: readonly ExcelData[]
   results: readonly BulkResult[]
   calculation: BulkCalculatedData
-  onPreviewChange: (preview: MrKrabsPreviewOutcome | null) => void
+  onPreviewChange: (evidence: {preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; bonusAed: number}) => void
 }
 function cellKey(name: string, sheet: string, address: string) {
   return JSON.stringify([name, sheet, address])
@@ -63,9 +63,14 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
       fullPriceDubaiItCount:p.count, eligibleCalendarDays:p.eligibility!,
       isExistingStaff:p.inference!.status === 'existing' })),
   }) : null
-  const previewSignature = JSON.stringify(preview)
+  const evidence = {
+    preview,
+    counts: Object.fromEntries(relevant.map(p => [p.person.name, p.pending.length ? null : p.count])) as Record<string, number | null>,
+    bonusAed,
+  }
+  const previewSignature = JSON.stringify(evidence)
   useEffect(() => {
-    onPreviewChange(preview)
+    onPreviewChange(evidence)
     // Serialization keeps parent updates stable across child rerenders.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [previewSignature, onPreviewChange])
