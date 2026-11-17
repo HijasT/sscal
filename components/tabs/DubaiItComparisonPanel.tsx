@@ -3,8 +3,8 @@ import { useEffect, useMemo, useState } from 'react'
 import type { ExcelData } from '@/lib/excelTypes'
 import type { BulkCalculatedData, BulkResult } from '@/lib/bulkCalculation'
 import { inferJoinerEligibility } from '@/lib/joinerInference'
-import { previewMrKrabs } from '@/lib/mrKrabsPreview'
-import { readEnginePreferences } from '@/lib/enginePreferences'
+import { previewMrKrabs, previewScrooge } from '@/lib/mrKrabsPreview'
+import { readEnginePreferences, type IncentiveEngineChoice } from '@/lib/enginePreferences'
 import type { MrKrabsPreviewOutcome } from '@/lib/mrKrabsPreview'
 import { formatCurrency, loadTiers } from '@/lib/utils'
 
@@ -13,13 +13,14 @@ interface Props {
   workbookSheets: readonly ExcelData[]
   results: readonly BulkResult[]
   calculation: BulkCalculatedData
-  onPreviewChange: (evidence: {preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; bonusAed: number}) => void
+  selectedEngine: IncentiveEngineChoice
+  onPreviewChange: (evidence: {engine: IncentiveEngineChoice; preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; bonusAed: number}) => void
 }
 function cellKey(name: string, sheet: string, address: string) {
   return JSON.stringify([name, sheet, address])
 }
 
-export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calculation, onPreviewChange }: Props) {
+export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calculation, selectedEngine, onPreviewChange }: Props) {
   const [bonusAed, setBonusAed] = useState(500)
   const [drafts, setDrafts] = useState<Record<string, string>>({})
   const [verified, setVerified] = useState<Record<string, number>>({})
@@ -54,7 +55,7 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
   const unconfirmedRoster = relevant.filter(p => !p.inference || (p.inference.status !== 'existing' && p.inference.status !== 'potential-new-joiner'))
   const isVerified = pendingCells.length === 0
   const teamEligibleDaysVerified = unconfirmedEligibility.length === 0
-  const preview = isVerified && teamEligibleDaysVerified && unconfirmedRoster.length === 0 ? previewMrKrabs({
+  const preview = isVerified && teamEligibleDaysVerified && unconfirmedRoster.length === 0 ? (selectedEngine === 'scrooge' ? previewScrooge : previewMrKrabs)({
     teamTarget: calculation.target,
     period: sheet.sheetName,
     daysInMonth: joiners[0]?.daysInMonth ?? 0,
@@ -66,6 +67,7 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
   }) : null
   const evidence = {
     preview,
+    engine: selectedEngine,
     counts: Object.fromEntries(relevant.map(p => [p.person.name, p.pending.length ? null : p.count])) as Record<string, number | null>,
     bonusAed,
   }
@@ -99,7 +101,7 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
   }
   return (
     <section className="card" aria-label="Mr. Krabs input verification" style={{marginBottom:'24px',padding:'18px'}}>
-      <h3 style={{fontWeight:700,marginBottom:8}}>Mr. Krabs · Input Verification</h3>
+      <h3 style={{fontWeight:700,marginBottom:8}}>Dubai It · Input Verification</h3>
       <p style={{fontSize:13,marginBottom:10}}>
         Dubai It verification: <strong>{pendingCells.length} unreviewed sales cells</strong>. Joining eligibility:
         <strong> {unconfirmedEligibility.length} unconfirmed staff</strong>.
@@ -149,7 +151,7 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
         Previous-month roster classification unavailable for {unconfirmedRoster.length} staff. Mr. Krabs calculations are blocked until the previous month is supplied.
       </p>}
       {(!isVerified || !teamEligibleDaysVerified || unconfirmedRoster.length > 0) && <p style={{fontSize:12,color:'var(--warning)',marginTop:6}}>
-        Mr. Krabs ranking unavailable until uncertain sales cells, employee roster classifications and calendar eligibility are confirmed.
+        Selected engine ranking unavailable until uncertain sales cells, employee roster classifications and calendar eligibility are confirmed.
       </p>}
     </section>
   )
