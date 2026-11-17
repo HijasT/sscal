@@ -6,7 +6,7 @@ import { inferJoinerEligibility } from '@/lib/joinerInference'
 import { previewMrKrabs } from '@/lib/mrKrabsPreview'
 import { readEnginePreferences } from '@/lib/enginePreferences'
 import type { MrKrabsPreviewOutcome } from '@/lib/mrKrabsPreview'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, loadTiers } from '@/lib/utils'
 
 interface Props {
   sheet: ExcelData
@@ -59,6 +59,7 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
     period: sheet.sheetName,
     daysInMonth: joiners[0]?.daysInMonth ?? 0,
     bonusAed: bonusAed,
+    tiers: loadTiers(),
     staff: relevant.map(p => ({ name:p.person.name, sales:p.person.sales,
       fullPriceDubaiItCount:p.count, eligibleCalendarDays:p.eligibility!,
       isExistingStaff:p.inference!.status === 'existing' })),
