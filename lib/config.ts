@@ -15,7 +15,7 @@
  */
 
 /** Displayed in the header, About tab, and page title. */
-export const APP_VERSION = '15.0.2'
+export const APP_VERSION = '15.1.0'
 
 export interface Tier {
   id: string
@@ -32,9 +32,10 @@ export interface Tier {
  * inclusive, upper-bound exclusive — see getTier() in lib/utils.ts.
  */
 export const DEFAULT_TIERS: Tier[] = [
-  { id: 'tier1', name: 'Tier 1', min: 85, max: 101, rate: 2.5, color: '#2196f3' }, // Blue
-  { id: 'tier2', name: 'Tier 2', min: 101, max: 111, rate: 3.0, color: '#9c27b0' }, // Purple
-  { id: 'tier3', name: 'Tier 3', min: 111, max: Infinity, rate: 3.5, color: '#4caf50' }, // Green
+  { id: 'tier1', name: 'Tier 1', min: 80, max: 90, rate: 2, color: '#2196f3' },
+  { id: 'tier2', name: 'Tier 2', min: 90, max: 100, rate: 2.5, color: '#9c27b0' },
+  { id: 'tier3', name: 'Tier 3', min: 100, max: 110, rate: 3, color: '#4caf50' },
+  { id: 'tier4', name: 'Tier 4', min: 110, max: Infinity, rate: 3.5, color: '#ff9800' },
 ]
 
 /** Default P1 percentage (0–100). P2 = 100 - DEFAULT_P1_SPLIT. */

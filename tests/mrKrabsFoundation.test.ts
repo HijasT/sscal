@@ -5,6 +5,8 @@ import { inspectDubaiItCell } from '../lib/dubaiItDetection'
 import { parseExcelWorkbook } from '../lib/excelUtils'
 import { inferJoinerEligibility } from '../lib/joinerInference'
 import { previewMrKrabs } from '../lib/mrKrabsPreview'
+import { DEFAULT_TIERS } from '../lib/config'
+import { getTier, isObsoleteLegacyDefaultTiers } from '../lib/utils'
 
 test('package-price additive parser counts only standalone 10000 sales', () => {
   const detected = inspectDubaiItCell({ f:'1000+10000+1695+10000', v:22695 }, 20, 'AJ21')
@@ -148,4 +150,27 @@ test('with no old staff, deducted amounts remain with Accounting rather than ret
  assert.equal(out.staff[0].redistributedP1,0)
  assert.equal(out.staff[1].redistributedP2,0)
  assert.ok(out.accountingRemainderFils>0)
+})
+
+test('Legacy and Krabs share all published tier boundaries',()=>{
+ const cases:[number,number][]=[[79.99,0],[80,2],[89.99,2],[90,2.5],
+ [99.99,2.5],[100,3],[109.99,3],[110,3.5],[150,3.5]]
+ for(const [achievement,expectedRate] of cases){
+   const legacy=getTier(achievement,DEFAULT_TIERS).rate
+   const krabs=previewMrKrabs({period:'Nov 26',daysInMonth:30,
+     teamTarget:100000,bonusAed:500,tiers:DEFAULT_TIERS,staff:[
+     {name:'Employee',sales:achievement*1000,fullPriceDubaiItCount:0,eligibleCalendarDays:30,isExistingStaff:true},
+   ]})
+   assert.equal(legacy,expectedRate,`Legacy at ${achievement}%`)
+   assert.equal(krabs.ok,true)
+   if(krabs.ok)assert.equal(krabs.rate,expectedRate,`Krabs at ${achievement}%`)
+ }
+})
+test('only the obsolete built-in 85/101/111 ladder is migrated',()=>{
+ assert.equal(isObsoleteLegacyDefaultTiers([
+ {id:'tier1',name:'Tier 1',min:85,max:101,rate:2.5,color:'#2196f3'},
+ {id:'tier2',name:'Tier 2',min:101,max:111,rate:3,color:'#9c27b0'},
+ {id:'tier3',name:'Tier 3',min:111,max:Infinity,rate:3.5,color:'#4caf50'},
+ ]),true)
+ assert.equal(isObsoleteLegacyDefaultTiers(DEFAULT_TIERS),false)
 })

@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { calculateTeamIncentives } from '../lib/teamIncentives.ts'
 import { auditRoundedIncentives } from '../lib/incentiveAudit.ts'
-import { DEFAULT_TIERS } from '../lib/config.ts'
+import { HISTORICAL_LEGACY_TIERS } from './fixtures/historicalTiers.ts'
 import { formattedPayout } from '../lib/reportPayout.ts'
 
 const people = [
@@ -11,7 +11,7 @@ const people = [
   { name:'Bela AE02-138', sales:30 },
 ]
 const payout = (roster=people, split=50) => {
-  const outcome = calculateTeamIncentives(100,roster,split,DEFAULT_TIERS)
+  const outcome = calculateTeamIncentives(100,roster,split,HISTORICAL_LEGACY_TIERS)
   assert.equal(outcome.ok,true,'error' in outcome ? String(outcome.error) : '')
   if('error' in outcome) throw new Error(String(outcome.error))
   return outcome.value
@@ -57,7 +57,7 @@ test('all splits and excluded rosters reconcile pool through Accounting Remainde
 })
 
 test('zero-sales roster has zero staff award and no Accounting Remainder',()=>{
-  const outcome=calculateTeamIncentives(100,[{name:'A',sales:0},{name:'B',sales:0}],50,DEFAULT_TIERS)
+  const outcome=calculateTeamIncentives(100,[{name:'A',sales:0},{name:'B',sales:0}],50,HISTORICAL_LEGACY_TIERS)
   assert.equal(outcome.ok,true)
   if(outcome.ok){
     assert.equal(outcome.value.poolFils,0)
@@ -74,8 +74,8 @@ test('duplicate employee codes do not affect rounding; no remainder is assigned 
 })
 
 test('invalid splits and overflowing pools are rejected',()=>{
-  assert.equal(calculateTeamIncentives(100,people,101,DEFAULT_TIERS).ok,false)
-  assert.equal(calculateTeamIncentives(1,[{name:'A',sales:Number.MAX_VALUE}],50,DEFAULT_TIERS).ok,false)
+  assert.equal(calculateTeamIncentives(100,people,101,HISTORICAL_LEGACY_TIERS).ok,false)
+  assert.equal(calculateTeamIncentives(1,[{name:'A',sales:Number.MAX_VALUE}],50,HISTORICAL_LEGACY_TIERS).ok,false)
 })
 
 test('CSV/PDF shared formatter preserves each independently rounded P1, P2, total',()=>{

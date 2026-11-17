@@ -37,18 +37,18 @@ test('monthly 100% personal split compares with same pool, with green and red de
   assert.ok(snapshot)
   assert.equal(snapshot.sales, 400)
   assert.equal(snapshot.target, 400)
-  assert.equal(snapshot.pool, 10)
-  assert.deepEqual(snapshot.staff.map(p => p.totalIncentive), [6.25, 3.75])
+  assert.equal(snapshot.pool, 12)
+  assert.deepEqual(snapshot.staff.map(p => p.totalIncentive), [7.5, 4.5])
   const rows = comparePersonalSplit(snapshot.staff, snapshot.sales, snapshot.pool)
   assert.deepEqual(rows.map(p => [p.personalOnly, p.delta]), [
-    [7.5, 1.25], [2.5, -1.25],
+    [9, 1.5], [3, -1.5],
   ])
   assert.equal(rows.reduce((n, p) => n + p.delta, 0), 0)
 })
 
 test('selected month uses its target, while explicit current-month override can change it', () => {
   const sheetData = sheet('Oct 26')
-  assert.equal(monthlyIncentives(sheetData, new Set(), 50)?.pool, 10)
+  assert.equal(monthlyIncentives(sheetData, new Set(), 50)?.pool, 12)
   assert.equal(monthlyIncentives(sheetData, new Set(), 50, 800)?.pool, 0)
   assert.equal(monthlyIncentives(sheetData, new Set(['B']), 50)?.sales, 300)
   assert.equal(monthlyIncentives(sheetData, new Set(['B']), 50)?.pool, 0)

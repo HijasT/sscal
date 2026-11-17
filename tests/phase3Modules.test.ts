@@ -5,7 +5,8 @@ import { parseExcelWorkbook, getAvailableMonths, pickDefaultMonth, aggregateShee
   isWorkedSalesCell, extractEmployeeCode } from '../lib/excelUtils.ts'
 import { nextBulkTierInfo, bulkCenterStats } from '../lib/bulkPresentation.ts'
 import { calculateBulkReport } from '../lib/bulkCalculation.ts'
-import { DEFAULT_TIERS, CENTERS } from '../lib/config.ts'
+import { CENTERS } from '../lib/config.ts'
+import { HISTORICAL_LEGACY_TIERS } from './fixtures/historicalTiers.ts'
 
 const { createGoldenXlsxBuffer } = require('./fixtures/goldenWorkbook.cjs')
 const months=()=>parseExcelWorkbook(XLSX.read(createGoldenXlsxBuffer(),{type:'buffer'}),XLSX)
@@ -24,10 +25,10 @@ test('Phase 3 split workbook modules preserve public facade API and golden parsi
 test('Phase 3 pure tier and center presentation models retain expected amounts',()=>{
   const outcome=calculateBulkReport({
     sheets:[months()[0]],manualTarget:'',p1Split:50,
-    excludedStaff:new Set<string>(),viewMode:'monthly',tiers:DEFAULT_TIERS,
+    excludedStaff:new Set<string>(),viewMode:'monthly',tiers:HISTORICAL_LEGACY_TIERS,
   })
   if(!outcome.ok)throw Error('Golden bulk calculation failed')
-  const tier=nextBulkTierInfo(outcome.data,DEFAULT_TIERS)
+  const tier=nextBulkTierInfo(outcome.data,HISTORICAL_LEGACY_TIERS)
   assert.ok(tier)
   assert.equal(tier.isMaxTier,false)
   if(!tier.isMaxTier){

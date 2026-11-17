@@ -7,10 +7,11 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { getTier, calculateIncentive, formatCurrency } from '../lib/utils.ts'
-import { DEFAULT_TIERS, type Tier } from '../lib/config.ts'
+import { type Tier } from '../lib/config.ts'
+import { HISTORICAL_LEGACY_TIERS } from './fixtures/historicalTiers.ts'
 
-const TIERS: Tier[] = DEFAULT_TIERS
-// DEFAULT_TIERS: T1 [85,101)=2.5%, T2 [101,111)=3.0%, T3 [111,∞)=3.5%
+const TIERS: Tier[] = HISTORICAL_LEGACY_TIERS
+// Historical pre-v15.1 golden: T1 [85,101)=2.5%, T2 [101,111)=3.0%, T3 [111,∞)=3.5%
 
 // ---------- getTier: bracket boundaries (lower inclusive, upper exclusive) ----------
 

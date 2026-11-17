@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx'
 import { parseExcelWorkbook } from '../lib/excelUtils.ts'
 import { calculateBulkReport, selectBulkSheets } from '../lib/bulkCalculation.ts'
 import { buildBulkCSV } from '../lib/bulkCsv.ts'
-import { DEFAULT_TIERS } from '../lib/config.ts'
+import { HISTORICAL_LEGACY_TIERS } from './fixtures/historicalTiers.ts'
 
 const { createGoldenXlsxBuffer } = require('./fixtures/goldenWorkbook.cjs')
 function fixtures(){
@@ -13,7 +13,7 @@ function fixtures(){
 const calculate=(sheet:ReturnType<typeof fixtures>[number],exclude=new Set<string>(),target='')=>
   calculateBulkReport({
     sheets:[sheet],manualTarget:target,p1Split:50,excludedStaff:exclude,
-    viewMode:'monthly',tiers:DEFAULT_TIERS,
+    viewMode:'monthly',tiers:HISTORICAL_LEGACY_TIERS,
   })
 
 test('Phase 3 pure selector preserves month, quarter, year and alltime behavior',()=>{
@@ -70,7 +70,7 @@ test('Phase 3 fail-closed inputs never yield exportable results',()=>{
   }
   const empty=calculateBulkReport({
     sheets:[],manualTarget:'',p1Split:50,
-    excludedStaff:new Set<string>(),viewMode:'monthly',tiers:DEFAULT_TIERS,
+    excludedStaff:new Set<string>(),viewMode:'monthly',tiers:HISTORICAL_LEGACY_TIERS,
   })
   assert.equal(empty.ok,false)
   assert.equal(calculate(november,new Set(november.staff.map(p=>p.name))).ok,false)
