@@ -1,5 +1,6 @@
-/** Conservative Dubai It detection from the original daily sales formula.
- * Only additive numeric literals can be auto-approved. Never infer from totals.
+/** Inspect daily sales: a direct amount is one sale, and a simple additive
+ * formula lists individual sale amounts. Exact AED 10,000 means one full-price
+ * Dubai It package. Never infer counts from monthly totals or complex formulas.
  */
 export interface DubaiItCell {
   day: number
@@ -24,9 +25,11 @@ export function inspectDubaiItCell(
   }
   if (sales === 0 && !cell.f) return null
   const formula = cell.f?.trim()
+  // A plain numeric value represents exactly one day's sale amount.
+  // Only an exact AED 10,000 is a full-price Dubai It; other amounts
+  // represent ordinary sales, not an uncertain package breakdown.
   if (!formula) return {
-    day, address, sales, detected: 0, status: 'review',
-    reason: 'Positive sales value has no package-level formula',
+    day, address, sales, detected: sales === 10000 ? 1 : 0, status: 'verified',
   }
   // Restrict to '+'-joined monetary literals, allowing an optional leading '='.
   // Parentheses, references, subtraction, multipliers and functions need review.

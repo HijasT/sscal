@@ -9,7 +9,7 @@ import {
 import { CENTERS, STAFF_CENTERS, DEFAULT_TIERS, DEFAULT_USD_RATE, type Tier } from '@/lib/config'
 import { getFresh, isPersistEnabled, setPersistEnabled, isUsdShown, setUsdShown, getUsdRate, setUsdRate, isHideCoveredEnabled, setHideCovered } from '@/lib/storage'
 import { extractEmployeeCode, stripEmployeeCode, type ExcelData } from '@/lib/excelUtils'
-import { readEnginePreferences, writeEnginePreferences, type IncentiveEngineChoice } from '@/lib/enginePreferences'
+import { readEnginePreferences, writeEnginePreferences } from '@/lib/enginePreferences'
 import { SlidersIcon, SaveIcon, BarChartIcon, SunIcon } from '@/components/icons'
 import { notify } from '@/lib/notify'
 
@@ -63,7 +63,6 @@ interface SettingsTabProps {
 }
 
 export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
-  const [engineChoice, setEngineChoice] = useState<IncentiveEngineChoice>('legacy')
   const [dubaiBonus, setDubaiBonus] = useState('500')
   const [tiers, setTiers] = useState<Tier[]>(DEFAULT_TIERS)
   const [showDefaults, setShowDefaults] = useState(true)
@@ -81,7 +80,6 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
 
   useEffect(() => {
     const choice = readEnginePreferences()
-    setEngineChoice(choice.engine)
     setDubaiBonus(String(choice.bonusAed))
     setPersist(isPersistEnabled())
     setShowUsd(isUsdShown())
@@ -241,8 +239,8 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
     const bonusAed = Number(dubaiBonus)
     try {
       if (dubaiBonus.trim() === '') throw new Error('Enter a bonus value.')
-      writeEnginePreferences({ engine: engineChoice, bonusAed })
-      notify({ level: 'success', messages: ['Incentive engine preferences saved. Reopen Bulk Calculations to apply the selection.'] })
+      writeEnginePreferences({ ...readEnginePreferences(), bonusAed })
+      notify({ level: 'success', messages: ['Dubai It bonus preference saved.'] })
     } catch (error) {
       notify({ level: 'error', title: 'Invalid engine settings', messages: [
         error instanceof Error ? error.message : 'Could not save engine settings',
@@ -253,22 +251,15 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
   return (
     <>
     <details className="card settings-section" open>
-      <summary className="settings-summary"><h2 className="card-title">Incentive Engine</h2></summary>
+      <summary className="settings-summary"><h2 className="card-title">Dubai It Bonus</h2></summary>
       <div className="settings-body">
-        <div className="form-group">
-          <label htmlFor="incentive-engine">Calculation engine</label>
-          <select id="incentive-engine" value={engineChoice} onChange={e=>setEngineChoice(e.target.value as IncentiveEngineChoice)}>
-            <option value="legacy">Legacy Engine</option>
-            <option value="mr-krabs">Mr. Krabs Engine (provisional preview only)</option>
-          </select>
-        </div>
         <div className="form-group">
           <label htmlFor="dubai-it-bonus">Dubai It bonus per full-price package (AED)</label>
           <input id="dubai-it-bonus" type="number" min="0" max="100000" step="0.01"
             value={dubaiBonus} onChange={e=>setDubaiBonus(e.target.value)}/>
           <p style={{fontSize:'12px',color:'var(--text-muted)'}}>Default AED 500.</p>
         </div>
-        <button type="button" className="btn btn-primary" onClick={saveEngineChoice}>Save incentive engine settings</button>
+        <button type="button" className="btn btn-primary" onClick={saveEngineChoice}>Save Dubai It bonus</button>
       </div>
     </details>
     <details className="card settings-section" open>
