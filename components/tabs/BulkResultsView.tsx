@@ -17,6 +17,8 @@ import { projectMonthlySales } from '@/lib/salesProjection'
 import { averageDivider } from '@/lib/rankAverage'
 import { BulkInsightsBeta } from '@/components/tabs/BulkInsightsBeta'
 import { DubaiItComparisonPanel } from '@/components/tabs/DubaiItComparisonPanel'
+import { readEnginePreferences, writeEnginePreferences, type IncentiveEngineChoice } from '@/lib/enginePreferences'
+import type { MrKrabsPreviewOutcome } from '@/lib/mrKrabsPreview'
 import { visibleCenterRankings, nextCenterVisibility } from '@/lib/centerRankingVisibility'
 
 type ViewMode = BulkViewMode
@@ -94,6 +96,9 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   const [p1Split, setP1Split]         = useState(persisted.p1Split ?? DEFAULT_P1_SPLIT)
   const [results, setResults]         = useState<BulkResult[]>(persisted.results ?? [])
   const [calculatedData, setCalcData] = useState<BulkCalculatedData | null>(persisted.calculatedData ?? null)
+  const [engineChoice, setEngineChoice] = useState<IncentiveEngineChoice>('legacy')
+  const [krabsSnapshot, setKrabsSnapshot] = useState<{ key: string; preview: MrKrabsPreviewOutcome | null } | null>(null)
+  useEffect(() => { setEngineChoice(readEnginePreferences().engine) }, [])
   const [sortColumn, setSortCol]      = useState<SortCol>('sales')
   const [sortDir, setSortDir]         = useState<'asc' | 'desc'>('desc')
   const [bulkSubtab, setBulkSubtab]   = useState<'calculator' | 'beta'>('calculator')
@@ -203,12 +208,41 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     setSortDir('desc')
   }
 
-  const sortedResults = useMemo(() => [...results].sort((a, b) => {
+  // Never present stale or unverified Mr. Krabs figures as ranked payouts.
+  const selectedSheet = viewMode === 'monthly' ? getSheetsForView()[0] : undefined
+  const snapshotKey = JSON.stringify([
+    selectedSheet?.sheetName, calculatedData?.target,
+    results.map(p => [p.name, p.sales, p.totalIncentive]),
+  ])
+  const krabsReady = engineChoice === 'mr-krabs' && !!selectedSheet &&
+    krabsSnapshot?.key === snapshotKey && krabsSnapshot.preview?.ok === true
+  const displayResults: BulkResult[] = krabsReady && krabsSnapshot?.preview?.ok
+    ? results.map(p => {
+        const award = krabsSnapshot.preview?.ok
+          ? krabsSnapshot.preview.staff.find(row => row.name === p.name)
+          : undefined
+        return award ? { ...p, p1: award.p1, p2: award.p2, totalIncentive: award.totalIncentive } : p
+      })
+    : results
+  const switchEngine = (choice: IncentiveEngineChoice) => {
+    try {
+      writeEnginePreferences({ ...readEnginePreferences(), engine: choice })
+      setEngineChoice(choice)
+    } catch (error) {
+      notify({ level: 'error', title: 'Could not switch engine', messages: [
+        error instanceof Error ? error.message : 'Invalid engine choice',
+      ] })
+    }
+  }
+  const onKrabsPreviewChange = useMemo(() =>
+    (preview: MrKrabsPreviewOutcome | null) => setKrabsSnapshot({ key: snapshotKey, preview }),
+    [snapshotKey])
+  const sortedResults = useMemo(() => [...displayResults].sort((a, b) => {
     const av = a[sortColumn] ?? (sortColumn === 'name' ? '' : 0)
     const bv = b[sortColumn] ?? (sortColumn === 'name' ? '' : 0)
     const m = sortDir === 'asc' ? 1 : -1
     return (av < bv ? -1 : av > bv ? 1 : 0) * m
-  }), [results, sortColumn, sortDir])
+  }), [displayResults, sortColumn, sortDir])
 
   // Name has no meaningful average. For every numeric sort, calculate the mean
   // from exactly the staff shown, and keep equal-to-average staff in the
@@ -563,11 +597,32 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
               workbookSheets={excelData}
               results={results}
               calculation={calculatedData}
+              selectedEngine={engineChoice}
+              onPreviewChange={onKrabsPreviewChange}
             />
           )}
 
+          {/* Engine choice applies to the ranking view only. Legacy reports stay audited and unchanged. */}
+          <div className="form-group" style={{marginBottom:'12px',maxWidth:'350px'}}>
+            <label htmlFor="bulk-incentive-engine">Ranking calculation engine</label>
+            <select id="bulk-incentive-engine" value={engineChoice}
+              onChange={e => switchEngine(e.target.value as IncentiveEngineChoice)}>
+              <option value="legacy">Legacy Engine</option>
+              <option value="mr-krabs">Mr. Krabs Engine</option>
+            </select>
+          </div>
+          {engineChoice === 'mr-krabs' && !krabsReady && (
+            <p role="status" style={{fontSize:13,color:'var(--warning)',marginBottom:12}}>
+              Mr. Krabs ranking unavailable for this period or pending Dubai It / eligibility verification.
+              The Legacy ranking remains visible; no Mr. Krabs figures are substituted.
+            </p>
+          )}
+          {krabsReady && <p role="status" style={{fontSize:13,color:'var(--text-secondary)',marginBottom:12}}>
+            Showing Mr. Krabs comparison payouts (including Dubai It bonus). Exports are unavailable for this scenario.
+            Summary and center metrics above remain Legacy-based.
+          </p>}
           {/* Table — frozen header, horizontal + vertical scroll */}
-          <div className="center-rank-summary" role="status">Showing {centerRanking.rows.length} of {sortedResults.length} ranked staff. Original rank numbers and team-wide averages are preserved.</div>
+          <div className="center-rank-summary" role="status">Showing {centerRanking.rows.length} of {sortedResults.length} ranked staff — {krabsReady ? 'Mr. Krabs comparison' : 'Legacy'} ranking. Rankings are recalculated for the selected payout view.</div>
           <div style={{overflowX:'auto',marginBottom:'24px'}}>
             <div style={{maxHeight:'520px',overflowY:'auto'}}>
               <table style={{width:'100%',borderCollapse:'collapse',minWidth:'1260px'}}>
@@ -634,9 +689,9 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
 
           {/* Export */}
           <div style={{display:'flex',gap:'12px'}}>
-            <button className="btn btn-secondary" onClick={handleExportCSV}><><DownloadIcon />Download CSV</></button>
-            <button className="btn btn-secondary" onClick={handleExportAudit}><><DownloadIcon />Download Audit CSV</></button>
-            <button className="btn btn-secondary" onClick={()=>exportBulkToPDF({ ...calculatedData, p1Split: calculatedData.p1Split ?? p1Split },results)}><><DownloadIcon />Download PDF</></button>
+            <button className="btn btn-secondary" disabled={engineChoice === 'mr-krabs'} onClick={handleExportCSV}><><DownloadIcon />Download CSV</></button>
+            <button className="btn btn-secondary" disabled={engineChoice === 'mr-krabs'} onClick={handleExportAudit}><><DownloadIcon />Download Audit CSV</></button>
+            <button className="btn btn-secondary" disabled={engineChoice === 'mr-krabs'} onClick={()=>exportBulkToPDF({ ...calculatedData, p1Split: calculatedData.p1Split ?? p1Split },results)}><><DownloadIcon />Download PDF</></button>
           </div>
         </div>
         {betaUnlocked && bulkSubtab === 'beta' && (
