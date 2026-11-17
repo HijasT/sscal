@@ -433,7 +433,7 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
               ))}
             </div>
             <div style={{padding: '12px', background: 'var(--accent-soft)', borderRadius: 'var(--radius-sm)', fontSize: '12px', color: 'var(--text-secondary)'}}>
-              Your current tier configuration. Click "Reset to Defaults" to restore original colors (Blue · Purple · Green).
+              Your current tier configuration. Click "Reset to Defaults" to restore default shared four-tier ladder.
             </div>
           </div>
         )}
