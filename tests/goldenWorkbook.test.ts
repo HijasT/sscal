@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx'
 import { parseExcelWorkbook, aggregateSheets } from '../lib/excelUtils.ts'
 import { calculateTeamIncentives } from '../lib/teamIncentives.ts'
 import { auditRoundedIncentives } from '../lib/incentiveAudit.ts'
-import { DEFAULT_TIERS } from '../lib/config.ts'
+import { HISTORICAL_LEGACY_TIERS } from './fixtures/historicalTiers.ts'
 import { accountingExportRows, accountingSummaryCSV } from '../lib/accountingExport.ts'
 import { formattedPayout } from '../lib/reportPayout.ts'
 
@@ -55,7 +55,7 @@ test('golden XLSX fixture: independently specified attendance, sales, P1/P2 and 
     })),expectedMonth.expected.staff.map(p=>({
       name:p.name,sales:p.sales,workingDays:p.workingDays,
     })))
-    const payout = calculateTeamIncentives(month.target, month.staff, 50, DEFAULT_TIERS)
+    const payout = calculateTeamIncentives(month.target, month.staff, 50, HISTORICAL_LEGACY_TIERS)
     assert.equal(payout.ok,true)
     if (!payout.ok) continue
     assert.equal(payout.value.poolFils, expectedMonth.expected.poolFils)
@@ -98,13 +98,13 @@ test('golden workbook: chronological multi-month aggregation does not alter sour
 test('golden workbook: exclusions and manual targets cannot silently retain previous payouts',()=>{
   const months=parseExcelWorkbook(XLSX.read(createGoldenXlsxBuffer(),{type:'buffer'}),XLSX)
   const november=months[0]
-  const withoutBela=calculateTeamIncentives(100,november.staff.filter(p=>!p.name.startsWith('Bela')),50,DEFAULT_TIERS)
+  const withoutBela=calculateTeamIncentives(100,november.staff.filter(p=>!p.name.startsWith('Bela')),50,HISTORICAL_LEGACY_TIERS)
   assert.equal(withoutBela.ok,true)
   if(withoutBela.ok){
     assert.equal(withoutBela.value.poolFils,0)
     assert.equal(withoutBela.value.remainderFils,0)
   }
-  const overridden=calculateTeamIncentives(120,november.staff,50,DEFAULT_TIERS)
+  const overridden=calculateTeamIncentives(120,november.staff,50,HISTORICAL_LEGACY_TIERS)
   assert.equal(overridden.ok,true)
   if(overridden.ok)assert.equal(overridden.value.poolFils,0)
 })
