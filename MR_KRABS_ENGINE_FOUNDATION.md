@@ -1,0 +1,22 @@
+# Mr. Krabs Engine — v14.1.0 foundation (NOT an approved payroll release)
+
+## What is implemented
+- Both potential policies consume one shared Sales Tracker workbook.
+- Monthly sales formulas are inspected for additive exact AED 10,000 entries (full-price Dubai It). Literal additions are counted; formula references, multipliers, positive sales without formulas, and nonreconciling totals require explicit manual review.
+- A review panel displays employee, day, cell address, original formula, cached sales value and issue. Users must enter and confirm the package count; the review is scoped to the parsed workbook, not silently reused for another upload.
+- A separate monthly employee comparison shows confirmed Dubai It counts, the existing official Legacy calculation and a hypothetical Legacy + Bonus result (80% qualification rule, AED 500/package default).
+- Settings permits manual Legacy/Mr. Krabs preference selection and changing a simulation bonus rate. The regular ranking table, official CSV/PDF exports, and Legacy incentive formulas remain completely unchanged.
+- The parser records the earliest explicitly entered sale/zero day. For potential new joiners, inspect the previous calendar month's employee roster by code and infer the first explicit zero/sale day. The app requires human confirmation of calendar eligibility days. If the previous month is absent, the app does not assume the staff member is new.
+- Mr. Krabs provisional preview computes 80/90/100/110 tiers, eligible pool excluding full-price Dubai It, 50/50 shares, P2 based on all employee sales divided by all team sales, the 80%-gated bonus, and individual calendar eligibility factors.
+
+## Explicitly not yet implemented
+- **No official Mr. Krabs payroll export or final payable total.** Although the proposed rule says redistribute withheld pro-rata amounts among all eligible employees in the original P1/P2 proportions, a single finite, auditable redistribution method has not been defined; naive redistribution according to original percentages undoes the pro-rata adjustment and can produce circular allocations. Confirm the exact redistribution algorithm with Accounting.
+- No period-aggregated Mr. Krabs calculation for quarters / year: monthly incentive tiers and policy versions must be calculated separately and only then aggregated.
+- Legacy + Bonus is a hypothetical simulation, NOT retrospective entitlement. Bonus rates other than AED 500 are simulations.
+- September real payroll reconciliation remains pending.
+- No adjustments to the official Legacy calculations, PDFs, CSV, or financial audit output.
+
+## Important limitations
+- An AED 10,000 literal is interpreted as Dubai It only because the user supplied that product-pricing convention. This is a heuristic; sales may be edited or stored without package-level formula data.
+- An employee not in the prior month's roster may be transferred/missing rather than newly hired. Their first recorded sale/zero might not be their actual joining date; eligibility requires manual confirmation.
+- The application runs calculations locally and does not upload payroll information.
