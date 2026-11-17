@@ -17,7 +17,7 @@ export function readEnginePreferences(): EnginePreferences {
     const data = parsed as Partial<EnginePreferences>
     return {
       engine: data.engine === 'mr-krabs' ? 'mr-krabs' : 'legacy',
-      bonusAed: Number.isFinite(data.bonusAed) && typeof data.bonusAed === 'number' &&
+      bonusAed: typeof data.bonusAed === 'number' && Number.isFinite(data.bonusAed) &&
         data.bonusAed >= 0 && data.bonusAed <= 100000 ? data.bonusAed : 500,
     }
   } catch {
