@@ -1,6 +1,6 @@
 /** Mr. Krabs policy scenario: November/December 2026 only.
  * Confirmed user model: 50/50 P1/P2, P2 uses gross team sales; apply calendar
- * eligibility then redistribute each withheld pool ONCE to all eligible staff.
+ * eligibility then redistribute each withheld pool ONCE to existing staff only.
  * P1 redistribution weights are equal; P2 weights are gross sales shares.
  * Accounting retains signed rounding/undistributable residuals in fils.
  * Not a representation of management-approved payroll without separate signoff.
@@ -12,6 +12,8 @@ export interface MrKrabsStaffInput {
   sales: number
   fullPriceDubaiItCount: number
   eligibleCalendarDays: number
+  /** True only when found in the immediately previous month's roster. */
+  isExistingStaff: boolean
 }
 export interface MrKrabsStaffPreview {
   name: string
@@ -60,6 +62,7 @@ export function previewMrKrabs(input: {
       !Number.isFinite(person.sales) || person.sales < 0 ||
       !Number.isSafeInteger(person.fullPriceDubaiItCount) || person.fullPriceDubaiItCount < 0 ||
       person.fullPriceDubaiItCount * 10000 > person.sales + 0.005 ||
+      typeof person.isExistingStaff !== 'boolean' ||
       !Number.isInteger(person.eligibleCalendarDays) ||
       person.eligibleCalendarDays < 0 || person.eligibleCalendarDays > daysInMonth) return {
       ok: false, error: `Invalid employee, revenue, Dubai It count or eligible days for ${person.name}.`
@@ -92,10 +95,12 @@ export function previewMrKrabs(input: {
   })
   const withheldP1 = preliminary.reduce((sum, p) => sum + p.p1BeforeProrata - p.p1AfterProrata, 0)
   const withheldP2 = preliminary.reduce((sum, p) => sum + p.p2BeforeProrata - p.p2AfterProrata, 0)
-  const recipients = preliminary.filter(p => p.eligibleCalendarDays > 0)
+  // Old staff must appear in the previous calendar-month roster. New joiners
+  // retain only their pro-rated shares; they NEVER receive redistribution.
+  const recipients = preliminary.filter(p => p.isExistingStaff && p.eligibleCalendarDays > 0)
   const recipientSales = recipients.reduce((sum, p) => sum + p.sales, 0)
   const staffResult = preliminary.map(p => {
-    const eligible = p.eligibleCalendarDays > 0
+    const eligible = p.isExistingStaff && p.eligibleCalendarDays > 0
     const redistributedP1 = eligible && recipients.length > 0 ? withheldP1 / recipients.length : 0
     const redistributedP2 = eligible && recipientSales > 0 ? withheldP2 * p.sales / recipientSales : 0
     const p1 = toFils(p.p1AfterProrata + redistributedP1) / 100
