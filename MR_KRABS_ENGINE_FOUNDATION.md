@@ -2,7 +2,7 @@
 
 ## What is implemented
 - Both potential policies consume one shared Sales Tracker workbook.
-- Monthly sales formulas are inspected for additive exact AED 10,000 entries (full-price Dubai It). Literal additions are counted; formula references, multipliers, positive sales without formulas, and nonreconciling totals require explicit manual review.
+- Daily numeric sales amounts and simple additive formulas are inspected for exact AED 10,000 entries (full-price Dubai It). Direct AED 10,000 is one Dubai It package; other direct numeric amounts are normal sales. Formula references, multipliers, and nonreconciling totals still require explicit manual review.
 - A review panel displays employee, day, cell address, original formula, cached sales value and issue. Users must enter and confirm the package count; the review is scoped to the parsed workbook, not silently reused for another upload.
 - A separate monthly employee comparison shows confirmed Dubai It counts, the existing official Legacy calculation and a hypothetical Legacy + Bonus result (80% qualification rule, AED 500/package default).
 - Settings permits manual Legacy/Mr. Krabs preference selection and changing a simulation bonus rate. The regular ranking table, official CSV/PDF exports, and Legacy incentive formulas remain completely unchanged.
@@ -19,6 +19,6 @@
 - No adjustments to the official Legacy calculations, PDFs, CSV, or financial audit output.
 
 ## Important limitations
-- An AED 10,000 literal is interpreted as Dubai It only because the user supplied that product-pricing convention. This is a heuristic; sales may be edited or stored without package-level formula data.
+- An exact AED 10,000 amount is interpreted as Dubai It only because the user supplied that product-pricing convention. This is a heuristic; sales may be edited or stored without package-level formula data.
 - An employee not in the prior month's roster may be transferred/missing rather than newly hired. Their first recorded sale/zero might not be their actual joining date; eligibility requires manual confirmation.
 - October and November 2026 are present in the user's supplied November source workbook; at review time all current November employee codes were listed in October, so no new joiner was inferred for this test input. The workbook is not committed to GitHub.\n- The application runs calculations locally and does not upload payroll information.
