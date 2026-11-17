@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { performance } from 'node:perf_hooks'
 import * as XLSX from 'xlsx'
-import { DEFAULT_TIERS } from '../lib/config'
+import { DEFAULT_TIERS, APP_VERSION } from '../lib/config'
 import { calculateBulkReport } from '../lib/bulkCalculation'
 import { buildBulkAuditCSV } from '../lib/bulkAudit'
 import { validateStaffRoster } from '../lib/rosterValidation'
@@ -17,7 +17,7 @@ test('Phase 4 audit CSV reconciles full payout and retains signed remainder', ()
   assert.equal(outcome.ok, true)
   if (!outcome.ok) return
   const text = buildBulkAuditCSV(outcome.results, outcome.data, [], '2026-11-17T00:00:00.000Z')
-  assert.match(text, /"Application Version","14.0.0"/)
+  assert.ok(text.includes(`"Application Version","${APP_VERSION}"`))
   assert.match(text, /"Reporting Mode","monthly"/)
   assert.match(text, /"Accounting Remainder \(fils\)","-2"/)
   assert.match(text, /"Accounting Remainder \(AED\)","-0.02"/)

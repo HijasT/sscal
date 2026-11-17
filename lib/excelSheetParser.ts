@@ -2,6 +2,7 @@ import type { StaffData, DailyStaffValue } from './excelTypes'
 import { isWorkedSalesCell, applyReportedBlankAttendance } from './excelAttendance'
 import { stripEmployeeCode, extractEmployeeCode } from './excelSheetNames'
 import type * as SheetJS from 'xlsx'
+import { inspectDubaiItCell } from './dubaiItDetection'
 
 // ── Sheet extraction ──────────────────────────────────────────────────────────
 
@@ -198,8 +199,10 @@ export function extractStaffFromSheet(
 
       if (name && !['STAFF', 'p25', '`', 'Grand totals'].includes(name)) {
         let workingDays = 0
+        let firstExplicitWorkedDay: number | undefined
         const daily: DailyStaffValue[] = []
         const blankDays: number[] = []
+        const dubaiItCells: NonNullable<StaffData['dubaiItCells']> = []
 
         const who = stripEmployeeCode(name) || name
         const packages = readTotal(row - 1, `${who} (packages)`)
@@ -223,13 +226,28 @@ export function extractStaffFromSheet(
           // NA is absent; numeric 0 is present. Broken formulas are errors.
           if (!isWorkedSalesCell(dailyCell)) continue
 
+          const address = XLSX.utils.encode_cell({ r: row - 1 + salesRowOffset, c: col })
+          const inspection = inspectDubaiItCell(dailyCell, day, address)
+          if (inspection) dubaiItCells.push(inspection)
           workingDays++
+          firstExplicitWorkedDay = Math.min(firstExplicitWorkedDay ?? day, day)
           lastReportedDay = Math.max(lastReportedDay ?? 0, day)
           daily.push({
             day,
             sales: dailyNumber(row - 1 + salesRowOffset, col),
             packages: dailyNumber(row - 1, col),
             clients: hasClientsRow ? dailyNumber(row, col) : 0,
+          })
+        }
+
+        // A precomputed total that does not reconcile to inspected daily values
+        // cannot justify a zero Dubai It count. Require explicit review.
+        const inspectedSales = dubaiItCells.reduce((sum, item) => sum + item.sales, 0)
+        if (sales > 0 && Math.abs(inspectedSales - sales) > 0.011) {
+          dubaiItCells.push({
+            day: 0, address: 'MONTH_TOTAL', sales: Math.max(0, sales - inspectedSales),
+            detected: 0, status: 'review',
+            reason: 'Monthly sales total differs from inspected positive daily entries; verify missing/unexplained revenue',
           })
         }
 
@@ -245,6 +263,8 @@ export function extractStaffFromSheet(
           sales:    Math.round(sales * 100) / 100,
           workingDays,
           daily,
+          dubaiItCells,
+          firstExplicitWorkedDay,
         }
 
         if (hasClientsRow && clients > 0) {

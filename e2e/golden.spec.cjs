@@ -101,7 +101,7 @@ test('Phase 4 audit CSV downloads signed accounting reconciliation and input pol
   const downloaded = await pending
   expect(downloaded.suggestedFilename()).toMatch(/^incentive-audit-.*\.csv$/)
   const csv = readFileSync(await downloaded.path(), 'utf8')
-  expect(csv).toContain('"Application Version","14.0.0"')
+  expect(csv).toMatch(/"Application Version","\d+\.\d+\.\d+"/)
   expect(csv).toContain('"Payout Policy","accounting-remainder-v1"')
   expect(csv).toContain('"Accounting Remainder (fils)","-2"')
   expect(csv).toContain('"Accounting Remainder (AED)","-0.02"')

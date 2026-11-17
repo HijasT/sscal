@@ -1,4 +1,5 @@
 /** Shared workbook domain contracts. */
+import type { DubaiItCell } from './dubaiItDetection'
 export interface DailyStaffValue {
   day: number
   sales: number
@@ -14,6 +15,10 @@ export interface StaffData {
   clients?: number
   /** Daily figures from uploaded workbook; absent on older cached data. */
   daily?: DailyStaffValue[]
+  /** Package-price formula inspections; always review uncertain entries. */
+  dubaiItCells?: DubaiItCell[]
+  /** Earliest explicitly entered sales value (including zero), not inferred attendance blanks. */
+  firstExplicitWorkedDay?: number
 }
 
 export interface ExcelData {

@@ -9,6 +9,7 @@ import {
 import { CENTERS, STAFF_CENTERS, DEFAULT_TIERS, DEFAULT_USD_RATE, type Tier } from '@/lib/config'
 import { getFresh, isPersistEnabled, setPersistEnabled, isUsdShown, setUsdShown, getUsdRate, setUsdRate, isHideCoveredEnabled, setHideCovered } from '@/lib/storage'
 import { extractEmployeeCode, stripEmployeeCode, type ExcelData } from '@/lib/excelUtils'
+import { readEnginePreferences, writeEnginePreferences, type IncentiveEngineChoice } from '@/lib/enginePreferences'
 import { SlidersIcon, SaveIcon, BarChartIcon, SunIcon } from '@/components/icons'
 import { notify } from '@/lib/notify'
 
@@ -62,6 +63,8 @@ interface SettingsTabProps {
 }
 
 export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
+  const [engineChoice, setEngineChoice] = useState<IncentiveEngineChoice>('legacy')
+  const [dubaiBonus, setDubaiBonus] = useState('500')
   const [tiers, setTiers] = useState<Tier[]>(DEFAULT_TIERS)
   const [showDefaults, setShowDefaults] = useState(true)
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
@@ -77,6 +80,9 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
   const [usdRate, setUsdRateInput] = useState(String(DEFAULT_USD_RATE))
 
   useEffect(() => {
+    const choice = readEnginePreferences()
+    setEngineChoice(choice.engine)
+    setDubaiBonus(String(choice.bonusAed))
     setPersist(isPersistEnabled())
     setShowUsd(isUsdShown())
     setHideCoveredState(isHideCoveredEnabled())
@@ -231,8 +237,41 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
     notify({ level: 'success', messages: ['Previous staff center allocation restored.'] })
   }
 
+  const saveEngineChoice = () => {
+    const bonusAed = Number(dubaiBonus)
+    try {
+      if (dubaiBonus.trim() === '') throw new Error('Enter a bonus value.')
+      writeEnginePreferences({ engine: engineChoice, bonusAed })
+      notify({ level: 'success', messages: ['Incentive engine preferences saved. Reopen Bulk Calculations to apply the selection.'] })
+    } catch (error) {
+      notify({ level: 'error', title: 'Invalid engine settings', messages: [
+        error instanceof Error ? error.message : 'Could not save engine settings',
+      ] })
+    }
+  }
+
   return (
     <>
+    <details className="card settings-section" open>
+      <summary className="settings-summary"><h2 className="card-title">Incentive Engine</h2></summary>
+      <div className="settings-body">
+        <p className="card-description">Legacy official payouts remain unchanged. Mr. Krabs is a provisional calculation preview until redistribution policy is specified. Comparison bonus is a simulation.</p>
+        <div className="form-group">
+          <label htmlFor="incentive-engine">Calculation engine</label>
+          <select id="incentive-engine" value={engineChoice} onChange={e=>setEngineChoice(e.target.value as IncentiveEngineChoice)}>
+            <option value="legacy">Legacy Engine</option>
+            <option value="mr-krabs">Mr. Krabs Engine (provisional preview only)</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="dubai-it-bonus">Dubai It bonus per full-price package (AED)</label>
+          <input id="dubai-it-bonus" type="number" min="0" max="100000" step="0.01"
+            value={dubaiBonus} onChange={e=>setDubaiBonus(e.target.value)}/>
+          <p style={{fontSize:'12px',color:'var(--text-muted)'}}>Default AED 500. Any different rate is a simulation, not the published Nov–Dec policy.</p>
+        </div>
+        <button type="button" className="btn btn-primary" onClick={saveEngineChoice}>Save incentive engine settings</button>
+      </div>
+    </details>
     <details className="card settings-section" open>
       <summary className="settings-summary">
         <h2 className="card-title"><SunIcon className="icon-lg" />Preferences</h2>
