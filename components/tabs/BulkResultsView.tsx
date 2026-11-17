@@ -630,7 +630,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                   <tr>
                     <th style={{...TH,width:'46px'}}>Rank</th>
                     <th style={thHl('name')} onClick={()=>handleSort('name')}>Name{si('name')}</th>
-                    <th style={thHl('totalIncentive')} onClick={()=>handleSort('totalIncentive')}>Total{si('totalIncentive')}</th>
+                    <th style={thHl('totalIncentive')} onClick={()=>handleSort('totalIncentive')}>{krabsReady ? 'Total incl. bonus' : 'Total'}{si('totalIncentive')}</th>
                     <th style={thHl('packages')} onClick={()=>handleSort('packages')}>Packages{si('packages')}</th>
                     <th style={thHl('clients')} onClick={()=>handleSort('clients')}>Clients{si('clients')}</th>
                     <th style={thHl('sales')} onClick={()=>handleSort('sales')}>Sales{si('sales')}</th>
