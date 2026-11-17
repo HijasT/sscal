@@ -199,6 +199,7 @@ export function extractStaffFromSheet(
 
       if (name && !['STAFF', 'p25', '`', 'Grand totals'].includes(name)) {
         let workingDays = 0
+        let firstExplicitWorkedDay: number | undefined
         const daily: DailyStaffValue[] = []
         const blankDays: number[] = []
         const dubaiItCells: NonNullable<StaffData['dubaiItCells']> = []
@@ -229,6 +230,7 @@ export function extractStaffFromSheet(
           const inspection = inspectDubaiItCell(dailyCell, day, address)
           if (inspection) dubaiItCells.push(inspection)
           workingDays++
+          firstExplicitWorkedDay = Math.min(firstExplicitWorkedDay ?? day, day)
           lastReportedDay = Math.max(lastReportedDay ?? 0, day)
           daily.push({
             day,
@@ -251,6 +253,7 @@ export function extractStaffFromSheet(
           workingDays,
           daily,
           dubaiItCells,
+          firstExplicitWorkedDay,
         }
 
         if (hasClientsRow && clients > 0) {
