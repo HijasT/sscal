@@ -58,9 +58,10 @@ export function AboutTab() {
               Your team's achievement percentage determines the incentive tier. The lower value is <strong>inclusive</strong> (≥) and the upper value is <strong>exclusive</strong> (&lt;):
             </p>
             <ul style={{listStyle: 'none', padding: '0', marginLeft: '16px'}}>
-              <li style={{marginBottom: '6px'}}>• <strong>Tier 1</strong> (≥85% and &lt;101%): 2.5% incentive rate</li>
-              <li style={{marginBottom: '6px'}}>• <strong>Tier 2</strong> (≥101% and &lt;111%): 3.0% incentive rate</li>
-              <li style={{marginBottom: '6px'}}>• <strong>Tier 3</strong> (≥111%): 3.5% incentive rate</li>
+              <li style={{marginBottom: '6px'}}>• <strong>Tier 1</strong> (≥80% and &lt;90%): 2.0% incentive rate</li>
+              <li style={{marginBottom: '6px'}}>• <strong>Tier 2</strong> (≥90% and &lt;100%): 2.5% incentive rate</li>
+              <li style={{marginBottom: '6px'}}>• <strong>Tier 3</strong> (≥100% and &lt;110%): 3.0% incentive rate</li>
+              <li style={{marginBottom: '6px'}}>• <strong>Tier 4</strong> (≥110%): 3.5% incentive rate</li>
             </ul>
             
             <p style={{marginTop: '16px', marginBottom: '12px'}}>
@@ -96,8 +97,8 @@ export function AboutTab() {
 
             <p style={{marginBottom: '12px', color: 'var(--text-primary)', fontWeight: '600'}}>Step 2: Determine Tier</p>
             <div style={{marginLeft: '12px', marginBottom: '16px'}}>
-              105% falls in range: ≥101% and &lt;111%<br/>
-              Tier = <strong style={{color: 'var(--accent-primary)'}}>Tier 2</strong> (3.0% rate)
+              105% falls in range: ≥100% and &lt;110%<br/>
+              Tier = <strong style={{color: 'var(--accent-primary)'}}>Tier 3</strong> (3.0% rate)
             </div>
 
             <p style={{marginBottom: '12px', color: 'var(--text-primary)', fontWeight: '600'}}>Step 3: Calculate Total Incentive Pool</p>
