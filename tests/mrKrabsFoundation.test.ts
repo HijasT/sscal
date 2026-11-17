@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx'
 import { inspectDubaiItCell } from '../lib/dubaiItDetection'
 import { parseExcelWorkbook } from '../lib/excelUtils'
 import { inferJoinerEligibility } from '../lib/joinerInference'
-import { previewMrKrabs } from '../lib/mrKrabsPreview'
+import { previewMrKrabs, previewScrooge } from '../lib/mrKrabsPreview'
 import { DEFAULT_TIERS } from '../lib/config'
 import { getTier, isObsoleteLegacyDefaultTiers } from '../lib/utils'
 
@@ -173,4 +173,59 @@ test('only the obsolete built-in 85/101/111 ladder is migrated',()=>{
  {id:'tier3',name:'Tier 3',min:111,max:Infinity,rate:3.5,color:'#4caf50'},
  ]),true)
  assert.equal(isObsoleteLegacyDefaultTiers(DEFAULT_TIERS),false)
+})
+
+test('Scrooge excludes full-price Dubai It from each personal P2 basis, but Krabs uses gross revenue',()=>{
+ const input={period:'Nov 26',daysInMonth:30,teamTarget:100000,bonusAed:500,
+ staff:[
+  {name:'A',sales:70000,fullPriceDubaiItCount:2,eligibleCalendarDays:30,isExistingStaff:true},
+  {name:'B',sales:40000,fullPriceDubaiItCount:0,eligibleCalendarDays:30,isExistingStaff:true},
+ ]}
+ const krabs=previewMrKrabs(input), scrooge=previewScrooge(input)
+ assert.equal(krabs.ok,true);assert.equal(scrooge.ok,true)
+ if(!krabs.ok||!scrooge.ok)return
+ assert.equal(krabs.achievement,110)
+ assert.equal(scrooge.achievement,110)
+ assert.equal(scrooge.rate,3.5)
+ assert.equal(scrooge.eligibleRevenue,90000)
+ assert.equal(scrooge.pool,3150)
+ assert.equal(scrooge.p1Pool,1575)
+ assert.equal(scrooge.staff[0].p1,krabs.staff[0].p1)
+ assert.equal(scrooge.staff[0].p2,875) // 1575 * 50k / 90k
+ assert.equal(scrooge.staff[1].p2,700) // 1575 * 40k / 90k
+ assert.equal(scrooge.staff[0].dubaiItBonus,1000)
+ assert.equal(scrooge.staff[0].totalIncentive,2662.50)
+ assert.ok(krabs.staff[0].p2>scrooge.staff[0].p2)
+ assert.ok(krabs.staff[1].p2<scrooge.staff[1].p2)
+ assert.equal(scrooge.accountingRemainderFils,0)
+})
+test('Scrooge pro-rata redistribution uses only existing staff non-Dubai-It revenue',()=>{
+ const input={period:'Nov 26',daysInMonth:30,teamTarget:100000,bonusAed:500,
+ staff:[
+  {name:'Old A',sales:55000,fullPriceDubaiItCount:5,eligibleCalendarDays:30,isExistingStaff:true},
+  {name:'Old B',sales:35000,fullPriceDubaiItCount:0,eligibleCalendarDays:30,isExistingStaff:true},
+  {name:'New',sales:10000,fullPriceDubaiItCount:0,eligibleCalendarDays:15,isExistingStaff:false},
+ ]}
+ const a=previewScrooge(input)
+ assert.equal(a.ok,true)
+ if(!a.ok)return
+ assert.equal(a.eligibleRevenue,50000)
+ assert.equal(a.pool,1500)
+ assert.equal(a.staff[2].redistributedP1,0)
+ assert.equal(a.staff[2].redistributedP2,0)
+ assert.equal(a.staff[0].redistributedP1,a.staff[1].redistributedP1)
+ assert.ok(a.staff[1].redistributedP2>a.staff[0].redistributedP2)
+ assert.equal(a.staff[0].dubaiItBonus,2500)
+ assert.equal(a.staff.reduce((n,p)=>n+p.p1+p.p2,0)+a.accountingRemainderFils/100,a.pool)
+})
+test('Scrooge all-Dubai-It revenue has zero P1/P2 pool but still pays qualifying package bonus',()=>{
+ const result=previewScrooge({period:'Dec 26',daysInMonth:31,teamTarget:10000,bonusAed:500,
+ staff:[{name:'A',sales:10000,fullPriceDubaiItCount:1,eligibleCalendarDays:31,isExistingStaff:true}]})
+ assert.equal(result.ok,true)
+ if(!result.ok)return
+ assert.equal(result.rate,3)
+ assert.equal(result.pool,0)
+ assert.equal(result.staff[0].p1,0)
+ assert.equal(result.staff[0].p2,0)
+ assert.equal(result.staff[0].totalIncentive,500)
 })
