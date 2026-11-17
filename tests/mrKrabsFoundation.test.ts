@@ -72,7 +72,41 @@ test('Mr Krabs preview uses total sales for tier and P2, excludes full-price pac
   assert.equal(outcome.staff[0].dubaiItBonus,1000)
   assert.ok(Math.abs(outcome.staff[0].p2BeforeProrata-1575 * 70000 / 110000) < 0.000001)
   assert.equal(outcome.staff[1].p1AfterProrata,1575 / 2 / 2)
-  assert.equal(outcome.status,'provisional-redistribution-unresolved')
+  assert.equal(outcome.status,'comparison-only')
+  assert.ok(outcome.staff[0].redistributedP1 > 0)
+  assert.ok(outcome.staff[1].redistributedP2 > 0)
+  assert.equal(outcome.accountingRemainderFils,Math.round(outcome.pool*100)-outcome.staff.reduce((sum,p)=>sum+Math.round(p.p1*100)+Math.round(p.p2*100),0))
   assert.equal(previewMrKrabs({period:'Oct 26',daysInMonth:31,teamTarget:100000,
     bonusAed:500,staff:[{name:'A',sales:10000,fullPriceDubaiItCount:1,eligibleCalendarDays:31}]}).ok,false)
+})
+
+test('pro-rata redistribution is single pass and conserves 50/50 pool within rounding remainder', () => {
+ const o=previewMrKrabs({period:'Nov 26',daysInMonth:30,teamTarget:100000,bonusAed:500,
+ staff:[
+ {name:'Full',sales:60000,fullPriceDubaiItCount:2,eligibleCalendarDays:30},
+ {name:'Joiner',sales:30000,fullPriceDubaiItCount:1,eligibleCalendarDays:15},
+ {name:'Zero eligible',sales:10000,fullPriceDubaiItCount:0,eligibleCalendarDays:0}
+ ]})
+ assert.equal(o.ok,true)
+ if(!o.ok)return
+ assert.equal(o.rate,3)
+ assert.equal(o.eligibleRevenue,70000)
+ assert.equal(o.pool,2100)
+ assert.equal(o.staff[2].p1,0)
+ assert.equal(o.staff[2].p2,0)
+ assert.equal(o.staff[2].dubaiItBonus,0)
+ assert.ok(o.staff[0].redistributedP1>0)
+ assert.ok(o.staff[1].redistributedP1>0)
+ assert.ok(o.staff[0].redistributedP2>o.staff[1].redistributedP2)
+ assert.equal(o.accountingRemainderFils,210000-o.staff.reduce((sum,p)=>sum+Math.round(p.p1*100)+Math.round(p.p2*100),0))
+ assert.equal(o.staff.reduce((sum,p)=>Math.round(sum+p.dubaiItBonus),0),1500)
+})
+test('below 80 percent achievement yields no team or Dubai It bonus',()=>{
+ const o=previewMrKrabs({period:'Dec 26',daysInMonth:31,teamTarget:100000,bonusAed:500,staff:[
+ {name:'A',sales:70000,fullPriceDubaiItCount:1,eligibleCalendarDays:31}
+ ]})
+ assert.equal(o.ok,true)
+ if(!o.ok)return
+ assert.equal(o.pool,0)
+ assert.equal(o.staff[0].totalIncentive,0)
 })
