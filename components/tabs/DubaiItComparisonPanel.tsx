@@ -92,7 +92,7 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
       <p style={{fontSize:13,color:'var(--text-secondary)',marginBottom:12}}>
         Active preference: <strong>{preferences.engine === 'mr-krabs' ? 'Mr. Krabs Engine' : 'Legacy Engine'}</strong>.
         The official ranking below remains the existing Legacy calculation. Bonus comparisons are simulations.
-        Mr. Krabs payouts and exports are blocked until every review is resolved and the pro-rata redistribution algorithm receives approval.
+        Mr. Krabs amounts are comparison simulations, not management-approved payroll. No Mr. Krabs payouts are included in the existing official Legacy CSV/PDF exports.
       </p>
       {preferences.bonusAed !== 500 && <p role="status" style={{color:'var(--warning)'}}>
         Configured AED {formatCurrency(preferences.bonusAed)} bonus differs from the published AED 500; simulation only.
@@ -163,8 +163,24 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
         Mr. Krabs preview ({preview.rate}% tier): Pool AED {formatCurrency(preview.pool)};
         Dubai It bonuses AED {formatCurrency(preview.totalDubaiItBonus)};
         pro-rata deductions AED {formatCurrency(preview.totalProrataReduction)}.
-        <strong> No final payable amount: redistribution requires explicit policy confirmation.</strong>
+        Redistribution applied once (P1 equally, P2 by revenue). Accounting rounding/unallocated remainder: AED {(preview.accountingRemainderFils / 100).toFixed(2)}. <strong>Comparison only — not an approved payout.</strong>
       </p>}
+      {preview?.ok && <div style={{overflowX:'auto',marginTop:12}}>
+        <h4 style={{fontSize:13,fontWeight:700,marginBottom:6}}>Mr. Krabs employee comparison (AED) — provisional</h4>
+        <table style={{minWidth:750,width:'100%',fontSize:12}}>
+          <thead><tr><th>Employee</th><th>P1</th><th>P2</th><th>Reallocated P1</th><th>Reallocated P2</th><th>Dubai It Bonus</th><th>Total</th><th>Difference vs Legacy + Bonus</th></tr></thead>
+          <tbody>{preview.staff.map(p => {
+            const original = relevant.find(row=>row.person.name===p.name)
+            const legacyPlusBonus = original ? original.person.totalIncentive+bonus(original.count) : 0
+            return <tr key={p.name}>
+              <td>{p.name}</td><td>{formatCurrency(p.p1)}</td><td>{formatCurrency(p.p2)}</td>
+              <td>{formatCurrency(p.redistributedP1)}</td><td>{formatCurrency(p.redistributedP2)}</td>
+              <td>{formatCurrency(p.dubaiItBonus)}</td><td>{formatCurrency(p.totalIncentive)}</td>
+              <td>{formatCurrency(p.totalIncentive-legacyPlusBonus)}</td>
+            </tr>
+          })}</tbody>
+        </table>
+      </div>}
       {preview && !preview.ok && <p role="status" style={{fontSize:13,color:'var(--warning)'}}>{preview.error}</p>}
       {(!isVerified || !teamEligibleDaysVerified) && <p style={{fontSize:12,color:'var(--warning)',marginTop:6}}>
         Mr. Krabs preview unavailable until all uncertain sales cells and calendar eligibility entries are confirmed.
