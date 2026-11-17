@@ -40,11 +40,15 @@ export function aggregateSheets(sheets: ExcelData[]): ExcelData {
       if (!aggregated[person.name]) {
         aggregated[person.name] = {
           name: person.name, packages: 0, sales: 0, workingDays: 0, clients: 0,
+          dubaiItCells: [],
         }
       }
       aggregated[person.name]!.packages    += person.packages
       aggregated[person.name]!.sales       += person.sales
       aggregated[person.name]!.workingDays += person.workingDays
+      if (person.dubaiItCells?.length) {
+        aggregated[person.name]!.dubaiItCells!.push(...person.dubaiItCells.map(cell => ({ ...cell, sourceSheet: sheet.sheetName })))
+      }
       if (person.clients) {
         aggregated[person.name]!.clients =
           (aggregated[person.name]!.clients || 0) + person.clients
