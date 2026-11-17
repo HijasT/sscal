@@ -2,6 +2,7 @@ import type { StaffData, DailyStaffValue } from './excelTypes'
 import { isWorkedSalesCell, applyReportedBlankAttendance } from './excelAttendance'
 import { stripEmployeeCode, extractEmployeeCode } from './excelSheetNames'
 import type * as SheetJS from 'xlsx'
+import { inspectDubaiItCell } from './dubaiItDetection'
 
 // ── Sheet extraction ──────────────────────────────────────────────────────────
 
@@ -200,6 +201,7 @@ export function extractStaffFromSheet(
         let workingDays = 0
         const daily: DailyStaffValue[] = []
         const blankDays: number[] = []
+        const dubaiItCells: NonNullable<StaffData['dubaiItCells']> = []
 
         const who = stripEmployeeCode(name) || name
         const packages = readTotal(row - 1, `${who} (packages)`)
@@ -223,6 +225,9 @@ export function extractStaffFromSheet(
           // NA is absent; numeric 0 is present. Broken formulas are errors.
           if (!isWorkedSalesCell(dailyCell)) continue
 
+          const address = XLSX.utils.encode_cell({ r: row - 1 + salesRowOffset, c: col })
+          const inspection = inspectDubaiItCell(dailyCell, day, address)
+          if (inspection) dubaiItCells.push(inspection)
           workingDays++
           lastReportedDay = Math.max(lastReportedDay ?? 0, day)
           daily.push({
@@ -245,6 +250,7 @@ export function extractStaffFromSheet(
           sales:    Math.round(sales * 100) / 100,
           workingDays,
           daily,
+          dubaiItCells,
         }
 
         if (hasClientsRow && clients > 0) {
