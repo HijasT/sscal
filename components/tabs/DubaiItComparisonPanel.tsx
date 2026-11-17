@@ -62,7 +62,7 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
     teamTarget: calculation.target,
     period: sheet.sheetName,
     daysInMonth: joiners[0]?.daysInMonth ?? 0,
-    bonusAed: preferences.bonusAed,
+    bonusAed: bonusAed,
     staff: relevant.map(p => ({ name:p.person.name, sales:p.person.sales,
       fullPriceDubaiItCount:p.count, eligibleCalendarDays:p.eligibility!,
       isExistingStaff:p.inference!.status === 'existing' })),
@@ -105,8 +105,8 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
         The ranking below follows your selected engine after all required checks pass. Bonus comparisons are simulations.
         Mr. Krabs amounts are comparison simulations, not management-approved payroll. No Mr. Krabs payouts are included in the existing official Legacy CSV/PDF exports.
       </p>
-      {preferences.bonusAed !== 500 && <p role="status" style={{color:'var(--warning)'}}>
-        Configured AED {formatCurrency(preferences.bonusAed)} bonus differs from the published AED 500; simulation only.
+      {bonusAed !== 500 && <p role="status" style={{color:'var(--warning)'}}>
+        Configured AED {formatCurrency(bonusAed)} bonus differs from the published AED 500; simulation only.
       </p>}
       <p style={{fontSize:13,marginBottom:10}}>
         Dubai It verification: <strong>{pendingCells.length} unreviewed sales cells</strong>. Joining eligibility:
