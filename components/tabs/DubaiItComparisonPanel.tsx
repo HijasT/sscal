@@ -40,7 +40,7 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
     const source = sheet.staff.find(p => p.name === person.name)
     const cells = source?.dubaiItCells ?? []
     const pending = cells.filter(cell => cell.status === 'review' &&
-      !Object.hasOwn(verified, cellKey(person.name, cell.sourceSheet ?? sheet.sheetName, cell.address)))
+      !Object.prototype.hasOwnProperty.call(verified, cellKey(person.name, cell.sourceSheet ?? sheet.sheetName, cell.address)))
     const count = cells.reduce((sum, cell) => sum + (cell.status === 'verified' ?
       cell.detected : (verified[cellKey(person.name, cell.sourceSheet ?? sheet.sheetName, cell.address)] ?? 0)), 0)
     const inference = joinersByName.get(person.name)
