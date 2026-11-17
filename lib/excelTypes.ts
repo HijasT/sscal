@@ -17,6 +17,8 @@ export interface StaffData {
   daily?: DailyStaffValue[]
   /** Package-price formula inspections; always review uncertain entries. */
   dubaiItCells?: DubaiItCell[]
+  /** Earliest explicitly entered sales value (including zero), not inferred attendance blanks. */
+  firstExplicitWorkedDay?: number
 }
 
 export interface ExcelData {
