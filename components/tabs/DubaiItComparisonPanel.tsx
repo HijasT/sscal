@@ -4,7 +4,8 @@ import type { ExcelData } from '@/lib/excelTypes'
 import type { BulkCalculatedData, BulkResult } from '@/lib/bulkCalculation'
 import { inferJoinerEligibility } from '@/lib/joinerInference'
 import { previewMrKrabs } from '@/lib/mrKrabsPreview'
-import { readEnginePreferences, type EnginePreferences } from '@/lib/enginePreferences'
+import { readEnginePreferences, type IncentiveEngineChoice } from '@/lib/enginePreferences'
+import type { MrKrabsPreviewOutcome } from '@/lib/mrKrabsPreview'
 import { formatCurrency } from '@/lib/utils'
 
 interface Props {
@@ -12,19 +13,21 @@ interface Props {
   workbookSheets: readonly ExcelData[]
   results: readonly BulkResult[]
   calculation: BulkCalculatedData
+  selectedEngine: IncentiveEngineChoice
+  onPreviewChange: (preview: MrKrabsPreviewOutcome | null) => void
 }
 function cellKey(name: string, sheet: string, address: string) {
   return JSON.stringify([name, sheet, address])
 }
 
-export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calculation }: Props) {
-  const [preferences, setPreferences] = useState<EnginePreferences>({ engine: 'legacy', bonusAed: 500 })
+export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calculation, selectedEngine, onPreviewChange }: Props) {
+  const [bonusAed, setBonusAed] = useState(500)
   const [drafts, setDrafts] = useState<Record<string, string>>({})
   const [verified, setVerified] = useState<Record<string, number>>({})
   const [eligibleDrafts, setEligibleDrafts] = useState<Record<string, string>>({})
   const [eligibleConfirmed, setEligibleConfirmed] = useState<Record<string, number>>({})
   const [inputError, setInputError] = useState('')
-  useEffect(() => { setPreferences(readEnginePreferences()) }, [])
+  useEffect(() => { setBonusAed(readEnginePreferences().bonusAed) }, [])
   useEffect(() => {
     // All manual confirmations are scoped to this parsed upload and month.
     setDrafts({})
@@ -54,7 +57,7 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
   const teamEligibleDaysVerified = unconfirmedEligibility.length === 0
   const achievement = calculation.teamAchievement
   const legacyBonusAllowed = achievement >= 80
-  const bonus = (count: number) => legacyBonusAllowed ? count * preferences.bonusAed : 0
+  const bonus = (count: number) => legacyBonusAllowed ? count * bonusAed : 0
   const preview = isVerified && teamEligibleDaysVerified && unconfirmedRoster.length === 0 ? previewMrKrabs({
     teamTarget: calculation.target,
     period: sheet.sheetName,
@@ -64,6 +67,12 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
       fullPriceDubaiItCount:p.count, eligibleCalendarDays:p.eligibility!,
       isExistingStaff:p.inference!.status === 'existing' })),
   }) : null
+  const previewSignature = JSON.stringify(preview)
+  useEffect(() => {
+    onPreviewChange(preview)
+    // Serialization keeps parent updates stable across child rerenders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewSignature, onPreviewChange])
   const legacyTotal = relevant.reduce((sum,p)=>sum+p.person.totalIncentive,0)
   const potentialBonus = relevant.reduce((sum,p)=>sum+bonus(p.count),0)
   const approveCell = (name: string, cell: (typeof pendingCells)[number]['cell']) => {
@@ -92,8 +101,8 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
     <section className="card" aria-label="Dubai It detection and engine comparison" style={{marginBottom:'24px',padding:'18px'}}>
       <h3 style={{fontWeight:700,marginBottom:8}}>Dubai It · Engine Comparison</h3>
       <p style={{fontSize:13,color:'var(--text-secondary)',marginBottom:12}}>
-        Active preference: <strong>{preferences.engine === 'mr-krabs' ? 'Mr. Krabs Engine' : 'Legacy Engine'}</strong>.
-        The official ranking below remains the existing Legacy calculation. Bonus comparisons are simulations.
+        Selected engine: <strong>{selectedEngine === 'mr-krabs' ? 'Mr. Krabs Engine' : 'Legacy Engine'}</strong>.
+        The ranking below follows your selected engine after all required checks pass. Bonus comparisons are simulations.
         Mr. Krabs amounts are comparison simulations, not management-approved payroll. No Mr. Krabs payouts are included in the existing official Legacy CSV/PDF exports.
       </p>
       {preferences.bonusAed !== 500 && <p role="status" style={{color:'var(--warning)'}}>
