@@ -28,6 +28,11 @@ All data is stored locally in your browser — no server, no database — and au
 
 ## Version history
 
+- **v15** — Mr. Krabs Engine comparison foundation: Dubai It formula inspection and manual verification, configurable per-package bonus, Legacy + Bonus comparisons, previous-month joiner inference, calendar-day pro-rata and old-staff-only P1/P2 redistribution; original Legacy payout and exports preserved. Mr. Krabs results are provisional, not authorized payroll.
+- **v14** — Production hardening with duplicate-roster and invalid-data safeguards, independently accounted rounding residual, audit CSV, performance smoke test, and protected CI/PR workflow.
+- **v13** — Golden XLSX and browser export regression tests; modular, strictly typed workbook and financial calculation architecture; explicit reporting-cutoff semantics. Legacy calculations unchanged.
+- **v12** — Deeper Sale Assistant package picker and coverage summaries, plus incentive accuracy, attendance, rounding, and accounting-remainder improvements.
+
 - **v11** — Per-package discount caps, step-by-step Excel upload instructions, collapsible Settings, all warnings/errors unified into one pop-up, richer package details (components, blood tubes, consultation), sticky catalogue search, and gender-specific HEALTHMAXXING.
 - **v10** — Renamed to Kleon. Removed Analytics; added 1-hour local data auto-expiry with a "keep on this device" option; Sale Assistant became the first tab; editorial design polish.
 - **v9** — Sale Assistant matured: the Package Ladder, cheapest-bundle suggestions via a package-composition graph, HEALTHMAXXING, the Men/Women toggle, and accessibility fixes.
