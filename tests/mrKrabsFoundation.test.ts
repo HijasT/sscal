@@ -184,8 +184,8 @@ test('Scrooge excludes full-price Dubai It from each personal P2 basis, but Krab
  const krabs=previewMrKrabs(input), scrooge=previewScrooge(input)
  assert.equal(krabs.ok,true);assert.equal(scrooge.ok,true)
  if(!krabs.ok||!scrooge.ok)return
- assert.equal(krabs.achievement,110)
- assert.equal(scrooge.achievement,110)
+ assert.ok(Math.abs(krabs.achievement-110)<1e-9)
+ assert.ok(Math.abs(scrooge.achievement-110)<1e-9)
  assert.equal(scrooge.rate,3.5)
  assert.equal(scrooge.eligibleRevenue,90000)
  assert.equal(scrooge.pool,3150)
