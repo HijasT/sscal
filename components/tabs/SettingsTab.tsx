@@ -255,7 +255,6 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
     <details className="card settings-section" open>
       <summary className="settings-summary"><h2 className="card-title">Incentive Engine</h2></summary>
       <div className="settings-body">
-        <p className="card-description">Legacy official payouts remain unchanged. Mr. Krabs is a provisional calculation preview until redistribution policy is specified. Comparison bonus is a simulation.</p>
         <div className="form-group">
           <label htmlFor="incentive-engine">Calculation engine</label>
           <select id="incentive-engine" value={engineChoice} onChange={e=>setEngineChoice(e.target.value as IncentiveEngineChoice)}>
@@ -267,7 +266,7 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
           <label htmlFor="dubai-it-bonus">Dubai It bonus per full-price package (AED)</label>
           <input id="dubai-it-bonus" type="number" min="0" max="100000" step="0.01"
             value={dubaiBonus} onChange={e=>setDubaiBonus(e.target.value)}/>
-          <p style={{fontSize:'12px',color:'var(--text-muted)'}}>Default AED 500. Any different rate is a simulation, not the published Nov–Dec policy.</p>
+          <p style={{fontSize:'12px',color:'var(--text-muted)'}}>Default AED 500.</p>
         </div>
         <button type="button" className="btn btn-primary" onClick={saveEngineChoice}>Save incentive engine settings</button>
       </div>
