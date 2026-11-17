@@ -6,6 +6,7 @@
  * Not a representation of management-approved payroll without separate signoff.
  */
 import { toFils } from './filsReconciliation'
+import { DEFAULT_TIERS, type Tier } from './config'
 
 export interface MrKrabsStaffInput {
   name: string
@@ -43,6 +44,7 @@ export function previewMrKrabs(input: {
   daysInMonth: number
   bonusAed: number
   period: string
+  tiers?: readonly Tier[]
 }): MrKrabsPreviewOutcome {
   const { teamTarget, staff, daysInMonth, bonusAed, period } = input
   const month = period.trim().replace(/\s+/g, ' ')
@@ -71,8 +73,13 @@ export function previewMrKrabs(input: {
   }
   const teamSales = staff.reduce((sum, p) => sum + p.sales, 0)
   const achievement = teamSales / teamTarget * 100
-  const rate = achievement < 80 ? 0 : achievement < 90 ? 2 :
-    achievement < 100 ? 2.5 : achievement < 110 ? 3 : 3.5
+  // The exact same ladder is used by Legacy and Mr. Krabs.
+  const tiers = input.tiers ?? DEFAULT_TIERS
+  const selectedTier = tiers.find(tier => achievement >= tier.min && achievement < tier.max)
+  const rate = selectedTier?.rate ?? 0
+  if (!Number.isFinite(rate) || rate < 0 || rate > 100) return {
+    ok: false, error: 'Invalid shared incentive tier configuration.'
+  }
   const eligibleRevenue = teamSales -
     staff.reduce((sum, p) => sum + p.fullPriceDubaiItCount * 10000, 0)
   if (!Number.isFinite(achievement) || !Number.isFinite(eligibleRevenue) || eligibleRevenue < 0) return {
