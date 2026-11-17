@@ -5,6 +5,7 @@ import { BulkResultsView } from './BulkResultsView'
 import { BarChartIcon, UploadIcon } from '@/components/icons'
 import { getFresh, setFresh, clearFresh } from '@/lib/storage'
 import { notify } from '@/lib/notify'
+import { scopeUploadWarnings } from '@/lib/uploadWarningScope'
 
 type ViewMode = 'monthly' | 'q1' | 'q2' | 'q3' | 'q4' | 'h1' | 'h2' | 'yearly' | 'alltime'
 
@@ -143,7 +144,9 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
       // in the app-wide popup — a flat banner gets ignored. The file still loads.
       const warns = data.flatMap((d) => d.warnings ?? [])
       setParseWarnings(warns)
-      if (warns.length > 0) showWarnings(warns)
+      // Historical issues remain reviewable but do not interrupt current work.
+      const { recent } = scopeUploadWarnings(data)
+      if (recent.length > 0) showWarnings(recent)
       // Auto-select the current month/year on every fresh upload, falling
       // back to the previous month if the current one has no usable data.
       // Results then calculate automatically (see BulkResultsView).
