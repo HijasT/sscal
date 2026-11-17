@@ -9,8 +9,10 @@
 - The parser records the earliest explicitly entered sale/zero day. For potential new joiners, inspect the previous calendar month's employee roster by code and infer the first explicit zero/sale day. The app requires human confirmation of calendar eligibility days. If the previous month is absent, the app does not assume the staff member is new.
 - Mr. Krabs provisional preview computes 80/90/100/110 tiers, eligible pool excluding full-price Dubai It, 50/50 shares, P2 based on all employee sales divided by all team sales, the 80%-gated bonus, and individual calendar eligibility factors.
 
-## Explicitly not yet implemented
-- **No official Mr. Krabs payroll export or final payable total.** Although the proposed rule says redistribute withheld pro-rata amounts among all eligible employees in the original P1/P2 proportions, a single finite, auditable redistribution method has not been defined; naive redistribution according to original percentages undoes the pro-rata adjustment and can produce circular allocations. Confirm the exact redistribution algorithm with Accounting.
+## Confirmed redistribution and simulation boundaries
+- The user confirmed a **single-pass** redistribution of calendar pro-rata deductions among staff with at least one eligible calendar day. The deducted P1 share is redistributed equally to eligible staff; deducted P2 is redistributed in proportion to their gross sales, with the denominator recalculated among eligible recipients only. Recipients include partial-month joiners. This is performed exactly once without recursively redistributing the redistributed amounts. If no eligible recipient (or no eligible P2 sales denominator) exists, the amount stays in the accounting remainder.
+- P1 and P2 are rounded independently in fils for each employee; any signed rounding or undistributed residual is retained for Accounting, never assigned as an extra employee bonus.
+- The simulation **now calculates complete per-employee Mr. Krabs results**, including redistributed P1/P2 and the Dubai It bonus. **Official Mr. Krabs payroll export remains disabled** until management signs off on the user-selected redistribution method and historical reports are validated.
 - No period-aggregated Mr. Krabs calculation for quarters / year: monthly incentive tiers and policy versions must be calculated separately and only then aggregated.
 - Legacy + Bonus is a hypothetical simulation, NOT retrospective entitlement. Bonus rates other than AED 500 are simulations.
 - September real payroll reconciliation remains pending.
@@ -19,4 +21,4 @@
 ## Important limitations
 - An AED 10,000 literal is interpreted as Dubai It only because the user supplied that product-pricing convention. This is a heuristic; sales may be edited or stored without package-level formula data.
 - An employee not in the prior month's roster may be transferred/missing rather than newly hired. Their first recorded sale/zero might not be their actual joining date; eligibility requires manual confirmation.
-- The application runs calculations locally and does not upload payroll information.
+- October and November 2026 are present in the user's supplied November source workbook; at review time all current November employee codes were listed in October, so no new joiner was inferred for this test input. The workbook is not committed to GitHub.\n- The application runs calculations locally and does not upload payroll information.
