@@ -240,6 +240,17 @@ export function extractStaffFromSheet(
           })
         }
 
+        // A precomputed total that does not reconcile to inspected daily values
+        // cannot justify a zero Dubai It count. Require explicit review.
+        const inspectedSales = dubaiItCells.reduce((sum, item) => sum + item.sales, 0)
+        if (sales > 0 && Math.abs(inspectedSales - sales) > 0.011) {
+          dubaiItCells.push({
+            day: 0, address: 'MONTH_TOTAL', sales: Math.max(0, sales - inspectedSales),
+            detected: 0, status: 'review',
+            reason: 'Monthly sales total differs from inspected positive daily entries; verify missing/unexplained revenue',
+          })
+        }
+
         // Fallback only when the workbook has NO daily columns at all.
         // Dated NA entries mean absence and must not invent a worked day.
         if (dayColumns.length === 0 && workingDays === 0 && sales > 0) {
