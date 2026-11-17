@@ -4,7 +4,7 @@ import type { ExcelData } from '@/lib/excelTypes'
 import type { BulkCalculatedData, BulkResult } from '@/lib/bulkCalculation'
 import { inferJoinerEligibility } from '@/lib/joinerInference'
 import { previewMrKrabs } from '@/lib/mrKrabsPreview'
-import { readEnginePreferences, type IncentiveEngineChoice } from '@/lib/enginePreferences'
+import { readEnginePreferences } from '@/lib/enginePreferences'
 import type { MrKrabsPreviewOutcome } from '@/lib/mrKrabsPreview'
 import { formatCurrency } from '@/lib/utils'
 
@@ -13,14 +13,13 @@ interface Props {
   workbookSheets: readonly ExcelData[]
   results: readonly BulkResult[]
   calculation: BulkCalculatedData
-  selectedEngine: IncentiveEngineChoice
   onPreviewChange: (preview: MrKrabsPreviewOutcome | null) => void
 }
 function cellKey(name: string, sheet: string, address: string) {
   return JSON.stringify([name, sheet, address])
 }
 
-export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calculation, selectedEngine, onPreviewChange }: Props) {
+export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calculation, onPreviewChange }: Props) {
   const [bonusAed, setBonusAed] = useState(500)
   const [drafts, setDrafts] = useState<Record<string, string>>({})
   const [verified, setVerified] = useState<Record<string, number>>({})
@@ -55,9 +54,6 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
   const unconfirmedRoster = relevant.filter(p => !p.inference || (p.inference.status !== 'existing' && p.inference.status !== 'potential-new-joiner'))
   const isVerified = pendingCells.length === 0
   const teamEligibleDaysVerified = unconfirmedEligibility.length === 0
-  const achievement = calculation.teamAchievement
-  const legacyBonusAllowed = achievement >= 80
-  const bonus = (count: number) => legacyBonusAllowed ? count * bonusAed : 0
   const preview = isVerified && teamEligibleDaysVerified && unconfirmedRoster.length === 0 ? previewMrKrabs({
     teamTarget: calculation.target,
     period: sheet.sheetName,
@@ -73,8 +69,6 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
     // Serialization keeps parent updates stable across child rerenders.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [previewSignature, onPreviewChange])
-  const legacyTotal = relevant.reduce((sum,p)=>sum+p.person.totalIncentive,0)
-  const potentialBonus = relevant.reduce((sum,p)=>sum+bonus(p.count),0)
   const approveCell = (name: string, cell: (typeof pendingCells)[number]['cell']) => {
     const key = cellKey(name, cell.sourceSheet ?? sheet.sheetName, cell.address)
     const raw = drafts[key]
@@ -98,16 +92,8 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
     setInputError('')
   }
   return (
-    <section className="card" aria-label="Dubai It detection and engine comparison" style={{marginBottom:'24px',padding:'18px'}}>
-      <h3 style={{fontWeight:700,marginBottom:8}}>Dubai It · Engine Comparison</h3>
-      <p style={{fontSize:13,color:'var(--text-secondary)',marginBottom:12}}>
-        Selected engine: <strong>{selectedEngine === 'mr-krabs' ? 'Mr. Krabs Engine' : 'Legacy Engine'}</strong>.
-        The ranking below follows your selected engine after all required checks pass. Bonus comparisons are simulations.
-        Mr. Krabs amounts are comparison simulations, not management-approved payroll. No Mr. Krabs payouts are included in the existing official Legacy CSV/PDF exports.
-      </p>
-      {bonusAed !== 500 && <p role="status" style={{color:'var(--warning)'}}>
-        Configured AED {formatCurrency(bonusAed)} bonus differs from the published AED 500; simulation only.
-      </p>}
+    <section className="card" aria-label="Mr. Krabs input verification" style={{marginBottom:'24px',padding:'18px'}}>
+      <h3 style={{fontWeight:700,marginBottom:8}}>Mr. Krabs · Input Verification</h3>
       <p style={{fontSize:13,marginBottom:10}}>
         Dubai It verification: <strong>{pendingCells.length} unreviewed sales cells</strong>. Joining eligibility:
         <strong> {unconfirmedEligibility.length} unconfirmed staff</strong>.
@@ -152,52 +138,12 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
           </div>)}
         </div>
       </details>}
-      <div style={{overflowX:'auto',marginBottom:12}}>
-        <table style={{minWidth:720,width:'100%',fontSize:12}}>
-          <thead><tr><th>Employee</th><th>Dubai It</th><th>Bonus (AED)</th>
-            <th>Legacy Original (AED)</th><th>Legacy + Bonus (AED)</th><th>Eligible days</th></tr></thead>
-          <tbody>{relevant.map(p=><tr key={p.person.name}>
-            <td>{p.person.name}</td>
-            <td>{p.pending.length ? 'Review' : p.count}</td>
-            <td>{p.pending.length ? 'Pending' : formatCurrency(bonus(p.count))}</td>
-            <td>{formatCurrency(p.person.totalIncentive)}</td>
-            <td>{p.pending.length ? 'Pending' : formatCurrency(p.person.totalIncentive+bonus(p.count))}</td>
-            <td>{p.eligibility === undefined ? 'Confirm' : p.eligibility}</td>
-          </tr>)}</tbody>
-        </table>
-      </div>
-      <p style={{fontSize:13}}>
-        Legacy Original: AED {formatCurrency(legacyTotal)} · Legacy + Bonus:
-        <strong> {isVerified ? 'AED ' + formatCurrency(legacyTotal+potentialBonus) : 'Pending verification'}</strong>
-      </p>
-      {preview?.ok && <p style={{fontSize:13,marginTop:8}}>
-        Mr. Krabs preview ({preview.rate}% tier): Pool AED {formatCurrency(preview.pool)};
-        Dubai It bonuses AED {formatCurrency(preview.totalDubaiItBonus)};
-        pro-rata deductions AED {formatCurrency(preview.totalProrataReduction)}.
-        Redistribution goes only to existing staff (P1 equally, P2 by revenue); new joiners do not receive redistributed amounts. Accounting rounding/unallocated remainder: AED {(preview.accountingRemainderFils / 100).toFixed(2)}. <strong>Comparison only — not an approved payout.</strong>
-      </p>}
-      {preview?.ok && <div style={{overflowX:'auto',marginTop:12}}>
-        <h4 style={{fontSize:13,fontWeight:700,marginBottom:6}}>Mr. Krabs employee comparison (AED) — provisional</h4>
-        <table style={{minWidth:750,width:'100%',fontSize:12}}>
-          <thead><tr><th>Employee</th><th>P1</th><th>P2</th><th>Reallocated P1</th><th>Reallocated P2</th><th>Dubai It Bonus</th><th>Total</th><th>Difference vs Legacy + Bonus</th></tr></thead>
-          <tbody>{preview.staff.map(p => {
-            const original = relevant.find(row=>row.person.name===p.name)
-            const legacyPlusBonus = original ? original.person.totalIncentive+bonus(original.count) : 0
-            return <tr key={p.name}>
-              <td>{p.name}</td><td>{formatCurrency(p.p1)}</td><td>{formatCurrency(p.p2)}</td>
-              <td>{formatCurrency(p.redistributedP1)}</td><td>{formatCurrency(p.redistributedP2)}</td>
-              <td>{formatCurrency(p.dubaiItBonus)}</td><td>{formatCurrency(p.totalIncentive)}</td>
-              <td>{formatCurrency(p.totalIncentive-legacyPlusBonus)}</td>
-            </tr>
-          })}</tbody>
-        </table>
-      </div>}
       {preview && !preview.ok && <p role="status" style={{fontSize:13,color:'var(--warning)'}}>{preview.error}</p>}
       {unconfirmedRoster.length > 0 && <p role="alert" style={{fontSize:12,color:'var(--warning)',marginTop:6}}>
         Previous-month roster classification unavailable for {unconfirmedRoster.length} staff. Mr. Krabs calculations are blocked until the previous month is supplied.
       </p>}
       {(!isVerified || !teamEligibleDaysVerified || unconfirmedRoster.length > 0) && <p style={{fontSize:12,color:'var(--warning)',marginTop:6}}>
-        Mr. Krabs preview unavailable until uncertain sales cells, employee roster classifications and calendar eligibility are confirmed.
+        Mr. Krabs ranking unavailable until uncertain sales cells, employee roster classifications and calendar eligibility are confirmed.
       </p>}
     </section>
   )
