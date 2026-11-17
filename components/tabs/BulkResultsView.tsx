@@ -16,6 +16,7 @@ import { CenterBadge } from '@/components/CenterBadge'
 import { projectMonthlySales } from '@/lib/salesProjection'
 import { averageDivider } from '@/lib/rankAverage'
 import { BulkInsightsBeta } from '@/components/tabs/BulkInsightsBeta'
+import { DubaiItComparisonPanel } from '@/components/tabs/DubaiItComparisonPanel'
 import { visibleCenterRankings, nextCenterVisibility } from '@/lib/centerRankingVisibility'
 
 type ViewMode = BulkViewMode
@@ -553,6 +554,16 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                 </div>
               )}
             </div>
+          )}
+
+          {/* Both policies use the same parsed workbook evidence. Never modify official Legacy payout rows. */}
+          {viewMode === 'monthly' && getSheetsForView().length === 1 && (
+            <DubaiItComparisonPanel
+              sheet={getSheetsForView()[0]}
+              workbookSheets={excelData}
+              results={results}
+              calculation={calculatedData}
+            />
           )}
 
           {/* Table — frozen header, horizontal + vertical scroll */}
