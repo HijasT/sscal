@@ -49,18 +49,20 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
   })
   const pendingCells = relevant.flatMap(({person,pending}) => pending.map(cell => ({person,cell})))
   const unconfirmedEligibility = relevant.filter(p => p.eligibility === undefined)
+  const unconfirmedRoster = relevant.filter(p => !p.inference || (p.inference.status !== 'existing' && p.inference.status !== 'potential-new-joiner'))
   const isVerified = pendingCells.length === 0
   const teamEligibleDaysVerified = unconfirmedEligibility.length === 0
   const achievement = calculation.teamAchievement
   const legacyBonusAllowed = achievement >= 80
   const bonus = (count: number) => legacyBonusAllowed ? count * preferences.bonusAed : 0
-  const preview = isVerified && teamEligibleDaysVerified ? previewMrKrabs({
+  const preview = isVerified && teamEligibleDaysVerified && unconfirmedRoster.length === 0 ? previewMrKrabs({
     teamTarget: calculation.target,
     period: sheet.sheetName,
     daysInMonth: joiners[0]?.daysInMonth ?? 0,
     bonusAed: preferences.bonusAed,
     staff: relevant.map(p => ({ name:p.person.name, sales:p.person.sales,
-      fullPriceDubaiItCount:p.count, eligibleCalendarDays:p.eligibility! })),
+      fullPriceDubaiItCount:p.count, eligibleCalendarDays:p.eligibility!,
+      isExistingStaff:p.inference!.status === 'existing' })),
   }) : null
   const legacyTotal = relevant.reduce((sum,p)=>sum+p.person.totalIncentive,0)
   const potentialBonus = relevant.reduce((sum,p)=>sum+bonus(p.count),0)
@@ -163,7 +165,7 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
         Mr. Krabs preview ({preview.rate}% tier): Pool AED {formatCurrency(preview.pool)};
         Dubai It bonuses AED {formatCurrency(preview.totalDubaiItBonus)};
         pro-rata deductions AED {formatCurrency(preview.totalProrataReduction)}.
-        Redistribution applied once (P1 equally, P2 by revenue). Accounting rounding/unallocated remainder: AED {(preview.accountingRemainderFils / 100).toFixed(2)}. <strong>Comparison only — not an approved payout.</strong>
+        Redistribution goes only to existing staff (P1 equally, P2 by revenue); new joiners do not receive redistributed amounts. Accounting rounding/unallocated remainder: AED {(preview.accountingRemainderFils / 100).toFixed(2)}. <strong>Comparison only — not an approved payout.</strong>
       </p>}
       {preview?.ok && <div style={{overflowX:'auto',marginTop:12}}>
         <h4 style={{fontSize:13,fontWeight:700,marginBottom:6}}>Mr. Krabs employee comparison (AED) — provisional</h4>
@@ -182,8 +184,11 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
         </table>
       </div>}
       {preview && !preview.ok && <p role="status" style={{fontSize:13,color:'var(--warning)'}}>{preview.error}</p>}
-      {(!isVerified || !teamEligibleDaysVerified) && <p style={{fontSize:12,color:'var(--warning)',marginTop:6}}>
-        Mr. Krabs preview unavailable until all uncertain sales cells and calendar eligibility entries are confirmed.
+      {unconfirmedRoster.length > 0 && <p role="alert" style={{fontSize:12,color:'var(--warning)',marginTop:6}}>
+        Previous-month roster classification unavailable for {unconfirmedRoster.length} staff. Mr. Krabs calculations are blocked until the previous month is supplied.
+      </p>}
+      {(!isVerified || !teamEligibleDaysVerified || unconfirmedRoster.length > 0) && <p style={{fontSize:12,color:'var(--warning)',marginTop:6}}>
+        Mr. Krabs preview unavailable until uncertain sales cells, employee roster classifications and calendar eligibility are confirmed.
       </p>}
     </section>
   )
