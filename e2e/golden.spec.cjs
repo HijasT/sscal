@@ -110,5 +110,5 @@ test('Phase 4 audit CSV downloads signed accounting reconciliation and input pol
   expect(csv).toMatch(/"Application Version","\d+\.\d+\.\d+"/)
   expect(csv).toContain('"Payout Policy","accounting-remainder-v1"')
   expect(csv).toContain('"Accounting Remainder (fils)","0"')
-  expect(csv).toContain('"Accounting Remainder (AED)","-0.02"')
+  expect(csv).toContain('"Accounting Remainder (AED)","0.00"')
 })
