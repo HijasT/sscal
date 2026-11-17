@@ -1,6 +1,13 @@
 const { test, expect } = require('@playwright/test')
 const { readFileSync } = require('node:fs')
-const { manifest, createGoldenXlsxBuffer } = require('../tests/fixtures/goldenWorkbook.cjs')
+const { createGoldenXlsxBuffer } = require('../tests/fixtures/goldenWorkbook.cjs')
+// Current shared four-tier policy: 100% achievement => 3% pool. The
+// pre-v15.1 historical golden remains independently tested in Node tests.
+const currentStaff = [
+  {name:'Cora AE03-101',p1:0.50,p2:0.45,total:0.95},
+  {name:'Amir AE01-227',p1:0.50,p2:0.60,total:1.10},
+  {name:'Bela AE02-138',p1:0.50,p2:0.45,total:0.95},
+]
 
 async function uploadGolden(page, { dismissWarning = true } = {}) {
   await page.goto('/')
@@ -11,7 +18,7 @@ async function uploadGolden(page, { dismissWarning = true } = {}) {
     buffer:createGoldenXlsxBuffer(),
   })
   const remainder=page.locator('.stat-card').filter({hasText:'Accounting Remainder'})
-  await expect(remainder).toContainText('AED -0.02')
+  await expect(remainder).toContainText('AED 0.00')
   const warning = page.locator('dialog.msg-dialog.msg-warning')
   await expect(warning).toBeVisible()
   await expect(warning).toContainText('blank dates after day')
@@ -23,20 +30,19 @@ async function uploadGolden(page, { dismissWarning = true } = {}) {
 }
 
 test('upload XLSX and export exact golden CSV and PDF accounting totals', async ({page})=>{
-  const expected=manifest.months[0].expected
   const remainder=await uploadGolden(page)
-  await expect(remainder).toContainText('Rounded payouts exceed the pool')
+  await expect(remainder).toContainText('AED 0.00')
 
   const downloadCSV=page.waitForEvent('download')
   await page.getByRole('button',{name:'Download CSV'}).click()
   const csvDownload=await downloadCSV
   expect(csvDownload.suggestedFilename()).toMatch(/\.csv$/)
   const csv=readFileSync(await csvDownload.path(),'utf8')
-  expect(csv).toContain('"Total Incentive Pool (AED)","2.50"')
-  expect(csv).toContain('"Total Staff Payouts (AED)","2.52"')
-  expect(csv).toContain('"Accounting Remainder (AED)","-0.02"')
+  expect(csv).toContain('"Total Incentive Pool (AED)","3.00"')
+  expect(csv).toContain('"Total Staff Payouts (AED)","3.00"')
+  expect(csv).toContain('"Accounting Remainder (AED)","0.00"')
   expect(csv).toContain('"Cora AE03-101"')
-  for(const person of expected.staff) {
+  for(const person of currentStaff) {
     const line=csv.split('\n').find(row=>row.includes('"' + person.name + '"'))
     expect(line).toBeTruthy()
     expect(line.split(',').slice(-3)).toEqual([
@@ -60,7 +66,7 @@ test('upload XLSX and export exact golden CSV and PDF accounting totals', async 
   }
   expect(text).toContain('Accounting Remainder')
   expect(text).toContain('Staff Payout')
-  expect(text).toContain('-0.02')
+  expect(text).toContain('0.00')
 })
 
 test('staff exclusion re-calculates the tier, payouts and Accounting Remainder',async ({page})=>{
@@ -103,6 +109,6 @@ test('Phase 4 audit CSV downloads signed accounting reconciliation and input pol
   const csv = readFileSync(await downloaded.path(), 'utf8')
   expect(csv).toMatch(/"Application Version","\d+\.\d+\.\d+"/)
   expect(csv).toContain('"Payout Policy","accounting-remainder-v1"')
-  expect(csv).toContain('"Accounting Remainder (fils)","-2"')
+  expect(csv).toContain('"Accounting Remainder (fils)","0"')
   expect(csv).toContain('"Accounting Remainder (AED)","-0.02"')
 })
