@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { performance } from 'node:perf_hooks'
 import * as XLSX from 'xlsx'
 import { DEFAULT_TIERS, APP_VERSION } from '../lib/config'
+import { HISTORICAL_LEGACY_TIERS } from './fixtures/historicalTiers'
 import { calculateBulkReport } from '../lib/bulkCalculation'
 import { buildBulkAuditCSV } from '../lib/bulkAudit'
 import { validateStaffRoster } from '../lib/rosterValidation'
@@ -13,7 +14,7 @@ const { createGoldenXlsxBuffer } = require('./fixtures/goldenWorkbook.cjs')
 test('Phase 4 audit CSV reconciles full payout and retains signed remainder', () => {
   const sheets = parseExcelWorkbook(XLSX.read(createGoldenXlsxBuffer(), { type: 'buffer' }), XLSX)
   const outcome = calculateBulkReport({ sheets: [sheets[0]], manualTarget: '',
-    p1Split: 50, excludedStaff: new Set(), viewMode: 'monthly', tiers: DEFAULT_TIERS })
+    p1Split: 50, excludedStaff: new Set(), viewMode: 'monthly', tiers: HISTORICAL_LEGACY_TIERS })
   assert.equal(outcome.ok, true)
   if (!outcome.ok) return
   const text = buildBulkAuditCSV(outcome.results, outcome.data, [], '2026-11-17T00:00:00.000Z')
