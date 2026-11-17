@@ -617,6 +617,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
               onChange={e => switchEngine(e.target.value as IncentiveEngineChoice)}>
               <option value="legacy">Legacy Engine</option>
               <option value="mr-krabs">Mr. Krabs Engine</option>
+              <option value="scrooge">Scrooge Engine</option>
             </select>
           </div>
           {engineChoice !== 'legacy' && !krabsReady && (
@@ -707,8 +708,8 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
           {/* Export */}
           <div style={{display:'flex',gap:'12px'}}>
             <button className="btn btn-secondary" disabled={engineChoice !== 'legacy'} onClick={handleExportCSV}><><DownloadIcon />Download CSV</></button>
-            <button className="btn btn-secondary" disabled={engineChoice === 'mr-krabs'} onClick={handleExportAudit}><><DownloadIcon />Download Audit CSV</></button>
-            <button className="btn btn-secondary" disabled={engineChoice === 'mr-krabs'} onClick={()=>exportBulkToPDF({ ...calculatedData, p1Split: calculatedData.p1Split ?? p1Split },results)}><><DownloadIcon />Download PDF</></button>
+            <button className="btn btn-secondary" disabled={engineChoice !== 'legacy'} onClick={handleExportAudit}><><DownloadIcon />Download Audit CSV</></button>
+            <button className="btn btn-secondary" disabled={engineChoice !== 'legacy'} onClick={()=>exportBulkToPDF({ ...calculatedData, p1Split: calculatedData.p1Split ?? p1Split },results)}><><DownloadIcon />Download PDF</></button>
           </div>
         </div>
         {betaUnlocked && bulkSubtab === 'beta' && (
