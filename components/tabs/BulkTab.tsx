@@ -46,7 +46,6 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
   const [excelData, setExcelData] = useState<ExcelData[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [parseWarnings, setParseWarnings] = useState<string[]>([])
-  const [reportedThroughDay, setReportedThroughDay] = useState('')
 
   const WARN_TITLE = (n: number) => `${n} data issue${n === 1 ? '' : 's'} in this upload`
   const showWarnings = (warns: string[]) =>
@@ -130,15 +129,10 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
       return
     }
 
-    if (reportedThroughDay !== '' && (!Number.isInteger(Number(reportedThroughDay)) || Number(reportedThroughDay) < 1 || Number(reportedThroughDay) > 31)) {
-      e.target.value = ''
-      notify({ level: 'error', title: 'Invalid reporting cutoff', messages: ['Choose a day between 1 and 31 or leave the field empty.'] })
-      return
-    }
     setIsProcessing(true)
 
     try {
-      const data = await parseExcelFile(uploadedFile, reportedThroughDay === '' ? undefined : Number(reportedThroughDay))
+      const data = await parseExcelFile(uploadedFile)
       setExcelData(data)
       // Surface data-quality warnings (broken "#REF!" totals, a missing TARGET)
       // in the app-wide popup — a flat banner gets ignored. The file still loads.
@@ -184,25 +178,6 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
         <h3 style={{fontSize: '14px', fontWeight: '600', marginBottom: '12px', color: 'var(--accent-primary)'}}>
           <UploadIcon />Upload Excel File (Shared)
         </h3>
-        <div style={{ margin: '0 auto 14px', maxWidth: '360px', textAlign: 'left' }}>
-          <label htmlFor="reporting-cutoff" style={{ display: 'block', fontSize: '12px', marginBottom: '6px', fontWeight: 600 }}>
-            Last completed reporting day (optional)
-          </label>
-          <input
-            id="reporting-cutoff"
-            type="number"
-            min={1}
-            max={31}
-            step={1}
-            value={reportedThroughDay}
-            onChange={(e) => setReportedThroughDay(e.target.value)}
-            placeholder="Auto-detect from entered sales"
-            style={{ width: '100%', padding: '10px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
-          />
-          <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '5px' }}>
-            Leave empty to auto-detect. For entirely blank completed days in the newest workbook month, enter the last completed day and upload again. Blank = present; NA = absent.
-          </p>
-        </div>
         <label className="file-input-btn" aria-disabled={isProcessing}>
           Choose Excel file
           <input
