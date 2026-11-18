@@ -199,9 +199,6 @@ export function BulkTab({ modeSwitch }: { modeSwitch?: ReactNode }) {
             placeholder="Auto-detect from entered sales"
             style={{ width: '100%', padding: '10px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
           />
-          <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '5px' }}>
-            Leave empty to auto-detect. For entirely blank completed days in the newest workbook month, enter the last completed day and upload again. Blank = present; NA = absent.
-          </p>
         </div>
         <label className="file-input-btn" aria-disabled={isProcessing}>
           Choose Excel file
