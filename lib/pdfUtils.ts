@@ -3,12 +3,14 @@ import { formatCurrency } from './utils'
 import { formattedPayout } from './reportPayout'
 import { accountingExportRows } from './accountingExport'
 import { auditRoundedIncentives } from './incentiveAudit'
+import { auditLegacyBonusLedger, type LegacyBonusLedger } from './legacyBonus'
 import type { BulkCalculatedData, BulkResult } from './bulkCalculation'
 
-export async function exportBulkToPDF(calculatedData: BulkCalculatedData, results: readonly BulkResult[]) {
+export async function exportBulkToPDF(calculatedData: BulkCalculatedData, results: readonly BulkResult[], bonuses?: LegacyBonusLedger) {
   const audit = auditRoundedIncentives(calculatedData.teamSales,
     calculatedData.totalPool, calculatedData.p1Pool, calculatedData.p2Pool, results, calculatedData.remainderFils)
   if (audit) throw new Error(`Cannot export unreconciled payouts: ${audit}`)
+  const bonusSummary = bonuses ? auditLegacyBonusLedger(results, calculatedData, bonuses) : null
   const [{ jsPDF }, { default: autoTable }] = await Promise.all([
     import('jspdf'),
     import('jspdf-autotable'),
@@ -45,6 +47,10 @@ export async function exportBulkToPDF(calculatedData: BulkCalculatedData, result
     ...accountingExportRows(calculatedData).map(([label, value]) =>
       [label, label.includes('(AED)') ? `AED ${value}` : value]
     ),
+    ...(bonusSummary ? [
+      ['Dubai It Bonus Total (AED)', 'AED ' + formatCurrency(bonusSummary.totalBonusFils / 100)],
+      ['Grand Total Incl. Bonus (AED)', 'AED ' + formatCurrency(bonusSummary.grandTotalFils / 100)],
+    ] : []),
     ['Pool Split (P1 / P2)', `${p1Split}% / ${100 - p1Split}%`],
     ['P1 Pool (Equal Share)',       `AED ${formatCurrency(p1Pool)}`],
     ['P2 Pool (Performance Share)', `AED ${formatCurrency(p2Pool)}`],
@@ -75,7 +81,7 @@ export async function exportBulkToPDF(calculatedData: BulkCalculatedData, result
     return [
     `#${idx + 1}`,
     person.name,
-    pay.total,
+    bonusSummary ? formatCurrency((bonusSummary.byEmployee.get(person.name)?.totalFils ?? 0) / 100) : pay.total,
     person.packages,
     person.clients ?? '-',
     formatCurrency(person.sales),
@@ -87,11 +93,12 @@ export async function exportBulkToPDF(calculatedData: BulkCalculatedData, result
     `${person.contribution.toFixed(2)}%`,
     pay.p1,
     pay.p2,
+    ...(bonusSummary ? [bonusSummary.byEmployee.get(person.name)?.count ?? 0,formatCurrency((bonusSummary.byEmployee.get(person.name)?.amountFils ?? 0)/100)] : []),
   ] })
 
   autoTable(doc, {
     startY: finalY + 3,
-    head: [['Rank', 'Name', 'Total (AED)', 'Packages', 'Clients', 'Sales (AED)', 'Days', 'Pkg/Day', 'Sales/Day', 'Clients/Day', 'Max KPI Clients', '% Share', 'P1 (AED)', 'P2 (AED)']],
+    head: [['Rank', 'Name', 'Total (AED)', 'Packages', 'Clients', 'Sales (AED)', 'Days', 'Pkg/Day', 'Sales/Day', 'Clients/Day', 'Max KPI Clients', '% Share', 'P1 (AED)', 'P2 (AED)', ...(bonusSummary ? ['Dubai It','Dubai It Bonus (AED)'] : [])]],
     body: tableData,
     theme: 'grid',
     headStyles: { fillColor: [53, 80, 122] as [number, number, number], textColor: [255, 255, 255] as [number, number, number], fontSize: 9 },
