@@ -727,8 +727,8 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
           {/* Export */}
           <div style={{display:'flex',gap:'12px'}}>
             <button className="btn btn-secondary" disabled={engineChoice !== 'legacy' || (!!selectedSheet && !legacyBonusReady)} onClick={handleExportCSV}><><DownloadIcon />Download CSV</></button>
-            <button className="btn btn-secondary" disabled={engineChoice !== 'legacy'} onClick={handleExportAudit}><><DownloadIcon />Download Audit CSV</></button>
-            <button className="btn btn-secondary" disabled={engineChoice !== 'legacy'} onClick={()=>exportBulkToPDF({ ...calculatedData, p1Split: calculatedData.p1Split ?? p1Split },results,legacyBonusLedger)}><><DownloadIcon />Download PDF</></button>
+            <button className="btn btn-secondary" disabled={engineChoice !== 'legacy' || (!!selectedSheet && !legacyBonusReady)} onClick={handleExportAudit}><><DownloadIcon />Download Audit CSV</></button>
+            <button className="btn btn-secondary" disabled={engineChoice !== 'legacy' || (!!selectedSheet && !legacyBonusReady)} onClick={()=>exportBulkToPDF({ ...calculatedData, p1Split: calculatedData.p1Split ?? p1Split },results,legacyBonusLedger)}><><DownloadIcon />Download PDF</></button>
           </div>
         </div>
         {betaUnlocked && bulkSubtab === 'beta' && (
