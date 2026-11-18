@@ -18,7 +18,7 @@ export function buildBulkCSV(results: readonly BulkResult[], data: BulkCalculate
   if(issue) throw new Error(issue)
   const bonusSummary = bonuses ? auditLegacyBonusLedger(results,data,bonuses) : null
   const lines=[
-    'Rank,Name,Packages,Sales (AED),Clients,Days,Pkg/Day,Sales/Day,Clients/Day,Max KPI Clients,Revenue Share %,P1 (AED),P2 (AED),Dubai It Packages,Dubai It Bonus (AED),Total (AED)',
+    'Rank,Name,Packages,Sales (AED),Clients,Days,Pkg/Day,Sales/Day,Clients/Day,Max KPI Clients,Revenue Share %,P1 (AED),P2 (AED)' + (bonuses ? ',Dubai It Packages,Dubai It Bonus (AED)' : '') + ',Total (AED)',
   ]
   results.forEach((person,index)=>{
     const payout=formattedPayout(person)
@@ -28,9 +28,9 @@ export function buildBulkCSV(results: readonly BulkResult[], data: BulkCalculate
       person.avgSalesPerDay.toFixed(2),person.avgClientsPerDay.toFixed(2),
       person.maxKpiClients,person.contribution.toFixed(2),
       payout.p1,payout.p2,
-      bonusSummary?.byEmployee.get(person.name)?.count ?? 0,
-      (bonusSummary?.byEmployee.get(person.name)?.amountFils ?? 0) / 100,
-      (bonusSummary?.byEmployee.get(person.name)?.totalFils ?? Math.round(person.totalIncentive * 100)) / 100,
+      ...(bonusSummary ? [bonusSummary.byEmployee.get(person.name)?.count ?? 0,
+        ((bonusSummary.byEmployee.get(person.name)?.amountFils ?? 0) / 100).toFixed(2)] : []),
+      bonusSummary ? ((bonusSummary.byEmployee.get(person.name)?.totalFils ?? 0) / 100).toFixed(2) : payout.total,
     ].join(','))
   })
   return lines.join('\n')+'\n\n'+accountingSummaryCSV(data) +
