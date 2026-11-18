@@ -2,6 +2,7 @@
 import type { BulkCalculatedData, BulkResult } from './bulkCalculation'
 import { buildBulkCSV } from './bulkCsv'
 import { APP_VERSION } from './config'
+import { auditLegacyBonusLedger, type LegacyBonusLedger } from './legacyBonus'
 
 function csv(value: string | number): string {
   const text = String(value)
@@ -14,9 +15,11 @@ export function buildBulkAuditCSV(
   data: BulkCalculatedData,
   excludedNames: readonly string[],
   generatedAt: string,
+  bonuses?: LegacyBonusLedger,
 ): string {
   // Reuse the reconciled canonical CSV report: monetary audit happens before export.
-  const report = buildBulkCSV(results, data)
+  const report = buildBulkCSV(results, data, bonuses)
+  const bonusSummary = bonuses ? auditLegacyBonusLedger(results, data, bonuses) : null
   if (!/^\d{4}-\d\d-\d\dT/.test(generatedAt)) throw new Error('Invalid audit timestamp')
   const fields: [string, string | number][] = [
     ['Application Version', APP_VERSION],
@@ -33,6 +36,11 @@ export function buildBulkAuditCSV(
     ['Included Staff', data.staffCount],
     ['Excluded Staff Count', data.excludedCount],
     ['Excluded Staff Names', [...excludedNames].sort().join(' | ')],
+    ['Staff Payouts Excl. Bonus (fils)', data.staffTotalFils],
+    ...(bonusSummary ? [
+      ['Dubai It Bonuses (fils)', bonusSummary.totalBonusFils],
+      ['Total Staff Payouts Incl. Bonus (fils)', bonusSummary.grandTotalFils],
+    ] as [string, string | number][] : []),
     ['Staff Payouts (fils)', data.staffTotalFils],
     ['Accounting Remainder (fils)', data.remainderFils],
     ['Accounting Decision', 'Pending manual Accounting decision if remainder is nonzero'],

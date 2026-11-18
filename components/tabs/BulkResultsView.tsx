@@ -19,6 +19,7 @@ import { BulkInsightsBeta } from '@/components/tabs/BulkInsightsBeta'
 import { DubaiItComparisonPanel } from '@/components/tabs/DubaiItComparisonPanel'
 import { readEnginePreferences, writeEnginePreferences, type IncentiveEngineChoice } from '@/lib/enginePreferences'
 import type { MrKrabsPreviewOutcome } from '@/lib/mrKrabsPreview'
+import type { LegacyBonusLedger } from '@/lib/legacyBonus'
 import { visibleCenterRankings, nextCenterVisibility } from '@/lib/centerRankingVisibility'
 
 type ViewMode = BulkViewMode
@@ -217,6 +218,21 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   const krabsReady = engineChoice !== 'legacy' && !!selectedSheet &&
     krabsSnapshot?.engine === engineChoice &&
     krabsSnapshot?.key === snapshotKey && krabsSnapshot.preview?.ok === true
+  const dubaiEvidenceReady = !!selectedSheet && krabsSnapshot?.key === snapshotKey
+  const dubaiCounts = dubaiEvidenceReady ? krabsSnapshot?.counts : undefined
+  const dubaiBonusRate = dubaiEvidenceReady ? krabsSnapshot?.bonusAed ?? 500 : 500
+  const legacyBonusReady = engineChoice === 'legacy' && !!selectedSheet && !!dubaiCounts &&
+    results.every(person => Number.isSafeInteger(dubaiCounts[person.name]) &&
+      (dubaiCounts[person.name] ?? -1) >= 0)
+  // The ordinary team incentive pool stays unchanged. Bonuses are a separate
+  // employee-specific ledger that is added only AFTER P1/P2, including in exports.
+  const legacyBonusLedger: LegacyBonusLedger | undefined = legacyBonusReady
+    ? Object.fromEntries(results.map(person => {
+        const count = dubaiCounts![person.name]!
+        return [person.name,{count,amount:calculatedData && calculatedData.teamAchievement >= 80
+          ? Math.round(count * dubaiBonusRate * 100) / 100 : 0}]
+      }))
+    : undefined
   const displayResults: BulkResult[] = krabsReady && krabsSnapshot?.preview?.ok
     ? results.map(p => {
         const award = krabsSnapshot.preview?.ok
@@ -224,7 +240,13 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
           : undefined
         return award ? { ...p, p1: award.p1, p2: award.p2, totalIncentive: award.totalIncentive } : p
       })
-    : results
+    : legacyBonusLedger
+      ? results.map(p => ({
+          ...p,
+          totalIncentive: (Math.round(p.totalIncentive * 100) +
+            Math.round((legacyBonusLedger[p.name]?.amount ?? 0) * 100)) / 100,
+        }))
+      : results
   const switchEngine = (choice: IncentiveEngineChoice) => {
     try {
       writeEnginePreferences({ ...readEnginePreferences(), engine: choice })
@@ -239,9 +261,6 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     (evidence: {engine: IncentiveEngineChoice; preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; bonusAed: number}) =>
       setKrabsSnapshot({ key: snapshotKey, ...evidence }),
     [snapshotKey])
-  const dubaiEvidenceReady = !!selectedSheet && krabsSnapshot?.key === snapshotKey
-  const dubaiCounts = dubaiEvidenceReady ? krabsSnapshot?.counts : undefined
-  const dubaiBonusRate = dubaiEvidenceReady ? krabsSnapshot?.bonusAed ?? 500 : 500
   const dubaiBonusQualifies = (krabsReady && krabsSnapshot?.preview?.ok)
     ? krabsSnapshot.preview.rate > 0
     : (calculatedData?.teamAchievement ?? 0) >= 80
@@ -319,7 +338,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   const handleExportCSV = () => {
     if (!results.length || !calculatedData) return
     try {
-      const csv = buildBulkCSV(results, calculatedData)
+      const csv = buildBulkCSV(results, calculatedData, legacyBonusLedger)
       const a = document.createElement('a')
       const url = URL.createObjectURL(new Blob([csv], {type:'text/csv'}))
       a.href = url
@@ -338,7 +357,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     if (!results.length || !calculatedData) return
     try {
       const csv = buildBulkAuditCSV(
-        results, calculatedData, [...excludedStaff], new Date().toISOString(),
+        results, calculatedData, [...excludedStaff], new Date().toISOString(), legacyBonusLedger,
       )
       const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
       const anchor = document.createElement('a')
@@ -630,9 +649,9 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
             Showing {engineChoice === 'scrooge' ? 'Scrooge' : 'Mr. Krabs'} comparison payouts (including Dubai It bonus). Exports are unavailable for this scenario.
             Summary and center metrics above remain Legacy-based.
           </p>}
-          {engineChoice === 'legacy' && dubaiCounts && (
-            <p style={{fontSize:12,color:'var(--text-secondary)',marginBottom:8}}>
-              Dubai It bonuses in Legacy view are informational (Legacy + Bonus scenario) and are not included in the Legacy Total column.
+          {engineChoice === 'legacy' && selectedSheet && !legacyBonusReady && (
+            <p role="status" style={{fontSize:12,color:'var(--warning)',marginBottom:8}}>
+              Dubai It package verification is pending. Legacy P1/P2 remains visible, but bonus-inclusive totals and exports are unavailable until all counts are verified.
             </p>
           )}
           {/* Table — frozen header, horizontal + vertical scroll */}
@@ -644,7 +663,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                   <tr>
                     <th style={{...TH,width:'46px'}}>Rank</th>
                     <th style={thHl('name')} onClick={()=>handleSort('name')}>Name{si('name')}</th>
-                    <th style={thHl('totalIncentive')} onClick={()=>handleSort('totalIncentive')}>{krabsReady ? 'Total incl. bonus' : 'Total'}{si('totalIncentive')}</th>
+                    <th style={thHl('totalIncentive')} onClick={()=>handleSort('totalIncentive')}>{krabsReady || legacyBonusReady ? 'Total incl. bonus' : 'Total'}{si('totalIncentive')}</th>
                     <th style={thHl('packages')} onClick={()=>handleSort('packages')}>Packages{si('packages')}</th>
                     <th style={thHl('clients')} onClick={()=>handleSort('clients')}>Clients{si('clients')}</th>
                     <th style={thHl('sales')} onClick={()=>handleSort('sales')}>Sales{si('sales')}</th>
@@ -707,9 +726,9 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
 
           {/* Export */}
           <div style={{display:'flex',gap:'12px'}}>
-            <button className="btn btn-secondary" disabled={engineChoice !== 'legacy'} onClick={handleExportCSV}><><DownloadIcon />Download CSV</></button>
-            <button className="btn btn-secondary" disabled={engineChoice !== 'legacy'} onClick={handleExportAudit}><><DownloadIcon />Download Audit CSV</></button>
-            <button className="btn btn-secondary" disabled={engineChoice !== 'legacy'} onClick={()=>exportBulkToPDF({ ...calculatedData, p1Split: calculatedData.p1Split ?? p1Split },results)}><><DownloadIcon />Download PDF</></button>
+            <button className="btn btn-secondary" disabled={engineChoice !== 'legacy' || (!!selectedSheet && !legacyBonusReady)} onClick={handleExportCSV}><><DownloadIcon />Download CSV</></button>
+            <button className="btn btn-secondary" disabled={engineChoice !== 'legacy' || (!!selectedSheet && !legacyBonusReady)} onClick={handleExportAudit}><><DownloadIcon />Download Audit CSV</></button>
+            <button className="btn btn-secondary" disabled={engineChoice !== 'legacy' || (!!selectedSheet && !legacyBonusReady)} onClick={()=>exportBulkToPDF({ ...calculatedData, p1Split: calculatedData.p1Split ?? p1Split },results,legacyBonusLedger)}><><DownloadIcon />Download PDF</></button>
           </div>
         </div>
         {betaUnlocked && bulkSubtab === 'beta' && (

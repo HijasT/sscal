@@ -45,8 +45,8 @@ test('upload XLSX and export exact golden CSV and PDF accounting totals', async 
   for(const person of currentStaff) {
     const line=csv.split('\n').find(row=>row.includes('"' + person.name + '"'))
     expect(line).toBeTruthy()
-    expect(line.split(',').slice(-3)).toEqual([
-      person.p1.toFixed(2),person.p2.toFixed(2),person.total.toFixed(2),
+    expect(line.split(',').slice(-5)).toEqual([
+      person.p1.toFixed(2),person.p2.toFixed(2),'0','0.00',person.total.toFixed(2),
     ])
   }
 
