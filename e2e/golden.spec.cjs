@@ -122,7 +122,9 @@ test('Dubai It bonus control is beside engine selector, persists and is removed 
     buffer:createGoldenXlsxBuffer(),
   })
   const warning=page.locator('dialog.msg-dialog.msg-warning')
-  if(await warning.isVisible())await warning.getByRole('button',{name:'Got it'}).click()
+  await expect(warning).toBeVisible()
+  await warning.getByRole('button',{name:'Got it'}).click()
+  await expect(warning).toBeHidden()
   const engine=page.locator('#bulk-incentive-engine')
   const bonus=page.locator('#bulk-dubai-it-bonus')
   await expect(engine).toBeVisible()
