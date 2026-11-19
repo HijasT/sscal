@@ -599,10 +599,6 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                   <span><i className="bulk-projection-key-forecast" />Projected total · AED {formatCurrency(projection.projectedSales)}</span>
                 </div>
               </div>
-              <p className="bulk-projection-note">
-                Actual through the latest recorded sales day ({projection.cutoff} {selectedMonth}), not necessarily today.
-                Projection uses the recorded calendar-day pace (AED {formatCurrency(projection.dailySales)}/day) and reduces only expected remaining sales by 9.95%. Recorded sales are never reduced; at month-end the projection equals actual sales.
-              </p>
             </section>
           )}
 
@@ -657,21 +653,21 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
 
           {/* Matching controls share the same sizing and typography. On narrow
               screens they wrap without stretching either field unexpectedly. */}
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',gap:'14px',alignItems:'end',marginBottom:'12px'}}>
-            <div className="form-group" style={{marginBottom:0,minWidth:0}}>
+          <div className="bulk-policy-controls">
+            <div className="form-group">
               <label htmlFor="bulk-incentive-engine">Ranking calculation engine</label>
-              <select id="bulk-incentive-engine" value={engineChoice}
-                style={{width:'100%',height:'48px',font:'inherit'}}
-                onChange={e => switchEngine(e.target.value as IncentiveEngineChoice)}>
-                <option value="legacy">Legacy Engine</option>
-                <option value="mr-krabs">Mr. Krabs Engine</option>
-                <option value="scrooge">Scrooge Engine</option>
-              </select>
+              <div className="bulk-engine-select-wrap">
+                <select id="bulk-incentive-engine" className="bulk-policy-field" value={engineChoice}
+                  onChange={e => switchEngine(e.target.value as IncentiveEngineChoice)}>
+                  <option value="legacy">Legacy Engine</option>
+                  <option value="mr-krabs">Mr. Krabs Engine</option>
+                  <option value="scrooge">Scrooge Engine</option>
+                </select>
+              </div>
             </div>
-            <div className="form-group" style={{marginBottom:0,minWidth:0}}>
+            <div className="form-group">
               <label htmlFor="bulk-dubai-it-bonus">Dubai It bonus (AED/package)</label>
-              <input id="bulk-dubai-it-bonus" type="number" min="0" max="100000" step="0.01"
-                style={{width:'100%',height:'48px',font:'inherit'}}
+              <input id="bulk-dubai-it-bonus" className="bulk-policy-field" type="number" min="0" max="100000" step="0.01"
                 value={bonusDraft} onChange={e => updateDubaiBonus(e.target.value)}
                 onBlur={normalizeDubaiBonus}
                 aria-describedby="bulk-dubai-it-bonus-help"/>
@@ -687,8 +683,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
             </p>
           )}
           {krabsReady && <p role="status" style={{fontSize:13,color:'var(--text-secondary)',marginBottom:12}}>
-            Showing {engineChoice === 'scrooge' ? 'Scrooge' : 'Mr. Krabs'} comparison payouts (including Dubai It bonus). Exports are unavailable for this scenario.
-            Summary and center metrics above remain Legacy-based.
+            Exports are unavailable for {engineChoice === 'scrooge' ? 'Scrooge' : 'Mr. Krabs'} comparisons. Summary and center metrics remain Legacy-based.
           </p>}
           {engineChoice === 'legacy' && selectedSheet && !legacyBonusReady && (
             <p role="status" style={{fontSize:12,color:'var(--warning)',marginBottom:8}}>
@@ -696,7 +691,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
             </p>
           )}
           {/* Table — frozen header, horizontal + vertical scroll */}
-          <div className="center-rank-summary" role="status">Showing {centerRanking.rows.length} of {sortedResults.length} ranked staff — {krabsReady ? (engineChoice === 'scrooge' ? 'Scrooge comparison' : 'Mr. Krabs comparison') : 'Legacy'} ranking. Rankings are recalculated for the selected payout view.</div>
+          <div className="center-rank-summary" role="status">Showing {centerRanking.rows.length} of {sortedResults.length} ranked staff — {krabsReady ? (engineChoice === 'scrooge' ? 'Scrooge' : 'Mr. Krabs') + ' comparison' : 'Legacy'} ranking.</div>
           <div style={{overflowX:'auto',marginBottom:'24px'}}>
             <div style={{maxHeight:'520px',overflowY:'auto'}}>
               <table style={{width:'100%',borderCollapse:'collapse',minWidth:'1450px'}}>
