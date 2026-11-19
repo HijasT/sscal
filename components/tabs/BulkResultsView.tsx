@@ -98,8 +98,15 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   const [results, setResults]         = useState<BulkResult[]>(persisted.results ?? [])
   const [calculatedData, setCalcData] = useState<BulkCalculatedData | null>(persisted.calculatedData ?? null)
   const [engineChoice, setEngineChoice] = useState<IncentiveEngineChoice>('legacy')
+  const [bonusDraft, setBonusDraft] = useState('500')
+  const [bonusAed, setBonusAed] = useState(500)
   const [krabsSnapshot, setKrabsSnapshot] = useState<{ key: string; engine: IncentiveEngineChoice; preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; bonusAed: number } | null>(null)
-  useEffect(() => { setEngineChoice(readEnginePreferences().engine) }, [])
+  useEffect(() => {
+    const prefs = readEnginePreferences()
+    setEngineChoice(prefs.engine)
+    setBonusAed(prefs.bonusAed)
+    setBonusDraft(String(prefs.bonusAed))
+  }, [])
   const [sortColumn, setSortCol]      = useState<SortCol>('sales')
   const [sortDir, setSortDir]         = useState<'asc' | 'desc'>('desc')
   const [bulkSubtab, setBulkSubtab]   = useState<'calculator' | 'beta'>('calculator')
@@ -220,7 +227,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     krabsSnapshot?.key === snapshotKey && krabsSnapshot.preview?.ok === true
   const dubaiEvidenceReady = !!selectedSheet && krabsSnapshot?.key === snapshotKey
   const dubaiCounts = dubaiEvidenceReady ? krabsSnapshot?.counts : undefined
-  const dubaiBonusRate = dubaiEvidenceReady ? krabsSnapshot?.bonusAed ?? 500 : 500
+  const dubaiBonusRate = bonusAed
   const legacyBonusReady = engineChoice === 'legacy' && !!selectedSheet && !!dubaiCounts &&
     results.every(person => Number.isSafeInteger(dubaiCounts[person.name]) &&
       (dubaiCounts[person.name] ?? -1) >= 0)
@@ -254,6 +261,24 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     } catch (error) {
       notify({ level: 'error', title: 'Could not switch engine', messages: [
         error instanceof Error ? error.message : 'Invalid engine choice',
+      ] })
+    }
+  }
+  const saveDubaiBonus = () => {
+    const parsed = Number(bonusDraft)
+    try {
+      if (bonusDraft.trim() === '' || !Number.isFinite(parsed) ||
+          parsed < 0 || parsed > 100000 || Math.abs(parsed * 100 - Math.round(parsed * 100)) > 1e-6) {
+        throw new Error('Enter an AED amount from 0 to 100000, with at most 2 decimal places.')
+      }
+      const value = Math.round(parsed * 100) / 100
+      writeEnginePreferences({ ...readEnginePreferences(), bonusAed: value })
+      setBonusAed(value)
+      setBonusDraft(String(value))
+      notify({ level: 'success', messages: ['Dubai It bonus saved and calculations updated.'] })
+    } catch (error) {
+      notify({ level: 'error', title: 'Invalid Dubai It bonus', messages: [
+        error instanceof Error ? error.message : 'Could not save Dubai It bonus.',
       ] })
     }
   }
@@ -625,19 +650,30 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
               results={results}
               calculation={calculatedData}
               selectedEngine={engineChoice}
+              bonusAed={bonusAed}
               onPreviewChange={onKrabsPreviewChange}
             />
           )}
 
-          {/* Engine choice applies to the ranking view only. Legacy reports stay audited and unchanged. */}
-          <div className="form-group" style={{marginBottom:'12px',maxWidth:'350px'}}>
-            <label htmlFor="bulk-incentive-engine">Ranking calculation engine</label>
-            <select id="bulk-incentive-engine" value={engineChoice}
-              onChange={e => switchEngine(e.target.value as IncentiveEngineChoice)}>
-              <option value="legacy">Legacy Engine</option>
-              <option value="mr-krabs">Mr. Krabs Engine</option>
-              <option value="scrooge">Scrooge Engine</option>
-            </select>
+          {/* Both controls share one row on desktop and wrap on narrow screens. */}
+          <div style={{display:'flex',gap:'14px',alignItems:'flex-end',flexWrap:'wrap',marginBottom:'12px'}}>
+            <div className="form-group" style={{flex:'1 1 220px',maxWidth:'350px',marginBottom:0}}>
+              <label htmlFor="bulk-incentive-engine">Ranking calculation engine</label>
+              <select id="bulk-incentive-engine" value={engineChoice}
+                onChange={e => switchEngine(e.target.value as IncentiveEngineChoice)}>
+                <option value="legacy">Legacy Engine</option>
+                <option value="mr-krabs">Mr. Krabs Engine</option>
+                <option value="scrooge">Scrooge Engine</option>
+              </select>
+            </div>
+            <div className="form-group" style={{flex:'0 1 200px',marginBottom:0}}>
+              <label htmlFor="bulk-dubai-it-bonus">Dubai It bonus (AED/package)</label>
+              <input id="bulk-dubai-it-bonus" type="number" min="0" max="100000" step="0.01"
+                value={bonusDraft} onChange={e=>setBonusDraft(e.target.value)}
+                onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();saveDubaiBonus()}}}/>
+            </div>
+            <button type="button" className="btn btn-primary" onClick={saveDubaiBonus}
+              style={{alignSelf:'flex-end'}}>Save bonus</button>
           </div>
           {engineChoice !== 'legacy' && !krabsReady && (
             <p role="status" style={{fontSize:13,color:'var(--warning)',marginBottom:12}}>

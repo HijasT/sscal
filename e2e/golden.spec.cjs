@@ -112,3 +112,31 @@ test('Phase 4 audit CSV downloads signed accounting reconciliation and input pol
   expect(csv).toContain('"Accounting Remainder (fils)","0"')
   expect(csv).toContain('"Accounting Remainder (AED)","0.00"')
 })
+
+test('Dubai It bonus control is beside engine selector, persists and is removed from Settings',async ({page})=>{
+  await page.goto('/')
+  await page.getByRole('button',{name:'Calculator',exact:true}).click()
+  await page.locator('input[type="file"]').setInputFiles({
+    name:'kleon-bonus-control.xlsx',
+    mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    buffer:createGoldenXlsxBuffer(),
+  })
+  const warning=page.locator('dialog.msg-dialog.msg-warning')
+  await expect(warning).toBeVisible()
+  await warning.getByRole('button',{name:'Got it'}).click()
+  await expect(warning).toBeHidden()
+  const engine=page.locator('#bulk-incentive-engine')
+  const bonus=page.locator('#bulk-dubai-it-bonus')
+  await expect(engine).toBeVisible()
+  await expect(bonus).toBeVisible()
+  await expect(engine).toHaveValue('legacy')
+  await bonus.fill('650.25')
+  await page.getByRole('button',{name:'Save bonus'}).click()
+  await expect(bonus).toHaveValue('650.25')
+  await engine.selectOption('scrooge')
+  await page.reload()
+  await page.getByRole('button',{name:'Calculator',exact:true}).click()
+  await expect(page.locator('#bulk-dubai-it-bonus')).toHaveValue('650.25')
+  await page.getByRole('button',{name:'Settings',exact:true}).click()
+  await expect(page.locator('#dubai-it-bonus')).toHaveCount(0)
+})

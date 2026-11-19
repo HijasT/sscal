@@ -9,7 +9,6 @@ import {
 import { CENTERS, STAFF_CENTERS, DEFAULT_TIERS, DEFAULT_USD_RATE, type Tier } from '@/lib/config'
 import { getFresh, isPersistEnabled, setPersistEnabled, isUsdShown, setUsdShown, getUsdRate, setUsdRate, isHideCoveredEnabled, setHideCovered } from '@/lib/storage'
 import { extractEmployeeCode, stripEmployeeCode, type ExcelData } from '@/lib/excelUtils'
-import { readEnginePreferences, writeEnginePreferences } from '@/lib/enginePreferences'
 import { SlidersIcon, SaveIcon, BarChartIcon, SunIcon } from '@/components/icons'
 import { notify } from '@/lib/notify'
 
@@ -63,7 +62,6 @@ interface SettingsTabProps {
 }
 
 export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
-  const [dubaiBonus, setDubaiBonus] = useState('500')
   const [tiers, setTiers] = useState<Tier[]>(DEFAULT_TIERS)
   const [showDefaults, setShowDefaults] = useState(true)
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
@@ -79,8 +77,6 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
   const [usdRate, setUsdRateInput] = useState(String(DEFAULT_USD_RATE))
 
   useEffect(() => {
-    const choice = readEnginePreferences()
-    setDubaiBonus(String(choice.bonusAed))
     setPersist(isPersistEnabled())
     setShowUsd(isUsdShown())
     setHideCoveredState(isHideCoveredEnabled())
@@ -235,33 +231,8 @@ export function SettingsTab({ robotEnabled, onToggleRobot }: SettingsTabProps) {
     notify({ level: 'success', messages: ['Previous staff center allocation restored.'] })
   }
 
-  const saveEngineChoice = () => {
-    const bonusAed = Number(dubaiBonus)
-    try {
-      if (dubaiBonus.trim() === '') throw new Error('Enter a bonus value.')
-      writeEnginePreferences({ ...readEnginePreferences(), bonusAed })
-      notify({ level: 'success', messages: ['Dubai It bonus preference saved.'] })
-    } catch (error) {
-      notify({ level: 'error', title: 'Invalid engine settings', messages: [
-        error instanceof Error ? error.message : 'Could not save engine settings',
-      ] })
-    }
-  }
-
   return (
     <>
-    <details className="card settings-section" open>
-      <summary className="settings-summary"><h2 className="card-title">Dubai It Bonus</h2></summary>
-      <div className="settings-body">
-        <div className="form-group">
-          <label htmlFor="dubai-it-bonus">Dubai It bonus per full-price package (AED)</label>
-          <input id="dubai-it-bonus" type="number" min="0" max="100000" step="0.01"
-            value={dubaiBonus} onChange={e=>setDubaiBonus(e.target.value)}/>
-          <p style={{fontSize:'12px',color:'var(--text-muted)'}}>Default AED 500.</p>
-        </div>
-        <button type="button" className="btn btn-primary" onClick={saveEngineChoice}>Save Dubai It bonus</button>
-      </div>
-    </details>
     <details className="card settings-section" open>
       <summary className="settings-summary">
         <h2 className="card-title"><SunIcon className="icon-lg" />Preferences</h2>
