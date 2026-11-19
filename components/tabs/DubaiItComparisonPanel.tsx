@@ -4,7 +4,7 @@ import type { ExcelData } from '@/lib/excelTypes'
 import type { BulkCalculatedData, BulkResult } from '@/lib/bulkCalculation'
 import { inferJoinerEligibility } from '@/lib/joinerInference'
 import { previewMrKrabs, previewScrooge } from '@/lib/mrKrabsPreview'
-import { readEnginePreferences, type IncentiveEngineChoice } from '@/lib/enginePreferences'
+import type { IncentiveEngineChoice } from '@/lib/enginePreferences'
 import type { MrKrabsPreviewOutcome } from '@/lib/mrKrabsPreview'
 import { formatCurrency, loadTiers } from '@/lib/utils'
 
@@ -14,20 +14,19 @@ interface Props {
   results: readonly BulkResult[]
   calculation: BulkCalculatedData
   selectedEngine: IncentiveEngineChoice
+  bonusAed: number
   onPreviewChange: (evidence: {engine: IncentiveEngineChoice; preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; bonusAed: number}) => void
 }
 function cellKey(name: string, sheet: string, address: string) {
   return JSON.stringify([name, sheet, address])
 }
 
-export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calculation, selectedEngine, onPreviewChange }: Props) {
-  const [bonusAed, setBonusAed] = useState(500)
+export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calculation, selectedEngine, bonusAed, onPreviewChange }: Props) {
   const [drafts, setDrafts] = useState<Record<string, string>>({})
   const [verified, setVerified] = useState<Record<string, number>>({})
   const [eligibleDrafts, setEligibleDrafts] = useState<Record<string, string>>({})
   const [eligibleConfirmed, setEligibleConfirmed] = useState<Record<string, number>>({})
   const [inputError, setInputError] = useState('')
-  useEffect(() => { setBonusAed(readEnginePreferences().bonusAed) }, [])
   useEffect(() => {
     // All manual confirmations are scoped to this parsed upload and month.
     setDrafts({})
