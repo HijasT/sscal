@@ -599,10 +599,6 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                   <span><i className="bulk-projection-key-forecast" />Projected total · AED {formatCurrency(projection.projectedSales)}</span>
                 </div>
               </div>
-              <p className="bulk-projection-note">
-                Actual through the latest recorded sales day ({projection.cutoff} {selectedMonth}), not necessarily today.
-                Projection uses the recorded calendar-day pace (AED {formatCurrency(projection.dailySales)}/day) and reduces only expected remaining sales by 9.95%. Recorded sales are never reduced; at month-end the projection equals actual sales.
-              </p>
             </section>
           )}
 
