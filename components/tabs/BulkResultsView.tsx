@@ -268,7 +268,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   // Keep intermediate input (such as an empty field) editable without committing it.
   const updateDubaiBonus = (draft: string) => {
     setBonusDraft(draft)
-    if (!/^\\d+(?:\\.\\d{0,2})?$/.test(draft)) return
+    if (!/^\d+(?:\.\d{0,2})?$/.test(draft)) return
     const parsed = Number(draft)
     if (!Number.isFinite(parsed) || parsed < 0 || parsed > 100000) return
     const value = Math.round(parsed * 100) / 100
