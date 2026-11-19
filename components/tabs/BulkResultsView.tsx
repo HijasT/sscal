@@ -264,24 +264,24 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
       ] })
     }
   }
-  const saveDubaiBonus = () => {
-    const parsed = Number(bonusDraft)
+  // Update calculations and local preferences as soon as a valid amount is entered.
+  // Keep intermediate input (such as an empty field) editable without committing it.
+  const updateDubaiBonus = (draft: string) => {
+    setBonusDraft(draft)
+    if (!/^\d+(?:\.\d{0,2})?$/.test(draft)) return
+    const parsed = Number(draft)
+    if (!Number.isFinite(parsed) || parsed < 0 || parsed > 100000) return
+    const value = Math.round(parsed * 100) / 100
     try {
-      if (bonusDraft.trim() === '' || !Number.isFinite(parsed) ||
-          parsed < 0 || parsed > 100000 || Math.abs(parsed * 100 - Math.round(parsed * 100)) > 1e-6) {
-        throw new Error('Enter an AED amount from 0 to 100000, with at most 2 decimal places.')
-      }
-      const value = Math.round(parsed * 100) / 100
       writeEnginePreferences({ ...readEnginePreferences(), bonusAed: value })
       setBonusAed(value)
-      setBonusDraft(String(value))
-      notify({ level: 'success', messages: ['Dubai It bonus saved and calculations updated.'] })
     } catch (error) {
-      notify({ level: 'error', title: 'Invalid Dubai It bonus', messages: [
-        error instanceof Error ? error.message : 'Could not save Dubai It bonus.',
+      notify({ level: 'error', title: 'Could not update Dubai It bonus', messages: [
+        error instanceof Error ? error.message : 'Please enter a valid bonus.',
       ] })
     }
   }
+  const normalizeDubaiBonus = () => setBonusDraft(String(bonusAed))
   const onKrabsPreviewChange = useMemo(() =>
     (evidence: {engine: IncentiveEngineChoice; preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; bonusAed: number}) =>
       setKrabsSnapshot({ key: snapshotKey, ...evidence }),
@@ -655,26 +655,31 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
             />
           )}
 
-          {/* Both controls share one row on desktop and wrap on narrow screens. */}
-          <div style={{display:'flex',gap:'14px',alignItems:'flex-end',flexWrap:'wrap',marginBottom:'12px'}}>
-            <div className="form-group" style={{flex:'1 1 220px',maxWidth:'350px',marginBottom:0}}>
+          {/* Matching controls share the same sizing and typography. On narrow
+              screens they wrap without stretching either field unexpectedly. */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',gap:'14px',alignItems:'end',marginBottom:'12px'}}>
+            <div className="form-group" style={{marginBottom:0,minWidth:0}}>
               <label htmlFor="bulk-incentive-engine">Ranking calculation engine</label>
               <select id="bulk-incentive-engine" value={engineChoice}
+                style={{width:'100%',height:'48px',font:'inherit'}}
                 onChange={e => switchEngine(e.target.value as IncentiveEngineChoice)}>
                 <option value="legacy">Legacy Engine</option>
                 <option value="mr-krabs">Mr. Krabs Engine</option>
                 <option value="scrooge">Scrooge Engine</option>
               </select>
             </div>
-            <div className="form-group" style={{flex:'0 1 200px',marginBottom:0}}>
+            <div className="form-group" style={{marginBottom:0,minWidth:0}}>
               <label htmlFor="bulk-dubai-it-bonus">Dubai It bonus (AED/package)</label>
               <input id="bulk-dubai-it-bonus" type="number" min="0" max="100000" step="0.01"
-                value={bonusDraft} onChange={e=>setBonusDraft(e.target.value)}
-                onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();saveDubaiBonus()}}}/>
+                style={{width:'100%',height:'48px',font:'inherit'}}
+                value={bonusDraft} onChange={e => updateDubaiBonus(e.target.value)}
+                onBlur={normalizeDubaiBonus}
+                aria-describedby="bulk-dubai-it-bonus-help"/>
             </div>
-            <button type="button" className="btn btn-primary" onClick={saveDubaiBonus}
-              style={{alignSelf:'flex-end'}}>Save bonus</button>
           </div>
+          <p id="bulk-dubai-it-bonus-help" style={{fontSize:'12px',color:'var(--text-muted)',marginBottom:'12px'}}>
+            Bonus updates automatically when a valid amount is entered.
+          </p>
           {engineChoice !== 'legacy' && !krabsReady && (
             <p role="status" style={{fontSize:13,color:'var(--warning)',marginBottom:12}}>
               {engineChoice === 'scrooge' ? 'Scrooge' : 'Mr. Krabs'} ranking unavailable for this period or pending Dubai It / eligibility verification.
