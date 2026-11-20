@@ -11,8 +11,8 @@ test('projects month-end sales and plots actual, forecast and 100% target', () =
   })
   assert.ok(p)
   assert.equal(p.currentPercent, 60)
-  assert.equal(p.projectedPercent, 141.045)
-  assert.equal(p.projectedSales, 705225)
+  assert.equal(p.projectedPercent, 144.06)
+  assert.equal(p.projectedSales, 720300)
   assert.equal(p.dailySales, 25000)
   assert.equal(p.targetDay, 21)
   assert.equal(p.scaleMax, 150)
@@ -62,14 +62,14 @@ test('already achieved target and no sales are handled safely', () => {
   assert.equal(zero?.targetDay, null)
 })
 
-test('9.95% reduction applies to future sales only and preserves recorded sales', () => {
+test('6.6% reduction applies to future sales only and preserves recorded sales', () => {
   const p = projectMonthlySales({
     sales: 300000, target: 500000, year: 2026, month: 11,
     lastReportedDay: 12, now,
   })
   assert.ok(p)
   assert.equal(p.currentPercent, 60)
-  assert.equal(p.projectedSales, 300000 + (750000 - 300000) * (1 - .0995))
+  assert.equal(p.projectedSales, 300000 + (750000 - 300000) * (1 - .066))
 })
 
 test('projection cannot dip below recorded sales late in the month', () => {
@@ -90,7 +90,7 @@ test('one day left: adjusted forecast adds discounted future sales to full actua
   })
   assert.ok(p)
   assert.ok(p.projectedSales >= 725000)
-  assert.ok(Math.abs(p.projectedSales - (725000 + 725000 / 29 * .9005)) < 1e-8)
+  assert.ok(Math.abs(p.projectedSales - (725000 + 725000 / 29 * .934)) < 1e-8)
   assert.equal(p.targetDay, null)
 })
 
@@ -103,7 +103,7 @@ test('as recorded month closes, the projection converges to actual instead of a 
     })
     assert.ok(p)
     assert.ok(p.projectedSales >= sales)
-    assert.ok(Math.abs(p.projectedSales - (sales + 25000 * (30-day) * .9005)) < 1e-8)
+    assert.ok(Math.abs(p.projectedSales - (sales + 25000 * (30-day) * .934)) < 1e-8)
     if (day === 30) {
       assert.equal(p.projectedSales, sales)
       assert.equal(p.projectedPercent, p.currentPercent)
