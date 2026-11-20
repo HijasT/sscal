@@ -2200,13 +2200,13 @@ body.light-mode .sa {
   background: color-mix(in srgb, var(--accent-primary) 9%, var(--bg-card));
 }
 
-/* The achievement GIF replaces the entire third projection-stat card.
-   Crop to its own aspect ratio rather than letterboxing or deforming the clip. */
+/* Preserve the original projection-stat card dimensions. The GIF fits inside
+   the existing rectangle instead of changing the grid row height. */
 .bulk-projection-stats > .bulk-target-achieved-card {
   position: relative;
   display: block;
-  min-height: 112px;
-  aspect-ratio: 498 / 284;
+  min-height: 0;
+  min-width: 0;
   padding: 0;
   overflow: hidden;
   background: var(--bg-card);
@@ -2217,7 +2217,7 @@ body.light-mode .sa {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: fill;
   object-position: center;
 }
 .bulk-target-achieved-reduced-motion {
