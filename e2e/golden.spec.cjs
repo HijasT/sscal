@@ -168,6 +168,15 @@ test('achieved current-month target displays captioned Nailed It GIF filling the
   await expect(page.getByText('Already reached',{exact:true})).toHaveCount(0)
   const card=page.locator('.bulk-target-achieved-card')
   await expect(card).toBeVisible()
+  // The GIF must not expand the projection grid: retain the same card
+  // dimensions as the existing achievement and month-end metric boxes.
+  const statCards=page.locator('.bulk-projection-stats > div')
+  const firstBox=await statCards.first().boundingBox()
+  const achievedBox=await card.boundingBox()
+  expect(firstBox).toBeTruthy()
+  expect(achievedBox).toBeTruthy()
+  expect(Math.abs(achievedBox.height-firstBox.height)).toBeLessThan(3)
+  expect(Math.abs(achievedBox.width-firstBox.width)).toBeLessThan(3)
   const gif=card.locator('img')
   await expect(gif).toBeVisible()
   await expect(gif).toHaveAttribute('src','/nailed-it.gif')
