@@ -162,13 +162,20 @@ test('ranking keeps Rank and Name visible while scrolling horizontally; engine s
   }
 })
 
-test('achieved current-month target displays trophy GIF instead of text alone',async ({page})=>{
+test('achieved current-month target displays captioned Nailed It GIF filling the card',async ({page})=>{
   await page.clock.setFixedTime(new Date('2026-11-20T12:00:00Z'))
   await uploadGolden(page)
-  await expect(page.getByText('Already reached',{exact:true})).toBeVisible()
-  const gif=page.locator('.bulk-target-achieved img')
+  await expect(page.getByText('Already reached',{exact:true})).toHaveCount(0)
+  const card=page.locator('.bulk-target-achieved-card')
+  await expect(card).toBeVisible()
+  const gif=card.locator('img')
   await expect(gif).toBeVisible()
-  await expect(gif).toHaveAttribute('src',new RegExp('^data:image/gif;base64,'))
+  await expect(gif).toHaveAttribute('src','/nailed-it.gif')
   const metadata=await gif.evaluate(img=>({complete:img.complete,width:img.naturalWidth,height:img.naturalHeight}))
-  expect(metadata).toEqual({complete:true,width:64,height:64})
+  expect(metadata.complete).toBe(true)
+  expect(metadata.width).toBeGreaterThan(150)
+  expect(metadata.height).toBeGreaterThan(80)
+  const fills=await gif.evaluate(img=>{const parent=img.parentElement.getBoundingClientRect();const box=img.getBoundingClientRect();return {dw:Math.abs(box.width-parent.width),dh:Math.abs(box.height-parent.height)}})
+  expect(fills.dw).toBeLessThan(3)
+  expect(fills.dh).toBeLessThan(3)
 })
