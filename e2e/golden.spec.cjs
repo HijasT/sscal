@@ -140,3 +140,35 @@ test('Dubai It bonus control is beside engine selector, persists and is removed 
   await page.getByRole('button',{name:'Settings',exact:true}).click()
   await expect(page.locator('#dubai-it-bonus')).toHaveCount(0)
 })
+
+test('ranking keeps Rank and Name visible while scrolling horizontally; engine styling matches month',async ({page})=>{
+  await uploadGolden(page)
+  const scroll=page.locator('.rank-table-scroll')
+  const name=scroll.locator('tbody td.rank-freeze-name').first()
+  const rank=scroll.locator('tbody td.rank-freeze-rank').first()
+  const [nameBefore,rankBefore]=await Promise.all([name.boundingBox(),rank.boundingBox()])
+  expect(nameBefore).toBeTruthy();expect(rankBefore).toBeTruthy()
+  await scroll.evaluate(el=>{el.scrollLeft=450})
+  await expect.poll(()=>scroll.evaluate(el=>el.scrollLeft)).toBeGreaterThan(100)
+  const [nameAfter,rankAfter]=await Promise.all([name.boundingBox(),rank.boundingBox()])
+  expect(Math.abs(nameAfter.x-nameBefore.x)).toBeLessThan(3)
+  expect(Math.abs(rankAfter.x-rankBefore.x)).toBeLessThan(3)
+  const engine=page.locator('#bulk-incentive-engine')
+  const month=page.getByText('MONTH',{exact:true}).locator('..').locator('select')
+  for(const property of ['fontSize','fontWeight','borderRadius','backgroundColor']){
+    const e=await engine.evaluate((el,prop)=>getComputedStyle(el)[prop],property)
+    const m=await month.evaluate((el,prop)=>getComputedStyle(el)[prop],property)
+    expect(e,property).toBe(m)
+  }
+})
+
+test('achieved current-month target displays trophy GIF instead of text alone',async ({page})=>{
+  await page.clock.setFixedTime(new Date('2026-11-20T12:00:00Z'))
+  await uploadGolden(page)
+  await expect(page.getByText('Already reached',{exact:true})).toBeVisible()
+  const gif=page.locator('.bulk-target-achieved img')
+  await expect(gif).toBeVisible()
+  await expect(gif).toHaveAttribute('src',/^data:image\\/gif;base64,/)
+  const metadata=await gif.evaluate(img=>({complete:img.complete,width:img.naturalWidth,height:img.naturalHeight}))
+  expect(metadata).toEqual({complete:true,width:64,height:64})
+})
