@@ -142,26 +142,55 @@ export function getVisibleServices(): CatalogueService[] {
   return data.services.filter((s) => !isHiddenFromCatalogue(s))
 }
 
+/** Normalize punctuation and whitespace consistently in queries and catalogue labels. */
+function normalizeCatalogueSearch(value: string): string {
+  return value.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ')
+}
+
+/** A package's searchable clinical content comes from the same authoritative
+ * components and panel tests used in its expanded "What's included" details.
+ * Do not index comp.group: a group called "BCA / ECG" can contain only ECG
+ * and would otherwise falsely claim that BCA is included.
+ */
+function catalogueSearchTerms(service: CatalogueService): string {
+  const components = new Set<string>([
+    ...(service.components ?? []),
+    ...service.comps.map((comp) => comp.name),
+  ])
+  const tests = getServiceTests(service)
+  const aliases: string[] = []
+  if (components.has('BCA')) aliases.push('body composition analysis', 'body composition')
+  if (components.has('ECG')) aliases.push('electrocardiogram', 'electrocardiography')
+  if (tests.some((test) => test.group === 'Complete Blood Count'))
+    aliases.push('cbc', 'fbc', 'full blood count')
+  if (tests.some((test) => /hba1c/i.test(test.name)))
+    aliases.push('a1c', 'glycated hemoglobin', 'glycosylated hemoglobin')
+  return normalizeCatalogueSearch([
+    service.name, service.sub, service.category,
+    ...components, ...tests.flatMap((test) => [test.name, test.group]),
+    ...aliases,
+  ].join(' '))
+}
+
+const catalogueSearchCache = new Map<number, string>()
+
 /**
- * Filter services by free-text query and/or an exact category. The query is
- * split into words and a service matches only if EVERY word appears somewhere
- * in its name, sub-label, category, or one of its lab-test/marker names — so
- * "dubai men" and marker searches like "vitamin d" both work regardless of word
- * order. Marker names are only joined when a word misses the cheaper fields, so
- * typing stays responsive.
+ * Search package name, category, actual included service components (BCA, ECG,
+ * gut kit, DNA modules), clinical marker names and clinical profile groups.
+ * Match all query words, regardless of order, without inventing test coverage.
  */
 export function searchServices(query: string, category?: string): CatalogueService[] {
-  const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean)
-  return data.services.filter((s) => {
-    if (category && s.category !== category) return false
+  const tokens = normalizeCatalogueSearch(query).split(' ').filter(Boolean)
+  return data.services.filter((service) => {
+    if (category && service.category !== category) return false
     if (tokens.length === 0) return true
-    const base = `${s.name} ${s.sub || ''} ${s.category}`.toLowerCase()
-    let markers: string | null = null
-    return tokens.every((tok) => {
-      if (base.includes(tok)) return true
-      if (markers === null) markers = getServiceTests(s).map((t) => t.name).join(' ').toLowerCase()
-      return markers.includes(tok)
-    })
+    let haystack = catalogueSearchCache.get(service.id)
+    if (haystack === undefined) {
+      haystack = catalogueSearchTerms(service)
+      catalogueSearchCache.set(service.id, haystack)
+    }
+    return tokens.every((token) => haystack.includes(token))
   })
 }
 
