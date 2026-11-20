@@ -1,5 +1,5 @@
-/** Calendar-day run-rate forecast with a 9.95% reduction to expected future sales. */
-export const PROJECTION_DISCOUNT = 0.0995
+/** Calendar-day run-rate forecast with a 6.6% reduction to expected future sales. */
+export const PROJECTION_DISCOUNT = 0.066
 export interface MonthlySalesProjection {
   cutoff: number
   daysInMonth: number
