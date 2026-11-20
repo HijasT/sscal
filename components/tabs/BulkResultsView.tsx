@@ -21,6 +21,7 @@ import { readEnginePreferences, writeEnginePreferences, type IncentiveEngineChoi
 import type { MrKrabsPreviewOutcome } from '@/lib/mrKrabsPreview'
 import type { LegacyBonusLedger } from '@/lib/legacyBonus'
 import { visibleCenterRankings, nextCenterVisibility } from '@/lib/centerRankingVisibility'
+import { TARGET_ACHIEVED_GIF } from '@/lib/targetAchievedGif'
 
 type ViewMode = BulkViewMode
 type SortCol = keyof BulkResult
@@ -570,7 +571,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                 <div><span>Achieved as of reporting date</span><strong>{projection.currentPercent.toFixed(1)}%</strong></div>
                 <div><span>Projected month-end (future sales −6.6%)</span><strong>{projection.projectedPercent.toFixed(1)}%</strong></div>
                 <div><span>Estimated 100% target date</span><strong>{
-                  projection.targetReached ? 'Already reached'
+                  projection.targetReached ? <span className="bulk-target-achieved"><img src={TARGET_ACHIEVED_GIF} alt="" aria-hidden="true" width="54" height="54" /><span>Already reached</span></span>
                     : projection.dailySales === 0 ? 'No sales pace yet'
                       : projection.targetDay
                         ? `${projection.targetDay} ${selectedMonth}`
@@ -659,9 +660,14 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
               screens they wrap without stretching either field unexpectedly. */}
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',gap:'14px',alignItems:'end',marginBottom:'12px'}}>
             <div className="form-group" style={{marginBottom:0,minWidth:0}}>
-              <label htmlFor="bulk-incentive-engine">Ranking calculation engine</label>
+              <label htmlFor="bulk-incentive-engine" style={{fontSize:'11px',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.5px',color:'var(--text-muted)'}}>Ranking calculation engine</label>
               <select id="bulk-incentive-engine" value={engineChoice}
-                style={{width:'100%',height:'48px',font:'inherit'}}
+                style={{width:'100%',padding:'12px 16px',fontSize:'14px',fontWeight:600,
+                  color:'var(--text-primary)',background:'var(--bg-secondary)',
+                  border:'1px solid var(--border-color)',borderRadius:'var(--radius-md)',
+                  cursor:'pointer',transition:'var(--transition-base)',outline:'none'}}
+                onFocus={e=>{e.currentTarget.style.borderColor='var(--accent-primary)'}}
+                onBlur={e=>{e.currentTarget.style.borderColor='var(--border-color)'}}
                 onChange={e => switchEngine(e.target.value as IncentiveEngineChoice)}>
                 <option value="legacy">Legacy Engine</option>
                 <option value="mr-krabs">Mr. Krabs Engine</option>
@@ -697,13 +703,12 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
           )}
           {/* Table — frozen header, horizontal + vertical scroll */}
           <div className="center-rank-summary" role="status">Showing {centerRanking.rows.length} of {sortedResults.length} ranked staff — {krabsReady ? (engineChoice === 'scrooge' ? 'Scrooge comparison' : 'Mr. Krabs comparison') : 'Legacy'} ranking. Rankings are recalculated for the selected payout view.</div>
-          <div style={{overflowX:'auto',marginBottom:'24px'}}>
-            <div style={{maxHeight:'520px',overflowY:'auto'}}>
-              <table style={{width:'100%',borderCollapse:'collapse',minWidth:'1450px'}}>
+          <div className="rank-table-scroll" style={{overflow:'auto',maxHeight:'520px',marginBottom:'24px'}}>
+              <table style={{width:'100%',borderCollapse:'separate',borderSpacing:0,minWidth:'1650px'}}>
                 <thead>
                   <tr>
-                    <th style={{...TH,width:'46px'}}>Rank</th>
-                    <th style={thHl('name')} onClick={()=>handleSort('name')}>Name{si('name')}</th>
+                    <th className="rank-freeze-rank" style={{...TH,width:'70px',minWidth:'70px',maxWidth:'70px'}}>Rank</th>
+                    <th className="rank-freeze-name" style={thHl('name',{width:'240px',minWidth:'240px',maxWidth:'240px'})} onClick={()=>handleSort('name')}>Name{si('name')}</th>
                     <th style={thHl('totalIncentive')} onClick={()=>handleSort('totalIncentive')}>{krabsReady || legacyBonusReady ? 'Total incl. bonus' : 'Total'}{si('totalIncentive')}</th>
                     <th style={thHl('packages')} onClick={()=>handleSort('packages')}>Packages{si('packages')}</th>
                     <th style={thHl('clients')} onClick={()=>handleSort('clients')}>Clients{si('clients')}</th>
@@ -729,8 +734,8 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                       <Fragment key={person.name}>
                         {centerRanking.dividerIndex === i && averageRow}
                       <tr style={{borderBottom:'1px solid var(--border-color)',background:isTop3?'var(--accent-soft)':undefined}}>
-                        <td style={{...TD,fontWeight:isTop3?'700':'normal',color:nc,fontFamily:"'JetBrains Mono', monospace"}}>#{rank}</td>
-                        <td style={tdHl('name',{fontWeight:isTop3?'700':'normal',color:nc})}>{person.name}<CenterBadge name={person.name} /></td>
+                        <td className="rank-freeze-rank" style={{...TD,width:'70px',minWidth:'70px',maxWidth:'70px',fontWeight:isTop3?'700':'normal',color:nc,fontFamily:"'JetBrains Mono', monospace"}}>#{rank}</td>
+                        <td className="rank-freeze-name" title={person.name} style={tdHl('name',{width:'240px',minWidth:'240px',maxWidth:'240px',fontWeight:isTop3?'700':'normal',color:nc})}>{person.name}<CenterBadge name={person.name} /></td>
                         <td style={tdHl('totalIncentive',{fontWeight:'600',color:isTop3?'var(--accent-primary)':'var(--success)'})}>AED {formattedPayout(person).total}</td>
                         <td style={tdHl('packages')}>{person.packages}</td>
                         <td style={tdHl('clients')}>{person.clients??'-'}</td>
@@ -762,7 +767,6 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                   {centerRanking.dividerIndex === centerRanking.rows.length && averageRow}
                 </tbody>
               </table>
-            </div>
           </div>
 
           {/* Export */}
