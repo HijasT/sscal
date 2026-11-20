@@ -37,7 +37,7 @@ test('ECG, microbiome and DNA module searches match actual package components', 
 })
 
 test('all visible packages containing a clinical marker can be located by its name', () => {
-  const markerNames = ['HbA1c - Glycated Haemoglobin', 'Vitamin D Total', 'Alanine aminotransferase']
+  const markerNames = ['HbA1c - Glycated Haemoglobin', 'Vitamin D Total', 'Creatinine']
   for (const marker of markerNames) {
     const expected = visible.filter(s => getServiceTests(s).some(t => t.name === marker))
     assert.ok(expected.length > 0, `Expected marker to exist in snapshot: ${marker}`)
