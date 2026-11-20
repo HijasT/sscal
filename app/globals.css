@@ -2171,3 +2171,40 @@ body.light-mode .sa {
 /* Keep the shared Beta month picker alongside its title on wide screens. */
 .beta-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
 .beta-head .beta-month-picker { margin-bottom: 0; }
+
+
+/* Lock the first two ranking columns to the horizontal scroll viewport.
+   Single scroll container is essential: nested X/Y overflow breaks sticky left. */
+.rank-table-scroll { isolation: isolate; }
+.rank-table-scroll thead th { position: sticky; top: 0; z-index: 3; }
+.rank-table-scroll .rank-freeze-rank,
+.rank-table-scroll .rank-freeze-name {
+  position: sticky;
+  background: var(--bg-card);
+  background-clip: padding-box;
+}
+.rank-table-scroll .rank-freeze-rank { left: 0; z-index: 4; }
+.rank-table-scroll .rank-freeze-name {
+  left: 70px;
+  z-index: 4;
+  box-shadow: 2px 0 0 var(--border-color), 6px 0 9px -8px rgba(0,0,0,.4);
+}
+.rank-table-scroll thead .rank-freeze-rank,
+.rank-table-scroll thead .rank-freeze-name { z-index: 6; background: var(--bg-secondary); }
+.rank-table-scroll tbody tr .rank-freeze-name,
+.rank-table-scroll tbody tr .rank-freeze-rank {
+  border-bottom: 1px solid var(--border-color);
+}
+.rank-table-scroll tbody tr[style*="background"] .rank-freeze-name,
+.rank-table-scroll tbody tr[style*="background"] .rank-freeze-rank {
+  background: color-mix(in srgb, var(--accent-primary) 9%, var(--bg-card));
+}
+
+/* Compact achieved-target celebration; textual status remains readable.
+   Hide the looping GIF for visitors who prefer reduced motion. */
+.bulk-target-achieved { display:inline-flex; align-items:center; justify-content:flex-start; gap:9px; }
+.bulk-target-achieved img { display:block; flex:none; width:54px; height:54px; object-fit:contain; border-radius:8px; }
+.bulk-target-achieved > span { white-space:normal; }
+@media (prefers-reduced-motion: reduce) {
+  .bulk-target-achieved img { display:none; }
+}
