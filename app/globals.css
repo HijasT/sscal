@@ -2206,6 +2206,7 @@ body.light-mode .sa {
   position: relative;
   display: block;
   min-height: 112px;
+  aspect-ratio: 498 / 284;
   padding: 0;
   overflow: hidden;
   background: var(--bg-card);
