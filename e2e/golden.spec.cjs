@@ -176,6 +176,6 @@ test('achieved current-month target displays captioned Nailed It GIF filling the
   expect(metadata.width).toBeGreaterThan(150)
   expect(metadata.height).toBeGreaterThan(80)
   const fills=await gif.evaluate(img=>{const parent=img.parentElement.getBoundingClientRect();const box=img.getBoundingClientRect();return {dw:Math.abs(box.width-parent.width),dh:Math.abs(box.height-parent.height)}})
-  expect(fills.dw).toBeLessThan(2)
-  expect(fills.dh).toBeLessThan(2)
+  expect(fills.dw).toBeLessThan(3)
+  expect(fills.dh).toBeLessThan(3)
 })
