@@ -21,7 +21,7 @@ import { readEnginePreferences, writeEnginePreferences, type IncentiveEngineChoi
 import type { MrKrabsPreviewOutcome } from '@/lib/mrKrabsPreview'
 import type { LegacyBonusLedger } from '@/lib/legacyBonus'
 import { visibleCenterRankings, nextCenterVisibility } from '@/lib/centerRankingVisibility'
-import { TARGET_ACHIEVED_GIF } from '@/lib/targetAchievedGif'
+import { NAILED_IT_GIF } from '@/lib/nailedItGif'
 
 type ViewMode = BulkViewMode
 type SortCol = keyof BulkResult
@@ -570,13 +570,19 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
               <div className="bulk-projection-stats">
                 <div><span>Achieved as of reporting date</span><strong>{projection.currentPercent.toFixed(1)}%</strong></div>
                 <div><span>Projected month-end (future sales −6.6%)</span><strong>{projection.projectedPercent.toFixed(1)}%</strong></div>
-                <div><span>Estimated 100% target date</span><strong>{
-                  projection.targetReached ? <span className="bulk-target-achieved"><img src={TARGET_ACHIEVED_GIF} alt="" aria-hidden="true" width="54" height="54" /><span>Already reached</span></span>
-                    : projection.dailySales === 0 ? 'No sales pace yet'
+                {projection.targetReached ? (
+                  <div className="bulk-target-achieved-card" role="status" aria-label="100% target achieved — Nailed it!">
+                    <img src={NAILED_IT_GIF} alt="Nailed it!" loading="eager" />
+                    <span className="bulk-target-achieved-reduced-motion">100% target achieved</span>
+                  </div>
+                ) : (
+                  <div><span>Estimated 100% target date</span><strong>{
+                    projection.dailySales === 0 ? 'No sales pace yet'
                       : projection.targetDay
                         ? `${projection.targetDay} ${selectedMonth}`
                         : 'Not at current pace'
-                }</strong></div>
+                  }</strong></div>
+                )}
               </div>
               <div className="bulk-projection-chart">
                 <div className="bulk-projection-bar">
