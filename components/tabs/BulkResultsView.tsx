@@ -568,7 +568,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
               </div>
               <div className="bulk-projection-stats">
                 <div><span>Achieved as of reporting date</span><strong>{projection.currentPercent.toFixed(1)}%</strong></div>
-                <div><span>Projected month-end (future sales −9.95%)</span><strong>{projection.projectedPercent.toFixed(1)}%</strong></div>
+                <div><span>Projected month-end (future sales −6.6%)</span><strong>{projection.projectedPercent.toFixed(1)}%</strong></div>
                 <div><span>Estimated 100% target date</span><strong>{
                   projection.targetReached ? 'Already reached'
                     : projection.dailySales === 0 ? 'No sales pace yet'
@@ -601,7 +601,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
               </div>
               <p className="bulk-projection-note">
                 Actual through the latest recorded sales day ({projection.cutoff} {selectedMonth}), not necessarily today.
-                Projection uses the recorded calendar-day pace (AED {formatCurrency(projection.dailySales)}/day) and reduces only expected remaining sales by 9.95%. Recorded sales are never reduced; at month-end the projection equals actual sales.
+                Projection uses the recorded calendar-day pace (AED {formatCurrency(projection.dailySales)}/day) and reduces only expected remaining sales by 6.6%. Recorded sales are never reduced; at month-end the projection equals actual sales.
               </p>
             </section>
           )}
