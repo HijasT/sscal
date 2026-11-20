@@ -168,7 +168,7 @@ test('achieved current-month target displays trophy GIF instead of text alone',a
   await expect(page.getByText('Already reached',{exact:true})).toBeVisible()
   const gif=page.locator('.bulk-target-achieved img')
   await expect(gif).toBeVisible()
-  await expect(gif).toHaveAttribute('src',/^data:image\\/gif;base64,/)
+  await expect(gif).toHaveAttribute('src',new RegExp('^data:image/gif;base64,'))
   const metadata=await gif.evaluate(img=>({complete:img.complete,width:img.naturalWidth,height:img.naturalHeight}))
   expect(metadata).toEqual({complete:true,width:64,height:64})
 })
