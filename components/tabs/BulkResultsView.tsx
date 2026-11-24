@@ -510,19 +510,15 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
 
           {/* Stats */}
           <div className="summary-stats" style={{marginBottom:'24px'}}>
-            <div className="stat-card"><div className="stat-label">Achievement</div><div className="stat-value">{calculatedData.teamAchievement.toFixed(2)}<span className="stat-unit">%</span></div></div>
             <div className="stat-card">
-              <div className="stat-label">Current Tier</div>
-              <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+              <div className="stat-label">Achievement</div>
+              <div className="stat-value">{calculatedData.teamAchievement.toFixed(2)}<span className="stat-unit">%</span></div>
+              <div style={{display:'flex',alignItems:'center',gap:'10px',marginTop:'8px',flexWrap:'wrap'}}>
                 <div className="stat-value" style={{fontSize:'18px'}}>{calculatedData.tier.name}</div>
                 <div className="tier-badge" style={{background:`${calculatedData.tier.color}22`,color:calculatedData.tier.color,marginTop:0}}>{calculatedData.tier.rate}% rate</div>
               </div>
             </div>
             <div className="stat-card"><div className="stat-label">Total Pool</div><div className="stat-value" style={{fontSize:'18px'}}>AED {formatCurrency(calculatedData.totalPool)}</div></div>
-            <div className="stat-card">
-              <div className="stat-label">Staff Payout Total</div>
-              <div className="stat-value" style={{fontSize:'18px'}}>AED {formatCurrency(calculatedData.staffTotalFils / 100)}</div>
-            </div>
             <div className="stat-card">
               <div className="stat-label">Accounting Remainder</div>
               <div className="stat-value" style={{fontSize:'18px'}}>AED {formatCurrency(calculatedData.remainderFils / 100)}</div>
@@ -536,6 +532,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
             <div className="stat-card"><div className="stat-label">Team Target</div><div className="stat-value" style={{fontSize:'16px'}}>AED {formatCurrency(calculatedData.target)}</div></div>
             <div className="stat-card"><div className="stat-label">Team Sales</div><div className="stat-value" style={{fontSize:'16px'}}>AED {formatCurrency(calculatedData.teamSales)}</div></div>
             <div className="stat-card"><div className="stat-label">Avg Sales / Person</div><div className="stat-value" style={{fontSize:'16px'}}>AED {formatCurrency(calculatedData.avgSales)}</div></div>
+            <div className="stat-card"><div className="stat-label">Total Packages</div><div className="stat-value" style={{fontSize:'18px'}}>{calculatedData.teamPackages.toLocaleString('en-US')}</div></div>
             <div className="stat-card"><div className="stat-label">Avg Packages / Person</div><div className="stat-value" style={{fontSize:'18px'}}>{calculatedData.avgPackages.toFixed(1)}</div></div>
             {calculatedData.teamClients > 0 && (
               <>
