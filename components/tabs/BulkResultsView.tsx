@@ -20,6 +20,7 @@ import { DubaiItComparisonPanel } from '@/components/tabs/DubaiItComparisonPanel
 import { readEnginePreferences, writeEnginePreferences, type IncentiveEngineChoice } from '@/lib/enginePreferences'
 import type { MrKrabsPreviewOutcome } from '@/lib/mrKrabsPreview'
 import type { LegacyBonusLedger } from '@/lib/legacyBonus'
+import { isOctober2026 as isOctober2026Period } from '@/lib/dubaiItDetection'
 import { formatDubaiItCount } from '@/lib/dubaiItCountDisplay'
 import { visibleCenterRankings, nextCenterVisibility } from '@/lib/centerRankingVisibility'
 import { NAILED_IT_GIF } from '@/lib/nailedItGif'
@@ -230,7 +231,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   const dubaiEvidenceReady = !!selectedSheet && krabsSnapshot?.key === snapshotKey
   const dubaiCounts = dubaiEvidenceReady ? krabsSnapshot?.counts : undefined
   const discountedCounts = dubaiEvidenceReady ? krabsSnapshot?.discountedCounts : undefined
-  const isOctober2026 = /^Oct\s*(?:26|2026)$/i.test(selectedSheet?.sheetName ?? '')
+  const isOctober2026 = isOctober2026Period(selectedSheet?.sheetName)
   const dubaiBonusRate = bonusAed
   const legacyBonusReady = engineChoice === 'legacy' && !!selectedSheet && !!dubaiCounts &&
     (!isOctober2026 || !!discountedCounts) &&

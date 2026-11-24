@@ -22,7 +22,7 @@ export function inspectDubaiItCell(
   address: string,
   sheetName?: string,
 ): DubaiItCell | null {
-  const octoberDiscounts = /^Oct(?:ober)?\s*2026$/i.test(sheetName?.trim().replace(/\b26$/, '2026') ?? '')
+  const octoberDiscounts = isOctober2026(sheetName)
   const isDiscounted = (amount: number) => octoberDiscounts && (amount === 9000 || amount === 9700)
   if (!cell || cell.v == null || String(cell.v).trim() === '' || /^n\/?a$/i.test(String(cell.v).trim())) return null
   const sales = typeof cell.v === 'number' ? cell.v : Number(String(cell.v).replaceAll(',', ''))
@@ -57,4 +57,18 @@ export function inspectDubaiItCell(
     discountedDetected: amounts.filter(isDiscounted).length,
     status: 'verified',
   }
+}
+
+/** Use the same period check for detection, display and accounting. */
+export function isOctober2026(sheetName?: string): boolean {
+  return /^Oct(?:ober)?\s*(?:26|2026)$/i.test(sheetName?.trim() ?? '')
+}
+
+/** Reclassify previously parsed verified evidence using its original amount
+ * and formula, rather than relying on a field introduced in v15.2.8.
+ * Never infer packages from monthly totals or unverified formulas. */
+export function countDiscountedDubaiIt(cell: DubaiItCell, sheetName: string): number {
+  if (!isOctober2026(cell.sourceSheet ?? sheetName) || cell.status !== 'verified' || cell.day < 1 || cell.day > 31) return 0
+  const inspected = inspectDubaiItCell({ v: cell.sales, f: cell.formula }, cell.day, cell.address, cell.sourceSheet ?? sheetName)
+  return inspected?.status === 'verified' ? (inspected.discountedDetected ?? 0) : 0
 }

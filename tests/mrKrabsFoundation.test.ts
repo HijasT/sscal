@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import * as XLSX from 'xlsx'
-import { inspectDubaiItCell } from '../lib/dubaiItDetection'
+import { inspectDubaiItCell, countDiscountedDubaiIt, isOctober2026 } from '../lib/dubaiItDetection'
 import { parseExcelWorkbook } from '../lib/excelUtils'
 import { inferJoinerEligibility } from '../lib/joinerInference'
 import { previewMrKrabs, previewScrooge } from '../lib/mrKrabsPreview'
@@ -263,4 +263,20 @@ test('October workbook carries discounted package count without treating it as f
  const cells=parsed.staff[0].dubaiItCells ?? []
  assert.equal(cells.reduce((n,c)=>n+(c.discountedDetected??0),0),2)
  assert.equal(cells.reduce((n,c)=>n+c.detected,0),1)
+})
+
+test('October day 14 cached AED 9000 evidence is reclassified without a new upload',()=>{
+ const cached={day:14,address:'Q5',sales:9000,detected:0,status:'verified' as const}
+ assert.equal(countDiscountedDubaiIt(cached,'Oct 26'),1)
+ assert.equal(countDiscountedDubaiIt({...cached,discountedDetected:0},'Oct 26'),1)
+ assert.equal(countDiscountedDubaiIt({...cached,sales:9700},'October 2026'),1)
+ assert.equal(countDiscountedDubaiIt({...cached,sales:28700,formula:'10000+9000+9700',detected:1},'Oct 26'),2)
+ assert.equal(countDiscountedDubaiIt({...cached,sales:10000,detected:1},'Oct 26'),0)
+ assert.equal(countDiscountedDubaiIt(cached,'Nov 26'),0)
+ assert.equal(countDiscountedDubaiIt({...cached,status:'review'},'Oct 26'),0)
+ assert.equal(countDiscountedDubaiIt({...cached,day:0,address:'MONTH_TOTAL'},'Oct 26'),0)
+ assert.equal(countDiscountedDubaiIt({...cached,formula:'4500*2'},'Oct 26'),0)
+ assert.equal(countDiscountedDubaiIt({...cached,sourceSheet:'Nov 26'},'Oct 26'),0)
+ for(const period of ['Oct 26','Oct 2026','October 2026',' Oct26 ']) assert.equal(isOctober2026(period),true)
+ for(const period of ['Oct 25','Nov 26','Oct 27']) assert.equal(isOctober2026(period),false)
 })
