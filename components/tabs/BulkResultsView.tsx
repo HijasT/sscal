@@ -20,6 +20,7 @@ import { DubaiItComparisonPanel } from '@/components/tabs/DubaiItComparisonPanel
 import { readEnginePreferences, writeEnginePreferences, type IncentiveEngineChoice } from '@/lib/enginePreferences'
 import type { MrKrabsPreviewOutcome } from '@/lib/mrKrabsPreview'
 import type { LegacyBonusLedger } from '@/lib/legacyBonus'
+import { formatDubaiItCount } from '@/lib/dubaiItCountDisplay'
 import { visibleCenterRankings, nextCenterVisibility } from '@/lib/centerRankingVisibility'
 import { NAILED_IT_GIF } from '@/lib/nailedItGif'
 
@@ -762,7 +763,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                         <td style={tdHl('avgClientsPerDay')}>{person.clients ? person.avgClientsPerDay.toFixed(2) : '-'}</td>
                         <td style={tdHl('maxKpiClients')}>{person.clients ? person.maxKpiClients : '-'}</td>
                         <td style={tdHl('contribution')}>{person.contribution.toFixed(2)}%</td>
-                        <td style={TD}>{!dubaiCounts ? '—' : dubaiCounts[person.name] == null ? 'Review' : engineChoice === 'legacy' && isOctober2026 ? (dubaiCounts[person.name] ?? 0) + (discountedCounts?.[person.name] ?? 0) : dubaiCounts[person.name]}</td>
+                        <td style={TD}>{!dubaiCounts ? '—' : formatDubaiItCount(dubaiCounts[person.name], discountedCounts?.[person.name], engineChoice === 'legacy' && isOctober2026)}</td>
                         <td style={tdHl('p1')}>AED {formattedPayout(person).p1}</td>
                         <td style={tdHl('p2')}>AED {formattedPayout(person).p2}</td>
                         <td style={TD}>{!dubaiCounts ? '—' : dubaiCounts[person.name] == null ? 'Pending' : `AED ${formatCurrency(engineChoice === 'legacy' && isOctober2026 ? (dubaiBonusQualifies ? (dubaiCounts[person.name] ?? 0) * dubaiBonusRate : 0) + (discountedCounts?.[person.name] ?? 0) * 500 : dubaiBonusQualifies ? (dubaiCounts[person.name] ?? 0) * dubaiBonusRate : 0)}`}</td>
