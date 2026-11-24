@@ -248,7 +248,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
         // of achievement; the existing full-price bonus gate is unchanged.
         const fullBonus = calculatedData && calculatedData.teamAchievement >= 80
           ? fullCount * dubaiBonusRate : 0
-        return [person.name,{count,amount:Math.round((fullBonus + discounted * 500) * 100) / 100}]
+        return [person.name,{count,discountedCount:discounted,amount:Math.round((fullBonus + discounted * 500) * 100) / 100}]
       }))
     : undefined
   const displayResults: BulkResult[] = krabsReady && krabsSnapshot?.preview?.ok
