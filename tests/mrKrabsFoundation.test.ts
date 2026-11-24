@@ -229,3 +229,38 @@ test('Scrooge all-Dubai-It revenue has zero P1/P2 pool but still pays qualifying
  assert.equal(result.staff[0].p2,0)
  assert.equal(result.staff[0].totalIncentive,500)
 })
+
+test('October 2026 discounts of exactly AED 9000 or 9700 count as Dubai It for Legacy only',()=>{
+ const examples = [9000,9700]
+ for (const amount of examples) {
+   const oct=inspectDubaiItCell({v:amount},7,'J4','Oct 26')
+   assert.equal(oct?.status,'verified')
+   assert.equal(oct?.detected,0)
+   assert.equal(oct?.discountedDetected,1)
+   for (const other of ['Sep 26','Nov 26','Oct 25','Oct 27']) {
+     const outside=inspectDubaiItCell({v:amount},7,'J4',other)
+     assert.equal(outside?.discountedDetected ?? 0,0,other)
+   }
+ }
+ const oct=inspectDubaiItCell({v:28700,f:'9000+9700+10000'},7,'J4','Oct 26')
+ assert.equal(oct?.detected,1)
+ assert.equal(oct?.discountedDetected,2)
+ assert.equal(oct?.status,'verified')
+ const nov=inspectDubaiItCell({v:28700,f:'9000+9700+10000'},7,'J4','Nov 26')
+ assert.equal(nov?.detected,1)
+ assert.equal(nov?.discountedDetected ?? 0,0)
+ assert.equal(inspectDubaiItCell({v:9300},7,'J4','Oct 26')?.discountedDetected,0)
+ assert.equal(inspectDubaiItCell({v:90000},7,'J4','Oct 26')?.discountedDetected,0)
+ assert.equal(inspectDubaiItCell({v:18700,f:'9000+9700'},7,'J4','Oct 26')?.discountedDetected,2)
+ assert.equal(inspectDubaiItCell({v:19000,f:'9000+9700'},7,'J4','Oct 26')?.status,'review')
+})
+test('October workbook carries discounted package count without treating it as full price',()=>{
+ const sheet=month('Oct 26',[['A AE01-101',[1,1,1,1,1,1],[9000,9700,10000,0,null,null]]])
+ sheet['D5']={t:'n',v:9000}
+ sheet['E5']={t:'n',v:9700}
+ sheet['F5']={t:'n',v:10000}
+ const parsed=parseExcelWorkbook({SheetNames:['Oct 26'],Sheets:{'Oct 26':sheet}},XLSX)[0]
+ const cells=parsed.staff[0].dubaiItCells ?? []
+ assert.equal(cells.reduce((n,c)=>n+(c.discountedDetected??0),0),2)
+ assert.equal(cells.reduce((n,c)=>n+c.detected,0),1)
+})
