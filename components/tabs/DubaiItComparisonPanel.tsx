@@ -6,6 +6,7 @@ import { inferJoinerEligibility } from '@/lib/joinerInference'
 import { previewMrKrabs, previewScrooge } from '@/lib/mrKrabsPreview'
 import type { IncentiveEngineChoice } from '@/lib/enginePreferences'
 import type { MrKrabsPreviewOutcome } from '@/lib/mrKrabsPreview'
+import { countDiscountedDubaiIt } from '@/lib/dubaiItDetection'
 import { formatCurrency, loadTiers } from '@/lib/utils'
 
 interface Props {
@@ -48,7 +49,7 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
     const inference = joinersByName.get(person.name)
     const eligibility = inference?.status === 'existing' ? inference.daysInMonth : eligibleConfirmed[person.name]
     const discountedCount = cells.reduce((sum, cell) =>
-      sum + (cell.status === 'verified' ? (cell.discountedDetected ?? 0) : 0), 0)
+      sum + countDiscountedDubaiIt(cell, sheet.sheetName), 0)
     return { person, cells, count, discountedCount, pending, inference, eligibility }
   })
   const pendingCells = relevant.flatMap(({person,pending}) => pending.map(cell => ({person,cell})))
