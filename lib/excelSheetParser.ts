@@ -227,7 +227,7 @@ export function extractStaffFromSheet(
           if (!isWorkedSalesCell(dailyCell)) continue
 
           const address = XLSX.utils.encode_cell({ r: row - 1 + salesRowOffset, c: col })
-          const inspection = inspectDubaiItCell(dailyCell, day, address)
+          const inspection = inspectDubaiItCell(dailyCell, day, address, sheetName)
           if (inspection) dubaiItCells.push(inspection)
           workingDays++
           firstExplicitWorkedDay = Math.min(firstExplicitWorkedDay ?? day, day)
