@@ -46,3 +46,35 @@ test('Legacy bonus export fails closed for unverified roster, bad counts or bonu
  assert.equal(subthreshold.ok,true)
  if(subthreshold.ok)assert.throws(()=>buildBulkCSV(subthreshold.results,subthreshold.data,{'A':{count:1,amount:500}}),/qualification/)
 })
+
+test('October 2026 Legacy gives AED 500 per discounted Dubai It even below 80% achievement',()=>{
+ const outcome=calculateBulkReport({
+   sheets:[{sheetName:'Oct 26',target:100000,staff:[
+     {name:'A',sales:18700,packages:2,workingDays:2}
+   ],teamTotal:{sales:18700,packages:2}}],
+   manualTarget:'',p1Split:50,excludedStaff:new Set<string>(),viewMode:'monthly',
+ })
+ assert.equal(outcome.ok,true)
+ if(!outcome.ok)return
+ assert.ok(outcome.data.teamAchievement<80)
+ const ledger={'A':{count:2,discountedCount:2,amount:1000}}
+ const audited=auditLegacyBonusLedger(outcome.results,outcome.data,ledger)
+ assert.equal(audited.byEmployee.get('A')?.amountFils,100000)
+ assert.equal(audited.grandTotalFils,outcome.data.staffTotalFils+100000)
+ const csv=buildBulkCSV(outcome.results,outcome.data,ledger)
+ assert.match(csv,/"Dubai It Bonus Total \(AED\)","1000.00"/)
+ assert.throws(()=>auditLegacyBonusLedger(outcome.results,outcome.data,{
+  A:{count:2,discountedCount:2,amount:500},
+ }),/qualification/)
+ assert.throws(()=>auditLegacyBonusLedger(outcome.results,outcome.data,{
+  A:{count:3,discountedCount:3,amount:1500},
+ }),/Invalid Dubai It/)
+})
+test('October discounts are not permitted in other months or non-monthly reports',()=>{
+ const outcome=result()
+ assert.equal(outcome.ok,true)
+ if(!outcome.ok)return
+ assert.throws(()=>auditLegacyBonusLedger(outcome.results,outcome.data,{
+  A:{count:1,discountedCount:1,amount:500},B:{count:0,amount:0},
+ }),/Invalid Dubai It/)
+})
