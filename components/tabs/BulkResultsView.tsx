@@ -736,7 +736,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                     <th style={thHl('avgClientsPerDay',{fontSize:'11px'})} onClick={()=>handleSort('avgClientsPerDay')}>Clients/Day{si('avgClientsPerDay')}</th>
                     <th style={thHl('maxKpiClients',{fontSize:'11px'})} onClick={()=>handleSort('maxKpiClients')}>Max KPI Clients{si('maxKpiClients')}</th>
                     <th style={thHl('contribution')} onClick={()=>handleSort('contribution')}>Revenue Share %{si('contribution')}</th>
-                    <th style={{...TH,cursor:'default'}}>Dubai It</th>
+                    <th style={{...TH,cursor:'default'}} title={engineChoice === 'legacy' && isOctober2026 ? 'Full-price + discounted Dubai It packages' : 'Full-price Dubai It packages'}>Dubai It{engineChoice === 'legacy' && isOctober2026 ? ' (Full+Discounted)' : ''}</th>
                     <th style={thHl('p1')} onClick={()=>handleSort('p1')}>P1{si('p1')}</th>
                     <th style={thHl('p2')} onClick={()=>handleSort('p2')}>P2{si('p2')}</th>
                     <th style={{...TH,cursor:'default'}}>Dubai It Bonus</th>
