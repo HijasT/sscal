@@ -2,6 +2,7 @@
  * The shared P1/P2 pool and Accounting Remainder exclude bonuses.
  */
 import type { BulkResult, BulkCalculatedData } from './bulkCalculation'
+import { isOctober2026 } from './dubaiItDetection'
 import { toFils } from './filsReconciliation'
 
 export interface LegacyBonusAward {
@@ -31,7 +32,7 @@ export function auditLegacyBonusLedger(
   }
   let totalBonusFils = 0
   const october2026 = data.viewMode === 'monthly' && data.sheets.length === 1 &&
-    /^Oct\s*(?:26|2026)$/i.test(data.sheets[0])
+    isOctober2026(data.sheets[0])
   for (const person of results) {
     const award = ledger[person.name]
     const discountedCount = award?.discountedCount ?? 0
