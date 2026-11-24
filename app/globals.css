@@ -2042,7 +2042,7 @@ body.light-mode .sa {
 .bulk-projection-actual { left: 0; background: var(--accent-primary); border-radius: 6px 0 0 6px; z-index: 1; }
 .bulk-projection-forecast { background: color-mix(in srgb, var(--accent-primary) 30%, var(--bg-secondary)); border-radius: 0 6px 6px 0; }
 .bulk-projection-target { position: absolute; top: -12px; bottom: -5px; width: 0; border-left: 2px dashed var(--text-secondary); z-index: 2; }
-.bulk-projection-target > span { position: absolute; bottom: calc(100% + 4px); left: 0; transform: translateX(-50%); white-space: nowrap; font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+.bulk-projection-target > span { position: absolute; bottom: calc(100% - 2px); left: 0; transform: translateX(-50%); white-space: nowrap; font-size: 11px; font-weight: 600; color: var(--text-secondary); }
 .bulk-projection-today { position: absolute; left: 0; top: calc(100% + 5px); transform: translateX(-50%); color: var(--text-secondary); font-size: 10px; white-space: nowrap; }
 .bulk-projection-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 19px; }
 .bulk-projection-legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 12px; color: var(--text-secondary); font-size: 12px; }
