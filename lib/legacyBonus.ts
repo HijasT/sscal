@@ -7,6 +7,8 @@ import { toFils } from './filsReconciliation'
 export interface LegacyBonusAward {
   count: number
   amount: number
+  /** Number of AED 9,000/9,700 Dubai It packages in October 2026 only. */
+  discountedCount?: number
 }
 export type LegacyBonusLedger = Readonly<Record<string, LegacyBonusAward>>
 
@@ -28,17 +30,24 @@ export function auditLegacyBonusLedger(
     throw new Error('Dubai It bonus ledger must match the active employee roster')
   }
   let totalBonusFils = 0
+  const october2026 = data.viewMode === 'monthly' && data.sheets.length === 1 &&
+    /^Oct\s*(?:26|2026)$/i.test(data.sheets[0])
   for (const person of results) {
     const award = ledger[person.name]
+    const discountedCount = award?.discountedCount ?? 0
     if (!award || !Number.isSafeInteger(award.count) || award.count < 0 ||
-        award.count * 10000 > person.sales + 0.005 ||
+        !Number.isSafeInteger(discountedCount) || discountedCount < 0 ||
+        (discountedCount > 0 && !october2026) || discountedCount > award.count ||
+        (award.count - discountedCount) * 10000 + discountedCount * 9000 > person.sales + 0.005 ||
         !Number.isFinite(award.amount) || award.amount < 0) {
       throw new Error(`Invalid Dubai It bonus award for ${person.name}`)
     }
     const amountFils = toFils(award.amount)
     const personalFils = toFils(person.p1) + toFils(person.p2)
+    const fixedOctoberDiscountBonusFils = discountedCount * 50000
     if (toFils(person.totalIncentive) !== personalFils ||
-        (data.teamAchievement < 80 && amountFils !== 0)) {
+        amountFils < fixedOctoberDiscountBonusFils ||
+        (data.teamAchievement < 80 && amountFils !== fixedOctoberDiscountBonusFils)) {
       throw new Error('Legacy base payout or bonus qualification does not reconcile')
     }
     totalBonusFils += amountFils

@@ -1,6 +1,8 @@
 /** Inspect daily sales: a direct amount is one sale, and a simple additive
  * formula lists individual sale amounts. Exact AED 10,000 means one full-price
- * Dubai It package. Never infer counts from monthly totals or complex formulas.
+ * Dubai It package. Only in October 2026, exact AED 9,000 or AED 9,700
+ * literals are also recognized as discounted Dubai It for the Legacy bonus.
+ * Never infer counts from monthly totals or complex formulas.
  */
 export interface DubaiItCell {
   day: number
@@ -9,6 +11,8 @@ export interface DubaiItCell {
   formula?: string
   sales: number
   detected: number
+  /** Oct 2026 discounted AED 9,000/9,700 packages; Legacy bonus only. */
+  discountedDetected?: number
   status: 'verified' | 'review'
   reason?: string
 }
@@ -16,7 +20,10 @@ export function inspectDubaiItCell(
   cell: { f?: string; v?: unknown } | undefined,
   day: number,
   address: string,
+  sheetName?: string,
 ): DubaiItCell | null {
+  const octoberDiscounts = /^Oct(?:ober)?\s*2026$/i.test(sheetName?.trim().replace(/\b26$/, '2026') ?? '')
+  const isDiscounted = (amount: number) => octoberDiscounts && (amount === 9000 || amount === 9700)
   if (!cell || cell.v == null || String(cell.v).trim() === '' || /^n\/?a$/i.test(String(cell.v).trim())) return null
   const sales = typeof cell.v === 'number' ? cell.v : Number(String(cell.v).replaceAll(',', ''))
   if (!Number.isFinite(sales) || sales < 0) return {
@@ -26,10 +33,11 @@ export function inspectDubaiItCell(
   if (sales === 0 && !cell.f) return null
   const formula = cell.f?.trim()
   // A plain numeric value represents exactly one day's sale amount.
-  // Only an exact AED 10,000 is a full-price Dubai It; other amounts
-  // represent ordinary sales, not an uncertain package breakdown.
+  // Only an exact AED 10,000 is a full-price Dubai It; in October 2026,
+  // AED 9,000/9,700 each represent one discounted Dubai It.
   if (!formula) return {
-    day, address, sales, detected: sales === 10000 ? 1 : 0, status: 'verified',
+    day, address, sales, detected: sales === 10000 ? 1 : 0,
+    discountedDetected: isDiscounted(sales) ? 1 : 0, status: 'verified',
   }
   // Restrict to '+'-joined monetary literals, allowing an optional leading '='.
   // Parentheses, references, subtraction, multipliers and functions need review.
@@ -46,6 +54,7 @@ export function inspectDubaiItCell(
   }
   return {
     day, address, sales, formula, detected: amounts.filter(amount => amount === 10000).length,
+    discountedDetected: amounts.filter(isDiscounted).length,
     status: 'verified',
   }
 }

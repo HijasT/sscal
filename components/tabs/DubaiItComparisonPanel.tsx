@@ -15,7 +15,7 @@ interface Props {
   calculation: BulkCalculatedData
   selectedEngine: IncentiveEngineChoice
   bonusAed: number
-  onPreviewChange: (evidence: {engine: IncentiveEngineChoice; preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; bonusAed: number}) => void
+  onPreviewChange: (evidence: {engine: IncentiveEngineChoice; preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; discountedCounts: Record<string, number | null>; bonusAed: number}) => void
 }
 function cellKey(name: string, sheet: string, address: string) {
   return JSON.stringify([name, sheet, address])
@@ -47,7 +47,9 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
       cell.detected : (verified[cellKey(person.name, cell.sourceSheet ?? sheet.sheetName, cell.address)] ?? 0)), 0)
     const inference = joinersByName.get(person.name)
     const eligibility = inference?.status === 'existing' ? inference.daysInMonth : eligibleConfirmed[person.name]
-    return { person, cells, count, pending, inference, eligibility }
+    const discountedCount = cells.reduce((sum, cell) =>
+      sum + (cell.status === 'verified' ? (cell.discountedDetected ?? 0) : 0), 0)
+    return { person, cells, count, discountedCount, pending, inference, eligibility }
   })
   const pendingCells = relevant.flatMap(({person,pending}) => pending.map(cell => ({person,cell})))
   const unconfirmedEligibility = relevant.filter(p => p.eligibility === undefined)
@@ -68,6 +70,7 @@ export function DubaiItComparisonPanel({ sheet, workbookSheets, results, calcula
     preview,
     engine: selectedEngine,
     counts: Object.fromEntries(relevant.map(p => [p.person.name, p.pending.length ? null : p.count])) as Record<string, number | null>,
+    discountedCounts: Object.fromEntries(relevant.map(p => [p.person.name, p.pending.length ? null : p.discountedCount])) as Record<string, number | null>,
     bonusAed,
   }
   const previewSignature = JSON.stringify(evidence)

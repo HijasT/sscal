@@ -20,6 +20,7 @@ import { DubaiItComparisonPanel } from '@/components/tabs/DubaiItComparisonPanel
 import { readEnginePreferences, writeEnginePreferences, type IncentiveEngineChoice } from '@/lib/enginePreferences'
 import type { MrKrabsPreviewOutcome } from '@/lib/mrKrabsPreview'
 import type { LegacyBonusLedger } from '@/lib/legacyBonus'
+import { formatDubaiItCount } from '@/lib/dubaiItCountDisplay'
 import { visibleCenterRankings, nextCenterVisibility } from '@/lib/centerRankingVisibility'
 import { NAILED_IT_GIF } from '@/lib/nailedItGif'
 
@@ -101,7 +102,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   const [engineChoice, setEngineChoice] = useState<IncentiveEngineChoice>('legacy')
   const [bonusDraft, setBonusDraft] = useState('500')
   const [bonusAed, setBonusAed] = useState(500)
-  const [krabsSnapshot, setKrabsSnapshot] = useState<{ key: string; engine: IncentiveEngineChoice; preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; bonusAed: number } | null>(null)
+  const [krabsSnapshot, setKrabsSnapshot] = useState<{ key: string; engine: IncentiveEngineChoice; preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; discountedCounts: Record<string, number | null>; bonusAed: number } | null>(null)
   useEffect(() => {
     const prefs = readEnginePreferences()
     setEngineChoice(prefs.engine)
@@ -228,17 +229,27 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
     krabsSnapshot?.key === snapshotKey && krabsSnapshot.preview?.ok === true
   const dubaiEvidenceReady = !!selectedSheet && krabsSnapshot?.key === snapshotKey
   const dubaiCounts = dubaiEvidenceReady ? krabsSnapshot?.counts : undefined
+  const discountedCounts = dubaiEvidenceReady ? krabsSnapshot?.discountedCounts : undefined
+  const isOctober2026 = /^Oct\s*(?:26|2026)$/i.test(selectedSheet?.sheetName ?? '')
   const dubaiBonusRate = bonusAed
   const legacyBonusReady = engineChoice === 'legacy' && !!selectedSheet && !!dubaiCounts &&
+    (!isOctober2026 || !!discountedCounts) &&
     results.every(person => Number.isSafeInteger(dubaiCounts[person.name]) &&
-      (dubaiCounts[person.name] ?? -1) >= 0)
+      (dubaiCounts[person.name] ?? -1) >= 0 &&
+      (!isOctober2026 || (Number.isSafeInteger(discountedCounts?.[person.name]) &&
+        (discountedCounts?.[person.name] ?? -1) >= 0)))
   // The ordinary team incentive pool stays unchanged. Bonuses are a separate
   // employee-specific ledger that is added only AFTER P1/P2, including in exports.
   const legacyBonusLedger: LegacyBonusLedger | undefined = legacyBonusReady
     ? Object.fromEntries(results.map(person => {
-        const count = dubaiCounts![person.name]!
-        return [person.name,{count,amount:calculatedData && calculatedData.teamAchievement >= 80
-          ? Math.round(count * dubaiBonusRate * 100) / 100 : 0}]
+        const fullCount = dubaiCounts![person.name]!
+        const discounted = isOctober2026 ? (discountedCounts?.[person.name] ?? 0) : 0
+        const count = fullCount + discounted
+        // October discounted Dubai It earns AED 500 per package irrespective
+        // of achievement; the existing full-price bonus gate is unchanged.
+        const fullBonus = calculatedData && calculatedData.teamAchievement >= 80
+          ? fullCount * dubaiBonusRate : 0
+        return [person.name,{count,discountedCount:discounted,amount:Math.round((fullBonus + discounted * 500) * 100) / 100}]
       }))
     : undefined
   const displayResults: BulkResult[] = krabsReady && krabsSnapshot?.preview?.ok
@@ -284,7 +295,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
   }
   const normalizeDubaiBonus = () => setBonusDraft(String(bonusAed))
   const onKrabsPreviewChange = useMemo(() =>
-    (evidence: {engine: IncentiveEngineChoice; preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; bonusAed: number}) =>
+    (evidence: {engine: IncentiveEngineChoice; preview: MrKrabsPreviewOutcome | null; counts: Record<string, number | null>; discountedCounts: Record<string, number | null>; bonusAed: number}) =>
       setKrabsSnapshot({ key: snapshotKey, ...evidence }),
     [snapshotKey])
   const dubaiBonusQualifies = (krabsReady && krabsSnapshot?.preview?.ok)
@@ -725,7 +736,7 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                     <th style={thHl('avgClientsPerDay',{fontSize:'11px'})} onClick={()=>handleSort('avgClientsPerDay')}>Clients/Day{si('avgClientsPerDay')}</th>
                     <th style={thHl('maxKpiClients',{fontSize:'11px'})} onClick={()=>handleSort('maxKpiClients')}>Max KPI Clients{si('maxKpiClients')}</th>
                     <th style={thHl('contribution')} onClick={()=>handleSort('contribution')}>Revenue Share %{si('contribution')}</th>
-                    <th style={{...TH,cursor:'default'}}>Dubai It</th>
+                    <th style={{...TH,cursor:'default'}} title={engineChoice === 'legacy' && isOctober2026 ? 'Full-price + discounted Dubai It packages' : 'Full-price Dubai It packages'}>Dubai It{engineChoice === 'legacy' && isOctober2026 ? ' (Full+Discounted)' : ''}</th>
                     <th style={thHl('p1')} onClick={()=>handleSort('p1')}>P1{si('p1')}</th>
                     <th style={thHl('p2')} onClick={()=>handleSort('p2')}>P2{si('p2')}</th>
                     <th style={{...TH,cursor:'default'}}>Dubai It Bonus</th>
@@ -752,10 +763,10 @@ export function BulkResultsView({ excelData, viewMode, selectedMonth, selectedYe
                         <td style={tdHl('avgClientsPerDay')}>{person.clients ? person.avgClientsPerDay.toFixed(2) : '-'}</td>
                         <td style={tdHl('maxKpiClients')}>{person.clients ? person.maxKpiClients : '-'}</td>
                         <td style={tdHl('contribution')}>{person.contribution.toFixed(2)}%</td>
-                        <td style={TD}>{!dubaiCounts ? '—' : dubaiCounts[person.name] == null ? 'Review' : dubaiCounts[person.name]}</td>
+                        <td style={TD}>{!dubaiCounts ? '—' : formatDubaiItCount(dubaiCounts[person.name], discountedCounts?.[person.name], engineChoice === 'legacy' && isOctober2026)}</td>
                         <td style={tdHl('p1')}>AED {formattedPayout(person).p1}</td>
                         <td style={tdHl('p2')}>AED {formattedPayout(person).p2}</td>
-                        <td style={TD}>{!dubaiCounts ? '—' : dubaiCounts[person.name] == null ? 'Pending' : `AED ${formatCurrency(dubaiBonusQualifies ? (dubaiCounts[person.name] ?? 0) * dubaiBonusRate : 0)}`}</td>
+                        <td style={TD}>{!dubaiCounts ? '—' : dubaiCounts[person.name] == null ? 'Pending' : `AED ${formatCurrency(engineChoice === 'legacy' && isOctober2026 ? (dubaiBonusQualifies ? (dubaiCounts[person.name] ?? 0) * dubaiBonusRate : 0) + (discountedCounts?.[person.name] ?? 0) * 500 : dubaiBonusQualifies ? (dubaiCounts[person.name] ?? 0) * dubaiBonusRate : 0)}`}</td>
                         <td style={{...TD,textAlign:'center',padding:'10px 6px'}}>
                           <button
                             onClick={()=>toggleExclude(person.name)}
